@@ -1,38 +1,23 @@
 import type Archetype from './Archetype'
 import type { ComponentTypeMap, ComponentIdMap, Query } from './types'
 
-export const every = <
-    TM extends ComponentTypeMap,
-    TKeys extends keyof TM
->(types: TKeys[]): Query<TKeys> => ({
+export const every = <TKeys>(...types: TKeys[]): Query<TKeys> => ({
     type: 'every',
     match: types
 })
-export const some = <
-    TM extends ComponentTypeMap,
-    TKeys extends keyof TM
->(types: TKeys[]): Query<TKeys> => ({
+export const some = <TKeys>(...types: TKeys[]): Query<TKeys> => ({
     type: 'some',
     match: types
 })
-export const not = <
-    TM extends ComponentTypeMap,
-    TKeys extends keyof TM
->(subQueries: Query<TKeys>[]): Query<TKeys> => ({
+export const not = <TKeys>(...subQueries: Query<TKeys>[]): Query<TKeys> => ({
     type: 'not',
     subQueries
 })
-export const and = <
-    TM extends ComponentTypeMap,
-    TKeys extends keyof TM
->(subQueries: Query<TKeys>[]): Query<TKeys> => ({
+export const and = <TKeys>(...subQueries: Query<TKeys>[]): Query<TKeys> => ({
     type: 'and',
     subQueries
 })
-export const or = <
-    TM extends ComponentTypeMap,
-    TKeys extends keyof TM
->(subQueries: Query<TKeys>[]): Query<TKeys> => ({
+export const or = <TKeys extends string | number>(...subQueries: Query<TKeys>[]): Query<TKeys> => ({
     type: 'or',
     subQueries
 })
