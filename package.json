@@ -1,0 +1,41 @@
+{
+  "name": "piecs",
+  "version": "0.1.0",
+  "description": "PIECS is an entity component system with some batteries included",
+  "main": "lib/index.js",
+  "repository": "git@github.com:sondresj/piecs.git",
+  "author": "Sondre <sondre.skaardal.jensen@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "scripts": {
+    "test": "jest",
+    "build": "tsc"
+  },
+  "jest": {
+      "preset": "ts-jest",
+      "testEnvironment": "node",
+      "coverageDirectory": ".reports",
+      "testMatch": [
+          "**/__tests__/**/*.ts"
+      ],
+      "reporters": [
+          "default",
+          "jest-junit"
+      ]
+  },
+  "jest-junit": {
+      "outputDirectory": ".reports"
+  },
+  "devDependencies": {
+    "@types/jest": "^27.0.1",
+    "@typescript-eslint/eslint-plugin": "^4.30.0",
+    "@typescript-eslint/parser": "^4.30.0",
+    "eslint": "^7.32.0",
+    "eslint-config-dintero": "https://github.com/dintero/eslint-config-dintero",
+    "eslint-plugin-import": "^2.24.2",
+    "jest": "^27.1.0",
+    "jest-junit": "^12.2.0",
+    "ts-jest": "^27.0.5",
+    "typescript": "^4.4.2"
+  }
+}
