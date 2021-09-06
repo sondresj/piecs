@@ -1,31 +1,30 @@
 import type Archetype from './Archetype'
 import type { ComponentTypeMap, ComponentIdMap, Query } from './types'
 
-export const every = <TKeys>(...types: TKeys[]): Query<TKeys> => ({
+export const every = <TM extends ComponentTypeMap, CT extends keyof TM>(...types: CT[]): Query<CT> => ({
     type: 'every',
     match: types
 })
-export const some = <TKeys>(...types: TKeys[]): Query<TKeys> => ({
+export const some = <TM extends ComponentTypeMap, CT extends keyof TM>(...types: CT[]): Query<CT> => ({
     type: 'some',
     match: types
 })
-export const not = <TKeys>(...subQueries: Query<TKeys>[]): Query<TKeys> => ({
+export const not = <TM extends ComponentTypeMap, CT extends keyof TM>(...subQueries: Query<CT>[]): Query<CT> => ({
     type: 'not',
     subQueries
 })
-export const and = <TKeys>(...subQueries: Query<TKeys>[]): Query<TKeys> => ({
+export const and = <TM extends ComponentTypeMap, CT extends keyof TM>(...subQueries: Query<CT>[]): Query<CT> => ({
     type: 'and',
     subQueries
 })
-export const or = <TKeys extends string | number>(...subQueries: Query<TKeys>[]): Query<TKeys> => ({
+export const or = <TM extends ComponentTypeMap, CT extends keyof TM>(...subQueries: Query<CT>[]): Query<CT> => ({
     type: 'or',
     subQueries
 })
 
 const transform = <
-    TM extends ComponentTypeMap,
-    TKeys extends keyof TM
->(query: Query<TKeys>, cIdMap: ComponentIdMap<TM>): Query<number> => {
+    TM extends ComponentTypeMap
+>(query: Query<keyof TM>, cIdMap: ComponentIdMap<TM>): Query<number> => {
     switch(query.type) {
         case 'and':
         case 'or':

@@ -12,7 +12,7 @@ export type Query<Tkeys> = LeafQuery<Tkeys> | GroupQuery<Tkeys>
 
 export type ComponentTypeMap = Record<string, any>
 
-export type ComponentIdMap<TCTM extends ComponentTypeMap> = ReadonlyMap<keyof TCTM, number>
+export type ComponentIdMap<TM extends ComponentTypeMap> = ReadonlyMap<keyof TM, number>
 
 export interface System<
     TM extends ComponentTypeMap

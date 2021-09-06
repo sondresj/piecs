@@ -4,7 +4,7 @@ export default class BitMask {
     constructor(maxValue: number);
     constructor(uint32Array: Uint32Array);
     constructor(maxOrArray?: number | Uint32Array) {
-        if(maxOrArray instanceof Uint32Array) {
+        if (maxOrArray instanceof Uint32Array) {
             this.mask = new Uint32Array(maxOrArray)
         } else {
             this.mask = new Uint32Array(maxOrArray ? Math.ceil(maxOrArray / 32) : 0)

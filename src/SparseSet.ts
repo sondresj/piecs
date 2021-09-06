@@ -2,17 +2,17 @@ export default class SparseSet {
     private packed: number[]
     private indices: number[]
 
-    constructor(values?: number[]){
+    constructor(values?: number[]) {
         this.packed = values ? new Array(...values) : []
         this.indices = []
-        if(values) {
-            for(let i = 0; i < this.packed.length; i++) {
+        if (values) {
+            for (let i = 0; i < this.packed.length; i++) {
                 this.indices[this.packed[i]!] = i
             }
         }
     }
 
-    get size () {
+    get size() {
         return this.packed.length
     }
 
@@ -30,7 +30,7 @@ export default class SparseSet {
         if (!this.has(value)) return this
         const index = this.indices[value]!
         const swapped = this.packed.pop()!
-        if(swapped !== value) {
+        if (swapped !== value) {
             this.packed[index] = swapped
             this.indices[swapped] = index
         }
