@@ -38,11 +38,16 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
     private lastElapsed = 0
     private BLANK_ARCHETYPE_ID: string
 
+    /**
+     *
+     * @param defaultComponentValues default values for a component. also used to register components
+     * @param systems
+     */
     constructor(
-        componentTypeMap: Readonly<TM>,
+        private defaultComponentValues: Required<TM>,
         systems: System<TM>[]
     ) {
-        const cKeys = Object.keys(componentTypeMap)
+        const cKeys = Object.keys(defaultComponentValues)
         for (let i = 0; i < cKeys.length; i++) {
             this.componentIdMap.set(cKeys[i]!, i)
         }
@@ -197,12 +202,12 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
         return archetype.hasComponent(componentId)
     }
 
-    readonly setComponent = <CT extends keyof TM>(entity: number, type: CT, value: TM[CT]): this => {
+    readonly setComponent = <CT extends keyof TM>(entity: number, type: CT, value: TM[CT] = this.defaultComponentValues[type]): this => {
         this.defer(() => this.setComponentImmediate(entity, type, value))
         return this
     }
 
-    readonly setComponentImmediate = <CT extends keyof TM>(entity: number, type: CT, value: TM[CT]): this => {
+    readonly setComponentImmediate = <CT extends keyof TM>(entity: number, type: CT, value: TM[CT] = this.defaultComponentValues[type]): this => {
         const componentId = this.getComponentId(type)
         let archetype = this.getEntityArchetype(entity)
 
@@ -210,7 +215,7 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
             archetype.removeEntity(entity)
             const nextArchetypeMask = archetype.copyMask().xor(componentId)
             archetype = this.archetypes.get(nextArchetypeMask.toString())
-                ?? new Archetype(nextArchetypeMask)
+                || new Archetype(nextArchetypeMask)
             archetype.addEntity(entity)
             this.setEntityArchetype(entity, archetype)
             for(const query of this.systemQueries.values()) {
@@ -238,7 +243,7 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
         let archetype = this.getEntityArchetype(entity)
         archetype.removeEntity(entity)
         const nextMask = archetype.copyMask().xor(componentId)
-        archetype = this.archetypes.get(nextMask.toString()) ?? new Archetype(nextMask)
+        archetype = this.archetypes.get(nextMask.toString()) || new Archetype(nextMask)
         archetype.addEntity(entity)
         this.setEntityArchetype(entity, archetype)
 
