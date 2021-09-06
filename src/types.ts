@@ -19,7 +19,7 @@ export interface System<
 > {
     name: string
     init?: (world: BoundWorld<TM>) => void
-    execute: (dt: number, queryResult: ReadonlyArray<number>, world: BoundWorld<TM>) => void
+    execute: (matchingEntities: IterableIterator<number>, world: BoundWorld<TM>, dt: number) => void
     query: Query<keyof TM>
 }
 

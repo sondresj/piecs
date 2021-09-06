@@ -100,7 +100,7 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
         const getElapsed = timer(this.lastElapsed)
         for(const system of this.systems.values()) {
             const query = this.systemQueries.get(system.name)!
-            system.execute(getElapsed(), [...query.getMatchingEntities()], this)
+            system.execute(query.getMatchingEntities(), this, getElapsed())
         }
 
         this.executeDeferredActions()
@@ -113,7 +113,7 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
 
     private assertHasEntity = (entity: number) => {
         if(this.entitiesKilled.has(entity)) {
-            throw new Error(`Entity ${entity} is removed`)
+            throw new Error(`Entity ${entity} is dead`)
         }
         if(!this.entityArchetypeIds[entity])
             throw new Error(`Entity ${entity} does not exist`)

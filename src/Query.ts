@@ -78,7 +78,7 @@ export default class CompiledQuery<TM extends ComponentTypeMap> {
         return this
     }
 
-    getMatchingEntities = () => {
+    getMatchingEntities = (): IterableIterator<number> => {
         const entitySet: Set<number> = new Set()
         for (const archetype of this.matchingArchetypes.values()) {
             const entities = archetype.getEntities()
@@ -87,6 +87,6 @@ export default class CompiledQuery<TM extends ComponentTypeMap> {
                 entitySet.add(entities[i]!)
             }
         }
-        return entitySet
+        return entitySet.values()
     }
 }
