@@ -1,49 +1,53 @@
-export default class SparseSet {
-    private packed: number[]
-    private indices: number[]
+import Vector from './Vector'
 
-    constructor(values?: number[]) {
-        this.packed = values ? new Array(...values) : []
-        this.indices = []
-        if (values) {
-            for (let i = 0; i < this.packed.length; i++) {
-                this.indices[this.packed[i]!] = i
-            }
-        }
-    }
+export default class SparseSet implements Iterable<number> {
+    private dense = new Vector()
+    private indices = new Vector({ sparse: true })
 
-    get size() {
-        return this.packed.length
+    get length() {
+        return this.dense.length
     }
 
     has = (value: number): boolean => {
-        return this.packed[this.indices[value]!] === value
+        const index = this.indices.get(value)
+        return index !== undefined
+            && index < this.dense.length
+            && this.dense.get(index) === value
     }
 
     add = (value: number): this => {
-        if (this.has(value)) return this
-        this.indices[value] = this.packed.push(value) - 1
+        if (this.has(value)) this
+        this.indices.set(value, this.dense.push(value) - 1)
+
         return this
     }
 
-    remove = (value: number): this => {
-        if (!this.has(value)) return this
-        const index = this.indices[value]!
-        const swapped = this.packed.pop()!
-        if (swapped !== value) {
-            this.packed[index] = swapped
-            this.indices[swapped] = index
-        }
-        return this
+    get = (index: number): number | undefined => {
+        return this.dense.get(index)
     }
 
     pop = (): number | undefined => {
-        return this.packed.pop()
+        return this.dense.pop()
     }
 
-    values = (): ReadonlyArray<number> => this.packed
+    delete = (value: number): this => {
+        if (!this.has(value)) return this
 
-    indexOfValue = (value: number) => {
-        return this.indices[value]
+        const index = this.indices.get(value)!
+        const swap = this.dense.pop()!
+        if (swap !== value) {
+            this.dense.set(index, swap)
+            this.indices.set(swap, index)
+        }
+
+        return this
+    }
+
+    values = (): IterableIterator<number> => {
+        return this.dense.values()
+    }
+
+    [Symbol.iterator](): IterableIterator<number> {
+        return this.dense.values()
     }
 }

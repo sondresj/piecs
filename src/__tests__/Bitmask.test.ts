@@ -7,9 +7,9 @@ describe('Bitmask', () => {
             expect(mask.toString()).toBe('0')
         })
 
-        it('atches the binary representation of flags set', () => {
-            const mask = new BitMask(new Uint32Array([0b00000000000000000000000100100010]));
-            expect(mask.toString()).toBe('100100010')
+        it('matches the binary representation of flags set', () => {
+            const mask = new BitMask(new Uint32Array([0b00000000000000000000000100100010]))
+            expect(mask.toString()).toBe('122')
         })
     })
 

@@ -31,8 +31,8 @@ export interface BoundWorld<TM extends ComponentTypeMap> {
     readonly killEntityImmediate: (entity: number) => this
 
     readonly hasEntityComponent: <CT extends keyof TM>(entity: number, type: CT) => boolean
-    readonly setComponent: <CT extends keyof TM>(entity: number, type: CT, value: TM[CT]) => this
-    readonly setComponentImmediate: <CT extends keyof TM>(entity: number, type: CT, value: TM[CT]) => this
+    readonly setComponent: <CT extends keyof TM>(entity: number, type: CT, value?: TM[CT]) => this
+    readonly setComponentImmediate: <CT extends keyof TM>(entity: number, type: CT, value?: TM[CT]) => this
     readonly getEntityComponent: <CT extends keyof TM>(entity: number, type: CT) => TM[CT] | undefined
     readonly removeComponent: <CT extends keyof TM>(entity: number, type: CT) => this
     readonly removeComponentImmediate: <CT extends keyof TM>(entity: number, type: CT) => this

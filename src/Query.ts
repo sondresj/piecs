@@ -1,4 +1,5 @@
 import type Archetype from './Archetype'
+import SparseSet from './SparseSet'
 import type { ComponentTypeMap, ComponentIdMap, Query } from './types'
 
 export const every = <TM extends ComponentTypeMap, CT extends keyof TM>(...types: CT[]): Query<CT> => ({
@@ -9,9 +10,13 @@ export const some = <TM extends ComponentTypeMap, CT extends keyof TM>(...types:
     type: 'some',
     match: types
 })
-export const not = <TM extends ComponentTypeMap, CT extends keyof TM>(...subQueries: Query<CT>[]): Query<CT> => ({
+export const not = <TM extends ComponentTypeMap, CT extends keyof TM>(...subQueries: Query<CT>[] | CT[]): Query<CT> => ({
     type: 'not',
-    subQueries
+    subQueries: subQueries.length
+        ? typeof subQueries[0] === 'string'
+            ? [every<TM, CT>(...subQueries as CT[])]
+            : subQueries as Query<CT>[]
+        : []
 })
 export const and = <TM extends ComponentTypeMap, CT extends keyof TM>(...subQueries: Query<CT>[]): Query<CT> => ({
     type: 'and',
@@ -25,7 +30,7 @@ export const or = <TM extends ComponentTypeMap, CT extends keyof TM>(...subQueri
 const transform = <
     TM extends ComponentTypeMap
 >(query: Query<keyof TM>, cIdMap: ComponentIdMap<TM>): Query<number> => {
-    switch(query.type) {
+    switch (query.type) {
         case 'and':
         case 'or':
         case 'not':
@@ -44,7 +49,7 @@ const transform = <
 }
 
 const match = (query: Query<number>, archetype: Archetype): boolean => {
-    switch(query.type) {
+    switch (query.type) {
         case 'and':
             return query.subQueries.every(q => match(q, archetype))
         case 'or':
@@ -71,19 +76,19 @@ export default class CompiledQuery<TM extends ComponentTypeMap> {
 
 
     tryAddMatch = (archetype: Archetype): this => {
-        if(match(this.transformedQuery, archetype)) {
+        if (match(this.transformedQuery, archetype)) {
             this.matchingArchetypes.set(archetype.id, archetype)
         }
         return this
     }
 
     getMatchingEntities = (): IterableIterator<number> => {
-        const entitySet: Set<number> = new Set()
+        const entitySet = new SparseSet() // todo: sparse multimap for values ?
         for (const archetype of this.matchingArchetypes.values()) {
             const entities = archetype.getEntities()
             // apparently its a good idea to go backwards here. possibly because of updates to the archetype? or performance?
-            for(let i = entities.length - 1; i >= 0; i--) {
-                entitySet.add(entities[i]!)
+            for (const entity of entities) {
+                entitySet.add(entity)
             }
         }
         return entitySet.values()

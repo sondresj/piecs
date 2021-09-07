@@ -9,6 +9,10 @@ export default class Archetype {
 
     public readonly id: string
 
+    get entityCount() {
+        return this.entities.length
+    }
+
     getEntities = () => {
         return this.entities.values()
     }
@@ -23,7 +27,7 @@ export default class Archetype {
     }
 
     removeEntity = (entity: number) => {
-        this.entities.remove(entity)
+        this.entities.delete(entity)
         return this
     }
 

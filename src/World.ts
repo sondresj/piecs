@@ -4,6 +4,7 @@ import BitMask from './Bitmask'
 import CompiledQuery from './Query'
 import SparseSet from './SparseSet'
 import { cantorPair, timer } from './utils'
+import SparseMap from './SparseMap'
 
 export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
     /**
@@ -20,7 +21,7 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
     /**
      * [cantorPair(entity, componentId)]: value
      */
-    private entityComponentValues: unknown[] = []
+    private entityComponentValues = new SparseMap<unknown>()//unknown[] = []
     /**
      * [keyof TM]: number
      */
@@ -62,7 +63,7 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
         this.archetypes.set(blankArchetype.id, blankArchetype)
         this.BLANK_ARCHETYPE_ID = blankArchetype.id
 
-        Object.freeze(this)
+        Object.seal(this)
     }
 
     /**
@@ -71,7 +72,7 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
      * @returns this
      */
     readonly init = (initialEntityComponents: Partial<TM>[] = []): this => {
-        if(this.nextEntityId > 0) {
+        if (this.nextEntityId > 0) {
             throw new Error('Already initialized')
         }
 
@@ -82,8 +83,8 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
             }
         }
 
-        for(const system of this.systems.values()) {
-            if(system.init) {
+        for (const system of this.systems.values()) {
+            if (system.init) {
                 system.init(this)
             }
         }
@@ -98,7 +99,7 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
      */
     readonly update = (): number => {
         const getElapsed = timer(this.lastElapsed)
-        for(const system of this.systems.values()) {
+        for (const system of this.systems.values()) {
             const query = this.systemQueries.get(system.name)!
             system.execute(query.getMatchingEntities(), this, getElapsed())
         }
@@ -112,16 +113,16 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
     }
 
     private assertHasEntity = (entity: number) => {
-        if(this.entitiesKilled.has(entity)) {
+        if (this.entitiesKilled.has(entity)) {
             throw new Error(`Entity ${entity} is dead`)
         }
-        if(!this.entityArchetypeIds[entity])
+        if (!this.entityArchetypeIds[entity])
             throw new Error(`Entity ${entity} does not exist`)
 
     }
 
     private assertHasComponent = <CT extends keyof TM>(type: CT) => {
-        if(!this.componentIdMap.has(type))
+        if (!this.componentIdMap.has(type))
             throw new Error(`Component ${type} does not exist`)
     }
 
@@ -130,12 +131,12 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
     }
 
     private executeDeferredActions = () => {
-        if(!this.deferredActions.length) return
+        if (!this.deferredActions.length) return
 
-        for(const action of this.deferredActions) {
+        for (const action of this.deferredActions) {
             action()
         }
-        this.deferredActions = []
+        this.deferredActions.length = 0
     }
 
     private getEntityArchetype = (entity: number): Archetype => {
@@ -151,11 +152,11 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
 
     private getComponentId = <CT extends keyof TM>(type: CT): number => {
         this.assertHasComponent(type)
-        return this.getComponentId(type)!
+        return this.componentIdMap.get(type)!
     }
 
     private getNextEntityId = () => {
-        return this.entitiesKilled.size > 0
+        return this.entitiesKilled.length > 0
             ? this.entitiesKilled.pop()!
             : this.nextEntityId++
     }
@@ -169,7 +170,7 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
     // BoundWorld interface
 
     readonly hasEntity = (entity: number): boolean => {
-        return !!this.entityArchetypeIds[entity]
+        return !this.entitiesKilled.has(entity) && !!this.entityArchetypeIds[entity]
     }
 
     readonly spawnEntity = (): number => {
@@ -211,26 +212,26 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
         const componentId = this.getComponentId(type)
         let archetype = this.getEntityArchetype(entity)
 
-        if(!archetype.hasComponent(componentId)) {
+        if (!archetype.hasComponent(componentId)) {
             archetype.removeEntity(entity)
             const nextArchetypeMask = archetype.copyMask().xor(componentId)
             archetype = this.archetypes.get(nextArchetypeMask.toString())
                 || new Archetype(nextArchetypeMask)
             archetype.addEntity(entity)
             this.setEntityArchetype(entity, archetype)
-            for(const query of this.systemQueries.values()) {
+            for (const query of this.systemQueries.values()) {
                 query.tryAddMatch(archetype)
             }
         }
 
-        this.entityComponentValues[cantorPair(entity, componentId)] = value
+        this.entityComponentValues.set(cantorPair(entity, componentId), value)
         return this
     }
 
     readonly getEntityComponent = <CT extends keyof TM>(entity: number, type: CT): TM[CT] | undefined => {
         this.assertHasEntity(entity)
         const componentId = this.getComponentId(type)
-        return this.entityComponentValues[cantorPair(entity, componentId)] as TM[CT] | undefined
+        return this.entityComponentValues.get(cantorPair(entity, componentId)) as TM[CT] | undefined
     }
 
     readonly removeComponent = <CT extends keyof TM>(entity: number, type: CT): this => {
@@ -240,6 +241,7 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
 
     readonly removeComponentImmediate = <CT extends keyof TM>(entity: number, type: CT): this => {
         const componentId = this.getComponentId(type)
+
         let archetype = this.getEntityArchetype(entity)
         archetype.removeEntity(entity)
         const nextMask = archetype.copyMask().xor(componentId)
@@ -247,7 +249,7 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
         archetype.addEntity(entity)
         this.setEntityArchetype(entity, archetype)
 
-        // not removing from this.entityComponetValues because removing from array because we might want to reuse the entity id and the slot later
+        this.entityComponentValues.delete(cantorPair(entity, componentId))
 
         return this
     }
