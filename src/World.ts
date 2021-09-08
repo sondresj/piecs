@@ -17,11 +17,11 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
      */
     private entityArchetypeIds: string[] = []
     private nextEntityId = 0
-    private entitiesKilled = new SparseSet()
+    private entitiesKilled = new SparseSet('pointer')
     /**
      * [cantorPair(entity, componentId)]: value
      */
-    private entityComponentValues = new SparseMap<unknown>()//unknown[] = []
+    private entityComponentValues = new SparseMap<unknown>('pointer', 'any') // TODO: Instead of using cantorPair here, we can use TypedArray with number types. that would require more info on the componenttype tho (such as signed/float)
     /**
      * [keyof TM]: number
      */
@@ -112,13 +112,32 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
         return executionTime
     }
 
+    readonly addSystem = (system: System<TM>): this => {
+        return this
+    }
+
+    readonly pauseSystem = (name: string): this => {
+        return this
+    }
+
+    readonly unpauseSystem = (name: string): this => {
+        return this
+    }
+
+    readonly addComponentType = <CT extends string, T>(name: CT, defaultValue: T): World<TM & Record<CT, T>> => {
+        if (this.componentIdMap.has(name)) return this
+        this.componentIdMap.set(name, this.componentIdMap.size)
+        // @ts-ignore
+        this.defaultComponentValues[name] = defaultValue
+        return this
+    }
+
     private assertHasEntity = (entity: number) => {
         if (this.entitiesKilled.has(entity)) {
             throw new Error(`Entity ${entity} is dead`)
         }
         if (!this.entityArchetypeIds[entity])
             throw new Error(`Entity ${entity} does not exist`)
-
     }
 
     private assertHasComponent = <CT extends keyof TM>(type: CT) => {

@@ -1,8 +1,13 @@
+import { ArrayType } from './types'
 import Vector from './Vector'
 
 export default class SparseSet implements Iterable<number> {
-    private dense = new Vector()
-    private indices = new Vector({ sparse: true })
+    private dense: Vector<number>
+    private indices = new Vector<number>({ sparse: true, type: 'pointer' })
+
+    constructor(type: ArrayType) {
+        this.dense = new Vector<number>({ type })
+    }
 
     get length() {
         return this.dense.length

@@ -1,73 +1,49 @@
-type TypedArrayConstructor =
-    | Uint8ArrayConstructor
-    | Uint16ArrayConstructor
-    | Uint32ArrayConstructor
-    | Int8ArrayConstructor
-    | Int16ArrayConstructor
-    | Int32ArrayConstructor
-
-type TypedArray =
-    | Uint8Array
-    | Uint16Array
-    | Uint32Array
-    | Int8Array
-    | Int16Array
-    | Int32Array
-
-const getArrayConstructor = (capacity: number, singed = false): TypedArrayConstructor => {
-    if (capacity > 4294967295) throw new Error(`Capacity ${capacity} out of bounds`)
-    return capacity <= 1 << 8
-        ? singed ? Int8Array : Uint8Array
-        : capacity <= 1 << 16
-            ? singed ? Int16Array : Uint16Array
-            : singed ? Int32Array : Uint32Array
-}
-
-const realloc = (array: ArrayLike<number>, capacity: number, signed = false) => {
-    const ArrayType = getArrayConstructor(capacity, signed)
-    const reallocated = new ArrayType(capacity)
-    reallocated.set(array)
-    return reallocated
-}
+import { ArrayType, TypedArray } from './types'
+import { getArrayConstructor, reallocArray } from './utils'
 
 export type VectorConstructorOptions = {
-    initialCapacity: number
-    signed: boolean
-    sparse: boolean
+    initialCapacity?: number
+    growFactor?: number
+    type?: ArrayType
+    sparse?: boolean
 }
 
-const defaultOptions: VectorConstructorOptions = {
+const defaultOptions: Required<VectorConstructorOptions> = {
     initialCapacity: 1 << 8,
-    signed: false,
+    growFactor: 1.5,
+    type: 'int32',
     sparse: false
 }
-export default class Vector implements Iterable<number> {
-    private array: TypedArray
+export default class Vector<T> implements Iterable<T> {
+    private _array: TypedArray
     private _capacity: number
-    private _signed: boolean
+    private _type: ArrayType
     private _sparse: boolean
+    private _growFactor: number
     private _length = 0
 
-    constructor(options?: Partial<VectorConstructorOptions>) {
+    constructor(options?: VectorConstructorOptions) {
         const {
             initialCapacity,
-            signed,
-            sparse
+            type,
+            sparse,
+            growFactor
         } = {
             ...defaultOptions,
             ...options
         }
-        const ArrayType = getArrayConstructor(initialCapacity, signed)
-        this.array = new ArrayType(initialCapacity)
+        const ArrayType = getArrayConstructor(initialCapacity, type)
+        this._array = new ArrayType(initialCapacity)
         this._capacity = initialCapacity
-        this._signed = signed
+        this._type = type
         this._sparse = sparse
+        this._growFactor = Math.max(1.01, growFactor)
     }
 
     private growIfNecessary = () => {
         if (this._length >= this._capacity) {
-            this._capacity = Math.max(1, this._capacity * Math.ceil(1.5))
-            this.array = realloc(this.array, this._capacity, this._signed)
+            this._capacity = Math.ceil(this._capacity * this._growFactor)
+            this._array = reallocArray(this._array, this._type, this._capacity)
         }
     }
 
@@ -81,39 +57,47 @@ export default class Vector implements Iterable<number> {
         return this._sparse
     }
 
-    push = (value: number) => {
+    push = (value: T) => {
+        if (this.sparse) throw new Error('Cannot push on sparse vector')
         this.growIfNecessary()
-        this.array[this._length++] = value
+        this._array[this._length++] = value
         return this._length
     }
 
-    pop = () => {
+    pop = (): T | undefined => {
+        if (this.sparse) throw new Error('Cannot pop from sparse vector')
         if (this._length === 0) return undefined
-        return this.array[--this._length]
+        return this._array[--this._length]
     }
 
-    get = (index: number) => {
+    get = (index: number): T | undefined => {
         if (!this._sparse && index > this._length - 1) return undefined
-        return this.array[index]
+        return this._array[index]
     }
 
-    set = (index: number, value: number) => {
+    set = (index: number, value: T) => {
         if (!this._sparse && index > this._length - 1) {
             throw new Error(`Index ${index} is out of bounds`)
         }
-        this.array[index] = value
+        if (this._sparse && index > this._length) {
+            this._length = index
+            this.growIfNecessary()
+        }
+        this._array[index] = value
         return this
     }
 
-    *values(): IterableIterator<number> {
+    *values(): IterableIterator<T> {
+        if (this._sparse) yield* this._array.values()
         for (let i = 0; i < this._length; i++) {
-            yield this.array[i]!
+            yield this._array[i]!
         }
     }
 
-    *[Symbol.iterator](): IterableIterator<number> {
+    *[Symbol.iterator](): IterableIterator<T> {
+        if (this.sparse) yield* this._array.values()
         for (let i = 0; i < this._length; i++) {
-            yield this.array[i]!
+            yield this._array[i]!
         }
     }
 

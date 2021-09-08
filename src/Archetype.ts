@@ -2,7 +2,7 @@ import BitMask from './Bitmask'
 import SparseSet from './SparseSet'
 
 export default class Archetype {
-    private entities = new SparseSet()
+    private entities = new SparseSet('pointer')
     constructor(private componentMask: BitMask) {
         this.id = componentMask.toString()
     }
