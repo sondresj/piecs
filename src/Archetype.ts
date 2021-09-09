@@ -1,8 +1,8 @@
-import BitMask from './Bitmask'
-import SparseSet from './SparseSet'
+import BitMask from './collections/Bitmask'
+import SparseSet from './collections/SparseSet'
 
 export default class Archetype {
-    private entities = new SparseSet('pointer')
+    private entities = new SparseSet('uint32')
     constructor(private componentMask: BitMask) {
         this.id = componentMask.toString()
     }

@@ -1,10 +1,11 @@
 import type { System, ComponentTypeMap, BoundWorld } from './types'
 import Archetype from './Archetype'
-import BitMask from './Bitmask'
+import BitMask from './collections/Bitmask'
+import SparseSet from './collections/SparseSet'
 import CompiledQuery from './Query'
-import SparseSet from './SparseSet'
-import { cantorPair, timer } from './utils'
-import SparseMap from './SparseMap'
+import { timer } from './utils'
+import ComponentManager from './ComponentManager'
+import { ComponentTypeConfigMap } from '.'
 
 export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
     /**
@@ -17,15 +18,16 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
      */
     private entityArchetypeIds: string[] = []
     private nextEntityId = 0
-    private entitiesKilled = new SparseSet('pointer')
-    /**
-     * [cantorPair(entity, componentId)]: value
-     */
-    private entityComponentValues = new SparseMap<unknown>('pointer', 'any') // TODO: Instead of using cantorPair here, we can use TypedArray with number types. that would require more info on the componenttype tho (such as signed/float)
+    private entitiesKilled = new SparseSet('uint32')
+    // /**
+    //  * [cantorPair(entity, componentId)]: value
+    //  */
+    // private entityComponentValues = new SparseMap<unknown>('uint32', 'any')//unknown[] = []
     /**
      * [keyof TM]: number
      */
-    private componentIdMap: Map<keyof TM, number> = new Map()
+    // private componentIdMap: Map<keyof TM, number> = new Map()
+    private componentManager: ComponentManager<TM>
     /**
      * [system.name]: System
      */
@@ -41,25 +43,22 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
 
     /**
      *
-     * @param defaultComponentValues default values for a component. also used to register components
+     * @param componentConfig default values for a component. also used to register components
      * @param systems
      */
     constructor(
-        private defaultComponentValues: Required<TM>,
+        componentConfig: ComponentTypeConfigMap<TM>,
         systems: System<TM>[]
     ) {
-        const cKeys = Object.keys(defaultComponentValues)
-        for (let i = 0; i < cKeys.length; i++) {
-            this.componentIdMap.set(cKeys[i]!, i)
-        }
+        this.componentManager = new ComponentManager(componentConfig)
 
         for (const system of systems) {
             this.systems.set(system.name, system)
-            this.systemQueries.set(system.name, new CompiledQuery(system.query, this.componentIdMap))
+            this.systemQueries.set(system.name, new CompiledQuery(system.query, this.componentManager.getComponentIdMap()))
         }
 
         // create a blank archetype that serves as the base archetype for all entities
-        const blankArchetype = new Archetype(new BitMask(this.componentIdMap.size))
+        const blankArchetype = new Archetype(new BitMask(this.componentManager.getMaxComponetId()))
         this.archetypes.set(blankArchetype.id, blankArchetype)
         this.BLANK_ARCHETYPE_ID = blankArchetype.id
 
@@ -125,10 +124,10 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
     }
 
     readonly addComponentType = <CT extends string, T>(name: CT, defaultValue: T): World<TM & Record<CT, T>> => {
-        if (this.componentIdMap.has(name)) return this
-        this.componentIdMap.set(name, this.componentIdMap.size)
-        // @ts-ignore
-        this.defaultComponentValues[name] = defaultValue
+        // if (this.componentIdMap.has(name)) return this
+        // this.componentIdMap.set(name, this.componentIdMap.size)
+        // // @ts-ignore
+        // this.componentConfig[name] = defaultValue
         return this
     }
 
@@ -140,10 +139,10 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
             throw new Error(`Entity ${entity} does not exist`)
     }
 
-    private assertHasComponent = <CT extends keyof TM>(type: CT) => {
-        if (!this.componentIdMap.has(type))
-            throw new Error(`Component ${type} does not exist`)
-    }
+    // private assertHasComponent = <CT extends keyof TM>(type: CT) => {
+    //     if (!this.componentIdMap.has(type))
+    //         throw new Error(`Component ${type} does not exist`)
+    // }
 
     private defer = (action: () => void) => {
         this.deferredActions.push(action)
@@ -169,10 +168,9 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
         this.entityArchetypeIds[entity] = archetype.id
     }
 
-    private getComponentId = <CT extends keyof TM>(type: CT): number => {
-        this.assertHasComponent(type)
-        return this.componentIdMap.get(type)!
-    }
+    // private getComponentId = <CT extends keyof TM>(type: CT): number => {
+    //     return this.componentManager.getComponentIdMap().get(type)!
+    // }
 
     private getNextEntityId = () => {
         return this.entitiesKilled.length > 0
@@ -217,18 +215,26 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
     }
 
     readonly hasEntityComponent = <CT extends keyof TM>(entity: number, type: CT): boolean => {
-        const componentId = this.getComponentId(type)
+        const componentId = this.componentManager.getComponentId(type)
         const archetype = this.getEntityArchetype(entity)
         return archetype.hasComponent(componentId)
     }
 
-    readonly setComponent = <CT extends keyof TM>(entity: number, type: CT, value: TM[CT] = this.defaultComponentValues[type]): this => {
+    readonly setComponent = <CT extends keyof TM>(
+        entity: number,
+        type: CT,
+        value?: TM[CT]
+    ): this => {
         this.defer(() => this.setComponentImmediate(entity, type, value))
         return this
     }
 
-    readonly setComponentImmediate = <CT extends keyof TM>(entity: number, type: CT, value: TM[CT] = this.defaultComponentValues[type]): this => {
-        const componentId = this.getComponentId(type)
+    readonly setComponentImmediate = <CT extends keyof TM>(
+        entity: number,
+        type: CT,
+        value?: TM[CT]
+    ): this => {
+        const componentId = this.componentManager.getComponentId(type)
         let archetype = this.getEntityArchetype(entity)
 
         if (!archetype.hasComponent(componentId)) {
@@ -243,14 +249,13 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
             }
         }
 
-        this.entityComponentValues.set(cantorPair(entity, componentId), value)
+        this.componentManager.set(entity, type, value)
         return this
     }
 
     readonly getEntityComponent = <CT extends keyof TM>(entity: number, type: CT): TM[CT] | undefined => {
         this.assertHasEntity(entity)
-        const componentId = this.getComponentId(type)
-        return this.entityComponentValues.get(cantorPair(entity, componentId)) as TM[CT] | undefined
+        return this.componentManager.get(entity, type)
     }
 
     readonly removeComponent = <CT extends keyof TM>(entity: number, type: CT): this => {
@@ -259,7 +264,7 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
     }
 
     readonly removeComponentImmediate = <CT extends keyof TM>(entity: number, type: CT): this => {
-        const componentId = this.getComponentId(type)
+        const componentId = this.componentManager.getComponentId(type)
 
         let archetype = this.getEntityArchetype(entity)
         archetype.removeEntity(entity)
@@ -268,8 +273,7 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
         archetype.addEntity(entity)
         this.setEntityArchetype(entity, archetype)
 
-        this.entityComponentValues.delete(cantorPair(entity, componentId))
-
+        this.componentManager.delete(entity, type)
         return this
     }
 }

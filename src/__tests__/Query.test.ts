@@ -1,6 +1,6 @@
 import { some } from '..'
 import Archetype from '../Archetype'
-import BitMask from '../Bitmask'
+import BitMask from '../collections/Bitmask'
 import CompiledQuery, { every } from '../Query'
 
 
@@ -10,7 +10,7 @@ describe('CompiledQuery', () => {
         bar: '',
         baz: false
     }
-    
+
     type TestType = typeof testTypes
     const componentIds: Map<keyof TestType, number> = new Map(Object.keys(testTypes).map((key, i) => [key, i])) as any
 
@@ -21,7 +21,7 @@ describe('CompiledQuery', () => {
             const archetype = new Archetype(mask.xor(componentIds.get('foo')!))
             archetype.addEntity(1)
             cq.tryAddMatch(archetype) // should match
-    
+
             expect([...cq.getMatchingEntities()]).toEqual([1])
         })
         it('does not add archetype matching some', () => {
@@ -30,7 +30,7 @@ describe('CompiledQuery', () => {
             const archetype = new Archetype(mask.xor(componentIds.get('baz')!))
             archetype.addEntity(1)
             cq.tryAddMatch(archetype) // should not match
-    
+
             expect([...cq.getMatchingEntities()]).toEqual([])
         })
 
@@ -40,7 +40,7 @@ describe('CompiledQuery', () => {
             const archetype = new Archetype(mask.xor(componentIds.get('foo')!).xor(componentIds.get('bar')!))
             archetype.addEntity(1)
             cq.tryAddMatch(archetype) // should match
-    
+
             expect([...cq.getMatchingEntities()]).toEqual([1])
         })
 
@@ -50,7 +50,7 @@ describe('CompiledQuery', () => {
             const archetype = new Archetype(mask.xor(componentIds.get('foo')!))
             archetype.addEntity(1)
             cq.tryAddMatch(archetype) // should not  match
-    
+
             expect([...cq.getMatchingEntities()]).toEqual([])
         })
     })

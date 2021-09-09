@@ -4,9 +4,18 @@ import World from '../World'
 describe('World', () => {
     it('works', () => {
         const world = new World({
-            foo: 0,
-            bar: '',
-            baz: true
+            foo: {
+                type: 'uint32',
+                default: 0
+            },
+            bar: {
+                type: 'string',
+                default: ''
+            },
+            baz: {
+                type: 'boolean',
+                default: true
+            }
         }, [{
             name: 'addBarIfFoo',
             query: and(every('foo'), not('baz')),

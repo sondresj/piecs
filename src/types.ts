@@ -1,3 +1,5 @@
+import { ArrayType } from './collections/types'
+
 type GroupQuery<Tkeys> = {
     type: 'and' | 'or' | 'not'
     subQueries: Query<Tkeys>[]
@@ -14,36 +16,33 @@ export type ComponentTypeMap = Record<string, any>
 
 export type ComponentIdMap<TM extends ComponentTypeMap> = ReadonlyMap<keyof TM, number>
 
-export type ArrayType = 
-    | `uint${8 | '8c' | 16 | 32}`
-    | `int${8 | 16 | 32}`
-    | `float${32 | 64}`
-    | 'pointer'
-    | 'any'
+ type NumberType = Exclude<ArrayType, 'any'>
 
-export type ArrayClass =
-    | Uint8ArrayConstructor
-    | Uint8ClampedArrayConstructor
-    | Uint16ArrayConstructor
-    | Uint32ArrayConstructor
-    | Int8ArrayConstructor
-    | Int16ArrayConstructor
-    | Int32ArrayConstructor
-    | Float32ArrayConstructor
-    | Float64ArrayConstructor
-    | ArrayConstructor
+ type Typeof<T> = T extends number ? NumberType
+     : T extends string ? 'string'
+         : T extends boolean ? 'boolean'
+             : T extends bigint ? 'bigint'
+                 : T extends (...args: any) => any ? 'function'
+                     : T extends new (...args: any) => any ? 'class'
+                         : T extends (infer I)[] ? I extends number ? NumberType : 'array'
+                             : T extends Record<string, any> ? 'object'
+                                 : 'any'
 
-export type TypedArray =
-    | Uint8Array
-    | Uint8ClampedArray
-    | Uint16Array
-    | Uint32Array
-    | Int8Array
-    | Int16Array
-    | Int32Array
-    | Float32Array
-    | Float64Array
-    | any[]
+export type ComponentTypeConfig<T> = {
+    type: Typeof<T>
+    default: T
+}
+
+/**
+ * For best performance, components should be number types if possible.
+ * This is because we can leverage TypedArrays to get the componentvalues packed togheter in memory,
+ * which increases likelyhood of CPU cache hits and increases performance by some orders of magnitude
+ * (because a cpu has to waste around 300 cycles to get a value from DRAM)
+ */
+export type ComponentTypeConfigMap<TM extends ComponentTypeMap> = {
+    [K in keyof TM]-?: ComponentTypeConfig<TM[K]>
+}
+
 export interface System<
     TM extends ComponentTypeMap
 > {

@@ -1,5 +1,5 @@
 import type Archetype from './Archetype'
-import SparseSet from './SparseSet'
+import SparseSet from './collections/SparseSet'
 import type { ComponentTypeMap, ComponentIdMap, Query } from './types'
 
 export const every = <TM extends ComponentTypeMap, CT extends keyof TM>(...types: CT[]): Query<CT> => ({
@@ -83,7 +83,7 @@ export default class CompiledQuery<TM extends ComponentTypeMap> {
     }
 
     getMatchingEntities = (): IterableIterator<number> => {
-        const entitySet = new SparseSet('pointer') // todo: sparse multimap for values ?
+        const entitySet = new SparseSet('uint32')
         for (const archetype of this.matchingArchetypes.values()) {
             const entities = archetype.getEntities()
             // apparently its a good idea to go backwards here. possibly because of updates to the archetype? or performance?
