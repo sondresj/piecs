@@ -69,22 +69,22 @@ export default class SparseMap<T> implements Iterable<[number, T]> {
     }
 
     *keys(): IterableIterator<number> {
-        return this._keys.values()
+        return this._keys[Symbol.iterator]()
     }
     *values(): IterableIterator<T> {
-        for (let i = 0; i < this._keys.length; i++) {
+        for (const i of this._keys) {
             yield this._values.get(i)!
         }
     }
     *entries(): IterableIterator<[number, T]> {
-        for (let i = 0; i < this._keys.length; i++) {
+        for (const i of this._keys) {
             yield [i, this._values.get(i)!]
         }
     }
     /**
      * Key value pair appears in random order, not in order of insertion
      */
-    *[Symbol.iterator](): IterableIterator<[number, T]> {
+    [Symbol.iterator](): IterableIterator<[number, T]> {
         return this.entries()
     }
 }

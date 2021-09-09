@@ -48,11 +48,7 @@ export default class SparseSet implements Iterable<number> {
         return this
     }
 
-    values = (): IterableIterator<number> => {
-        return this.dense.values()
-    }
-
     [Symbol.iterator](): IterableIterator<number> {
-        return this.dense.values()
+        return this.dense[Symbol.iterator]()
     }
 }

@@ -34,12 +34,10 @@ describe('World', () => {
         }, {
             name: 'killEntitiesWithBaz',
             query: some('baz'),
-            execute: (entities, world) => {
-                for (const entity of entities) {
-                    if (world.hasEntityComponent(entity, 'baz')) {
-                        world.killEntityImmediate(entity)
-                        expect(world.hasEntity(entity)).toBeFalsy()
-                    }
+            execute: (_, world) => {
+                for (const [entity] of world.getEntitiesWithComponent('baz')) {
+                    world.killEntityImmediate(entity)
+                    expect(world.hasEntity(entity)).toBeFalsy()
                 }
             }
         }])

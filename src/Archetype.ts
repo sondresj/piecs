@@ -13,10 +13,6 @@ export default class Archetype {
         return this.entities.length
     }
 
-    getEntities = () => {
-        return this.entities.values()
-    }
-
     copyMask = () => {
         return this.componentMask.copy()
     }
@@ -37,5 +33,9 @@ export default class Archetype {
 
     hasComponent = (componentId: number) => {
         return this.componentMask.has(componentId)
+    }
+
+    [Symbol.iterator](): IterableIterator<number> {
+        return this.entities[Symbol.iterator]()
     }
 }

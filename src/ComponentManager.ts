@@ -65,6 +65,12 @@ export default class ComponentManager<TM extends ComponentTypeMap> {
         return this
     }
 
+    getComponentEntities = <CT extends keyof TM>(
+        type: CT
+    ): IterableIterator<number> => {
+        return this.getComponentSet(type).keys()
+    }
+
     getComponentValues = <CT extends keyof TM>(
         type: CT
     ): IterableIterator<TM[CT]> => {
@@ -73,7 +79,7 @@ export default class ComponentManager<TM extends ComponentTypeMap> {
 
     getComponentEntries = <CT extends keyof TM>(
         type: CT
-    ): IterableIterator<[number, TM[CT]]> => {
+    ): IterableIterator<[entity: number, component: TM[CT]]> => {
         return this.getComponentSet(type).entries() as any
     }
 }

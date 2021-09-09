@@ -100,7 +100,7 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
         const getElapsed = timer(this.lastElapsed)
         for (const system of this.systems.values()) {
             const query = this.systemQueries.get(system.name)!
-            system.execute(query.getMatchingEntities(), this, getElapsed())
+            system.execute(query[Symbol.iterator](), this, getElapsed())
         }
 
         this.executeDeferredActions()
@@ -275,5 +275,9 @@ export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM
 
         this.componentManager.delete(entity, type)
         return this
+    }
+
+    readonly getEntitiesWithComponent = <CT extends keyof TM>(type: CT) => {
+        return this.componentManager.getComponentEntries(type)
     }
 }

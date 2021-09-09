@@ -82,15 +82,15 @@ export default class CompiledQuery<TM extends ComponentTypeMap> {
         return this
     }
 
-    getMatchingEntities = (): IterableIterator<number> => {
+    *[Symbol.iterator](): IterableIterator<number> {
         const entitySet = new SparseSet('uint32')
         for (const archetype of this.matchingArchetypes.values()) {
-            const entities = archetype.getEntities()
             // apparently its a good idea to go backwards here. possibly because of updates to the archetype? or performance?
-            for (const entity of entities) {
+            for (const entity of archetype) {
+                if (entitySet.has(entity)) continue
                 entitySet.add(entity)
+                yield entity
             }
         }
-        return entitySet.values()
     }
 }

@@ -22,7 +22,7 @@ describe('CompiledQuery', () => {
             archetype.addEntity(1)
             cq.tryAddMatch(archetype) // should match
 
-            expect([...cq.getMatchingEntities()]).toEqual([1])
+            expect([...cq[Symbol.iterator]()]).toEqual([1])
         })
         it('does not add archetype matching some', () => {
             const cq = new CompiledQuery<TestType>(some('foo', 'bar'), componentIds)
@@ -31,7 +31,7 @@ describe('CompiledQuery', () => {
             archetype.addEntity(1)
             cq.tryAddMatch(archetype) // should not match
 
-            expect([...cq.getMatchingEntities()]).toEqual([])
+            expect([...cq[Symbol.iterator]()]).toEqual([])
         })
 
         it('adds archetype matching every', () => {
@@ -41,7 +41,7 @@ describe('CompiledQuery', () => {
             archetype.addEntity(1)
             cq.tryAddMatch(archetype) // should match
 
-            expect([...cq.getMatchingEntities()]).toEqual([1])
+            expect([...cq[Symbol.iterator]()]).toEqual([1])
         })
 
         it('does not add archetype matching every', () => {
@@ -51,7 +51,7 @@ describe('CompiledQuery', () => {
             archetype.addEntity(1)
             cq.tryAddMatch(archetype) // should not  match
 
-            expect([...cq.getMatchingEntities()]).toEqual([])
+            expect([...cq[Symbol.iterator]()]).toEqual([])
         })
     })
 })

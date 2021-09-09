@@ -41,10 +41,11 @@ export default class Vector<T> implements Iterable<T> {
     }
 
     private growIfNecessary = () => {
-        if (this._length >= this._capacity) {
+        if (this._length < this._capacity) return
+        while (this._length >= this._capacity) {
             this._capacity = Math.ceil(this._capacity * this._growFactor)
-            this._array = reallocArray(this._array, this._type, this._capacity)
         }
+        this._array = reallocArray(this._array, this._type, this._capacity)
     }
 
     get length() {
@@ -58,44 +59,38 @@ export default class Vector<T> implements Iterable<T> {
     }
 
     push = (value: T) => {
-        if (this.sparse) throw new Error('Cannot push on sparse vector')
         this.growIfNecessary()
         this._array[this._length++] = value
         return this._length
     }
 
     pop = (): T | undefined => {
-        if (this.sparse) throw new Error('Cannot pop from sparse vector')
         if (this._length === 0) return undefined
         return this._array[--this._length]
     }
 
     get = (index: number): T | undefined => {
-        if (!this._sparse && index > this._length - 1) return undefined
+        if (!this._sparse && index >= this._length) return undefined
         return this._array[index]
     }
 
     set = (index: number, value: T) => {
-        if (!this._sparse && index > this._length - 1) {
+        if (!this._sparse && index >= this._length) {
             throw new Error(`Index ${index} is out of bounds`)
         }
-        if (this._sparse && index > this._length) {
-            this._length = index
+        if (this._sparse && index >= this._length) {
+            this._length = index + 1
             this.growIfNecessary()
         }
         this._array[index] = value
         return this
     }
 
-    *values(): IterableIterator<T> {
-        if (this._sparse) yield* this._array.values()
-        for (let i = 0; i < this._length; i++) {
-            yield this._array[i]!
-        }
-    }
-
     *[Symbol.iterator](): IterableIterator<T> {
-        if (this.sparse) yield* this._array.values()
+        if (this.sparse) {
+            yield *this._array.values()
+            return
+        }
         for (let i = 0; i < this._length; i++) {
             yield this._array[i]!
         }

@@ -24,7 +24,7 @@ export type ComponentIdMap<TM extends ComponentTypeMap> = ReadonlyMap<keyof TM, 
              : T extends bigint ? 'bigint'
                  : T extends (...args: any) => any ? 'function'
                      : T extends new (...args: any) => any ? 'class'
-                         : T extends (infer I)[] ? I extends number ? NumberType : 'array'
+                         : T extends any[] ? 'array' // TODO: Could be a TypedArray Buffer, would need a vector for buffer for optimal performance
                              : T extends Record<string, any> ? 'object'
                                  : 'any'
 
@@ -65,4 +65,5 @@ export interface BoundWorld<TM extends ComponentTypeMap> {
     readonly getEntityComponent: <CT extends keyof TM>(entity: number, type: CT) => TM[CT] | undefined
     readonly removeComponent: <CT extends keyof TM>(entity: number, type: CT) => this
     readonly removeComponentImmediate: <CT extends keyof TM>(entity: number, type: CT) => this
+    readonly getEntitiesWithComponent: <CT extends keyof TM>(type: CT) => IterableIterator<[entity: number, component: TM[CT]]>
 }
