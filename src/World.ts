@@ -1,13 +1,13 @@
 import type { System, ComponentTypeMap, BoundWorld } from './types'
-import Archetype from './Archetype'
-import BitMask from './collections/Bitmask'
-import SparseSet from './collections/SparseSet'
-import CompiledQuery from './Query'
+import { Archetype } from './Archetype'
+import { BitMask } from './collections/Bitmask'
+import { SparseSet } from './collections/SparseSet'
+import { CompiledQuery } from './Query'
 import { timer } from './utils'
-import ComponentManager from './ComponentManager'
+import { ComponentManager } from './ComponentManager'
 import { ComponentTypeConfigMap } from '.'
 
-export default class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
+export class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
     /**
      * [archetype.toString()]: archetype
      */

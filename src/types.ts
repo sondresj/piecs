@@ -16,17 +16,17 @@ export type ComponentTypeMap = Record<string, any>
 
 export type ComponentIdMap<TM extends ComponentTypeMap> = ReadonlyMap<keyof TM, number>
 
- type NumberType = Exclude<ArrayType, 'any'>
+type NumberType = Exclude<ArrayType, 'any'>
 
- type Typeof<T> = T extends number ? NumberType
-     : T extends string ? 'string'
-         : T extends boolean ? 'boolean'
-             : T extends bigint ? 'bigint'
-                 : T extends (...args: any) => any ? 'function'
-                     : T extends new (...args: any) => any ? 'class'
-                         : T extends any[] ? 'array' // TODO: Could be a TypedArray Buffer, would need a vector for buffer for optimal performance
-                             : T extends Record<string, any> ? 'object'
-                                 : 'any'
+export type Typeof<T> = T extends number ? NumberType
+    : T extends string ? 'string'
+        : T extends boolean ? 'boolean'
+            : T extends bigint ? 'bigint'
+                : T extends (...args: any) => any ? 'function'
+                    : T extends new (...args: any) => any ? 'class'
+                        : T extends any[] ? 'array' // TODO: Could be a TypedArray Buffer, would need a vector for buffer for optimal performance
+                            : T extends Record<string, any> ? 'object'
+                                : 'any'
 
 export type ComponentTypeConfig<T> = {
     type: Typeof<T>

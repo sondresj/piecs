@@ -1,6 +1,6 @@
 import { ArrayType } from './collections/types'
 import { ComponentTypeConfig, ComponentTypeConfigMap, ComponentTypeMap } from './types'
-import SparseMap from './collections/SparseMap'
+import { SparseMap } from './collections/SparseMap'
 
 // The idea here is to collect all the components of the same type togheter in mememory to increase likelyhood of cpu chache hits
 
@@ -9,7 +9,7 @@ const mapType = (type: string): ArrayType => arrayTypes.includes(type as any)
     ? type as ArrayType
     : 'any'
 
-export default class ComponentManager<TM extends ComponentTypeMap> {
+export class ComponentManager<TM extends ComponentTypeMap> {
     private nextComponentId = 0
     private componentIds: Map<keyof TM, number> = new Map()
     private componentSets: Map<number, SparseMap<unknown>> = new Map()
@@ -20,7 +20,7 @@ export default class ComponentManager<TM extends ComponentTypeMap> {
         for (const [key, config] of Object.entries(componentTypeConfig) as [keyof TM, ComponentTypeConfig<any>][]) {
             const id = this.nextComponentId++
             this.componentIds.set(key, id)
-            this.componentSets.set(id, new SparseMap('uint32', mapType(config.type)))
+            this.componentSets.set(id, new SparseMap<unknown>('uint32', mapType(config.type) as any))
         }
     }
 

@@ -1,14 +1,19 @@
 import { ArrayType } from './types'
-import Vector from './Vector'
+import { Vector } from './Vector'
 
-export default class SparseMap<T> implements Iterable<[number, T]> {
+
+// TODO: improve types here, to infer T based on valueType argument
+export class SparseMap<T = number> implements Iterable<[number, T]> {
     private _keys: Vector<number> // dense
     private _values: Vector<T> // also dense
     private _indices = new Vector<number>({ sparse: true, type: 'pointer' })
 
-    constructor(keyType: ArrayType, valueType: ArrayType) {
+    constructor(
+        keyType: Exclude<ArrayType, 'any'>,
+        valueType: T extends number ? Exclude<ArrayType, 'any'> : 'any'
+    ) {
         this._keys = new Vector<number>({ type: keyType }) // dense
-        this._values = new Vector<T>({ type: valueType }) // also dense
+        this._values = new Vector<T>({ type: valueType as any }) // also dense
     }
 
     get size() {

@@ -1,4 +1,4 @@
-import Vector from '../../collections/Vector'
+import { Vector } from '../../collections/Vector'
 
 describe('Vector', () => {
     describe('not sparse', () => {
@@ -93,5 +93,9 @@ describe('Vector', () => {
             expect(i).toBe(vector.capacity)
             expect(sum).toBe(1)
         })
+    })
+
+    describe('pointer', () => {
+        it.todo('Test pointer vectors..')
     })
 })

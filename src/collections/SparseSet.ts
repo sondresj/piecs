@@ -1,11 +1,11 @@
 import { ArrayType } from './types'
-import Vector from './Vector'
+import { Vector } from './Vector'
 
-export default class SparseSet implements Iterable<number> {
+export class SparseSet implements Iterable<number> {
     private dense: Vector<number>
     private indices = new Vector<number>({ sparse: true, type: 'pointer' })
 
-    constructor(type: ArrayType) {
+    constructor(type: Exclude<ArrayType, 'any'>) {
         this.dense = new Vector<number>({ type })
     }
 

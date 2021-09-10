@@ -1,5 +1,5 @@
-import type Archetype from './Archetype'
-import SparseSet from './collections/SparseSet'
+import type { Archetype } from './Archetype'
+import { SparseSet } from './collections/SparseSet'
 import type { ComponentTypeMap, ComponentIdMap, Query } from './types'
 
 export const every = <TM extends ComponentTypeMap, CT extends keyof TM>(...types: CT[]): Query<CT> => ({
@@ -63,7 +63,7 @@ const match = (query: Query<number>, archetype: Archetype): boolean => {
     }
 }
 
-export default class CompiledQuery<TM extends ComponentTypeMap> {
+export class CompiledQuery<TM extends ComponentTypeMap> {
     private matchingArchetypes: Map<string, Archetype> = new Map()
     private transformedQuery: Query<number>
 

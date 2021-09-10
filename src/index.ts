@@ -1,4 +1,12 @@
-import World from './World'
-export { and, or, not, every, some } from './Query'
+import { World } from './World'
+import { and, or, not, every, some } from './Query'
 export type { System, Query, ComponentTypeConfig, ComponentTypeConfigMap } from './types'
-export default World
+export {
+    World,
+    and,
+    or,
+    not,
+    every,
+    some
+}
+// export default World

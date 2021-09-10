@@ -1,4 +1,4 @@
-export default class BitMask {
+export class BitMask {
     protected mask: Uint32Array
     constructor();
     constructor(maxValue: number);

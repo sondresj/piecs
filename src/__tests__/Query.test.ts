@@ -1,7 +1,7 @@
 import { some } from '..'
-import Archetype from '../Archetype'
-import BitMask from '../collections/Bitmask'
-import CompiledQuery, { every } from '../Query'
+import { Archetype } from '../Archetype'
+import { BitMask } from '../collections/Bitmask'
+import { CompiledQuery, every } from '../Query'
 
 
 describe('CompiledQuery', () => {

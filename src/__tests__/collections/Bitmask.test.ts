@@ -1,4 +1,4 @@
-import BitMask from '../../collections/Bitmask'
+import { BitMask } from '../../collections/Bitmask'
 
 describe('Bitmask', () => {
     describe('toString', () => {

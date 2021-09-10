@@ -2,14 +2,22 @@
   "name": "piecs",
   "version": "0.1.0",
   "description": "PIECS is an entity component system with some batteries included",
-  "main": "lib/index.js",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "files": ["lib"],
   "repository": "git@github.com:sondresj/piecs.git",
   "author": "Sondre <sondre.skaardal.jensen@gmail.com>",
   "license": "MIT",
-  "private": false,
+  "private": true,
+  "keywords": [
+    "ecs"
+  ],
   "scripts": {
+    "clean": "rm -rf lib",
     "test": "jest",
-    "build": "tsc"
+    "build": "tsc",
+    "prepare": "yarn clean && yarn build",
+    "prepublishOnly": "yarn test --no-color"
   },
   "jest": {
       "preset": "ts-jest",

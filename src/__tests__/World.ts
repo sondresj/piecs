@@ -1,5 +1,5 @@
 import { and, every, not, some } from '../Query'
-import World from '../World'
+import { World } from '../World'
 
 describe('World', () => {
     it('works', () => {

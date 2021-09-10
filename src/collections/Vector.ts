@@ -1,20 +1,22 @@
 import { ArrayType, TypedArray } from './types'
 import { getArrayConstructor, reallocArray } from './utils'
 
-export type VectorConstructorOptions = {
+export type VectorConstructorOptions<T = number> = {
     initialCapacity?: number
     growFactor?: number
-    type?: ArrayType
     sparse?: boolean
-}
+} & (T extends number
+    ? { type: Exclude<ArrayType, 'any'> }
+    : { type?: 'any' }
+)
 
-const defaultOptions: Required<VectorConstructorOptions> = {
+const defaultOptions: Required<VectorConstructorOptions<number>> = {
     initialCapacity: 1 << 8,
     growFactor: 1.5,
     type: 'int32',
     sparse: false
 }
-export default class Vector<T> implements Iterable<T> {
+export class Vector<T = number> implements Iterable<T> {
     private _array: TypedArray
     private _capacity: number
     private _type: ArrayType
@@ -22,7 +24,7 @@ export default class Vector<T> implements Iterable<T> {
     private _growFactor: number
     private _length = 0
 
-    constructor(options?: VectorConstructorOptions) {
+    constructor(options?: VectorConstructorOptions<T>) {
         const {
             initialCapacity,
             type,
