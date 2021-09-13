@@ -1,0 +1,52 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        // {
+        //     "command": "yarn test:performance",
+        //     "name": "Run performance tests",
+        //     "request": "launch",
+        //     "type": "pwa-node"
+        // },
+        // {
+        //     "type": "node",
+        //     "request": "launch",
+        //     "name": "Launch Program",
+        //     "cwd": "${workspaceFolder}",
+        //     "command": "yarn test:performance"
+        //     // "runtimeExecutable": "yarn",
+        //     // "runtimeArgs": ["run-script"]
+        //     // "skipFiles": [
+        //     //     "<node_internals>/**"
+        //     // ],
+        //     // "program": "${workspaceFolder}\\lib\\index.js",
+        //     // "outFiles": [
+        //     //     "${workspaceFolder}/**/*.js"
+        //     // ]
+        // },
+        {
+            "name": "Run performance test",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/src/performance/add_remove.ts",
+            "runtimeArgs": ["--nolazy", "-r", "ts-node/register"],
+            "sourceMaps": true,
+            "cwd": "${workspaceRoot}",
+            "protocol": "inspector",
+            "skipFiles": ["<node_internals>/**", "node_modules/**"],
+        },
+        {
+            "name": "Current TS File",
+            "type": "node",
+            "request": "launch",
+            "args": ["${relativeFile}"],
+            "runtimeArgs": ["--nolazy", "-r", "ts-node/register"],
+            "sourceMaps": true,
+            "cwd": "${workspaceRoot}",
+            "protocol": "inspector",
+            "skipFiles": ["<node_internals>/**", "node_modules/**"]
+        }
+    ]
+}

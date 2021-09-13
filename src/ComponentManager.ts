@@ -31,15 +31,15 @@ export class ComponentManager<TM extends ComponentTypeMap> {
         return this.componentSets.get(componentId)!
     }
 
-    getComponentIdMap = (): ReadonlyMap<keyof TM, number> => this.componentIds
-    getMaxComponetId = (): number => this.nextComponentId - 1
-
     getComponentId = <CT extends keyof TM>(type: CT): number => {
         const id = this.componentIds.get(type)
         if (id === undefined)
             throw new Error(`Unknown component ${type}`)
         return id
     }
+
+    getComponentIdMap = (): ReadonlyMap<keyof TM, number> => this.componentIds
+    getMaxComponentId = (): number => this.nextComponentId - 1
 
     set = <CT extends keyof TM>(
         entity: number,

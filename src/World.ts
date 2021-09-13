@@ -58,7 +58,7 @@ export class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
         }
 
         // create a blank archetype that serves as the base archetype for all entities
-        const blankArchetype = new Archetype(new BitMask(this.componentManager.getMaxComponetId()))
+        const blankArchetype = new Archetype(new BitMask(this.componentManager.getMaxComponentId()))
         this.archetypes.set(blankArchetype.id, blankArchetype)
         this.BLANK_ARCHETYPE_ID = blankArchetype.id
 
@@ -98,9 +98,10 @@ export class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
      */
     readonly update = (): number => {
         const getElapsed = timer(this.lastElapsed)
+        const dt = getElapsed()
         for (const system of this.systems.values()) {
             const query = this.systemQueries.get(system.name)!
-            system.execute(query[Symbol.iterator](), this, getElapsed())
+            system.execute(query[Symbol.iterator](), this, dt)
         }
 
         this.executeDeferredActions()
@@ -238,11 +239,10 @@ export class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
         let archetype = this.getEntityArchetype(entity)
 
         if (!archetype.hasComponent(componentId)) {
-            archetype.removeEntity(entity)
-            const nextArchetypeMask = archetype.copyMask().xor(componentId)
-            archetype = this.archetypes.get(nextArchetypeMask.toString())
-                || new Archetype(nextArchetypeMask)
-            archetype.addEntity(entity)
+            archetype = archetype
+                .removeEntity(entity)
+                .morph(componentId, this.archetypes)
+                .addEntity(entity)
             this.setEntityArchetype(entity, archetype)
             for (const query of this.systemQueries.values()) {
                 query.tryAddMatch(archetype)
