@@ -1,7 +1,7 @@
-import { ArrayType } from './types'
+import { ArrayType, ReadonlyTypedArray } from './types'
 import { Vector } from './Vector'
 
-export class SparseSet implements Iterable<number> {
+export class SparseSet implements Iterable<number>, ReadonlyTypedArray<number> {
     private dense: Vector<number>
     private indices = new Vector<number>({ sparse: true, type: 'pointer' })
 

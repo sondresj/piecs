@@ -1,24 +1,23 @@
 import { BitMask } from './collections/Bitmask'
 import { SparseSet } from './collections/SparseSet'
+import { ReadonlyTypedArray } from './collections/types'
 
-export class Archetype {
-    // sparse indexed by componentId
-    private morphs: Archetype[] = []
+export class Archetype implements ReadonlyTypedArray<number> {
+    // sparse indexed by componentId. These are the parent archetypes of this archetype
+    protected transformations: Archetype[] = []
     private entities = new SparseSet('uint32')
     constructor(private componentMask: BitMask) {
         this.id = componentMask.toString()
     }
 
-    // wolf ecs caches changes in an array of archetypes, this is to reduce the amount of times the mask is copied, TODO do this
-
     public readonly id: string
 
-    get entityCount() {
+    get length() {
         return this.entities.length
     }
 
-    copyMask = () => {
-        return this.componentMask.copy()
+    get = (index: number): number | undefined => {
+        return this.entities.get(index)
     }
 
     addEntity = (entity: number) => {
@@ -39,12 +38,17 @@ export class Archetype {
         return this.componentMask.has(componentId)
     }
 
-    morph = (componentId: number, archetypes: ReadonlyMap<string, Archetype>): Archetype => {
-        if (this.morphs[componentId]) return this
-
-        const nextMask = this.copyMask().xor(componentId)
-        const archetype = archetypes.get(nextMask.toString()) || new Archetype(nextMask)
-        this.morphs[componentId] = archetype
+    transform = (componentId: number, archetypes: Readonly<Record<string, Archetype>>): Archetype => {
+        if (this.transformations[componentId]) {
+            return this.transformations[componentId]!
+        }
+        const nextMask = this.componentMask.copy().xor(componentId)
+        let archetype = archetypes[nextMask.toString()]
+        if (!archetype) {
+            archetype = new Archetype(nextMask)
+            archetype.transformations[componentId] = this // for potential backwards transform
+        }
+        this.transformations[componentId] = archetype
         return archetype
     }
 

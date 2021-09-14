@@ -24,6 +24,7 @@ export class ComponentManager<TM extends ComponentTypeMap> {
         }
     }
 
+    // TODO: Optimize
     private getComponentSet = <CT extends keyof TM>(type: CT) => {
         const componentId = this.componentIds.get(type)
         if (componentId === undefined)
@@ -32,10 +33,10 @@ export class ComponentManager<TM extends ComponentTypeMap> {
     }
 
     getComponentId = <CT extends keyof TM>(type: CT): number => {
-        const id = this.componentIds.get(type)
-        if (id === undefined)
+        const componentId = this.componentIds.get(type)
+        if (componentId === undefined)
             throw new Error(`Unknown component ${type}`)
-        return id
+        return componentId
     }
 
     getComponentIdMap = (): ReadonlyMap<keyof TM, number> => this.componentIds

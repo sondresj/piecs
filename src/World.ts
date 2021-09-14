@@ -11,22 +11,13 @@ export class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
     /**
      * [archetype.toString()]: archetype
      */
-    private archetypes: Map<string, Archetype> = new Map()
+    private archetypes: Record<string, Archetype> = {}
     /**
      * [entity: number]: archetype
-     * can be sparse (there may or may not be gaps)
      */
-    private entityArchetypeIds: string[] = []
+    private entityArchetypeIds: Record<number, string> = {}
     private nextEntityId = 0
     private entitiesKilled = new SparseSet('uint32')
-    // /**
-    //  * [cantorPair(entity, componentId)]: value
-    //  */
-    // private entityComponentValues = new SparseMap<unknown>('uint32', 'any')//unknown[] = []
-    /**
-     * [keyof TM]: number
-     */
-    // private componentIdMap: Map<keyof TM, number> = new Map()
     private componentManager: ComponentManager<TM>
     /**
      * [system.name]: System
@@ -59,7 +50,7 @@ export class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
 
         // create a blank archetype that serves as the base archetype for all entities
         const blankArchetype = new Archetype(new BitMask(this.componentManager.getMaxComponentId()))
-        this.archetypes.set(blankArchetype.id, blankArchetype)
+        this.archetypes[blankArchetype.id] = blankArchetype
         this.BLANK_ARCHETYPE_ID = blankArchetype.id
 
         Object.seal(this)
@@ -161,11 +152,11 @@ export class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
     private getEntityArchetype = (entity: number): Archetype => {
         this.assertHasEntity(entity)
         const archetypeId = this.entityArchetypeIds[entity]!
-        return this.archetypes.get(archetypeId)!
+        return this.archetypes[archetypeId]!
     }
 
     private setEntityArchetype = (entity: number, archetype: Archetype) => {
-        this.archetypes.set(archetype.id, archetype)
+        this.archetypes[archetype.id] = archetype
         this.entityArchetypeIds[entity] = archetype.id
     }
 
@@ -180,7 +171,7 @@ export class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
     }
 
     private _addEntity = (id: number) => {
-        const archetype = this.archetypes.get(this.BLANK_ARCHETYPE_ID)!
+        const archetype = this.archetypes[this.BLANK_ARCHETYPE_ID]!
         archetype.addEntity(id)
         this.setEntityArchetype(id, archetype)
     }
@@ -241,7 +232,7 @@ export class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
         if (!archetype.hasComponent(componentId)) {
             archetype = archetype
                 .removeEntity(entity)
-                .morph(componentId, this.archetypes)
+                .transform(componentId, this.archetypes)
                 .addEntity(entity)
             this.setEntityArchetype(entity, archetype)
             for (const query of this.systemQueries.values()) {
@@ -266,13 +257,11 @@ export class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
     readonly removeComponentImmediate = <CT extends keyof TM>(entity: number, type: CT): this => {
         const componentId = this.componentManager.getComponentId(type)
 
-        let archetype = this.getEntityArchetype(entity)
-        archetype.removeEntity(entity)
-        const nextMask = archetype.copyMask().xor(componentId)
-        archetype = this.archetypes.get(nextMask.toString()) || new Archetype(nextMask)
-        archetype.addEntity(entity)
+        const archetype = this.getEntityArchetype(entity)
+            .removeEntity(entity)
+            .transform(componentId, this.archetypes)
+            .addEntity(entity)
         this.setEntityArchetype(entity, archetype)
-
         this.componentManager.delete(entity, type)
         return this
     }

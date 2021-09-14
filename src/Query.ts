@@ -75,6 +75,9 @@ export class CompiledQuery<TM extends ComponentTypeMap> {
 
 
     tryAddMatch = (archetype: Archetype): this => {
+        if (this.matchingArchetypes.has(archetype.id))
+            return this
+
         if (match(this.transformedQuery, archetype)) {
             this.matchingArchetypes.set(archetype.id, archetype)
         }
@@ -82,13 +85,9 @@ export class CompiledQuery<TM extends ComponentTypeMap> {
     }
 
     *[Symbol.iterator](): IterableIterator<number> {
-        const entitySet = new Set()
+        // TODO: Try to provide alternatives for generator functions (to reduce overhead of yield)
         for (const archetype of this.matchingArchetypes.values()) {
-            for (const entity of archetype) {
-                if (entitySet.has(entity)) continue
-                entitySet.add(entity)
-                yield entity
-            }
+            yield *archetype
         }
     }
 }

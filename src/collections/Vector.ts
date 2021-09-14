@@ -1,4 +1,4 @@
-import { ArrayType, TypedArray } from './types'
+import { ArrayType, ReadonlyTypedArray, TypedArray } from './types'
 import { getArrayConstructor, reallocArray } from './utils'
 
 export type VectorConstructorOptions<T = number> = {
@@ -16,7 +16,7 @@ const defaultOptions: Required<VectorConstructorOptions<number>> = {
     type: 'int32',
     sparse: false
 }
-export class Vector<T = number> implements Iterable<T> {
+export class Vector<T = number> implements Iterable<T>, ReadonlyTypedArray<T> {
     private _array: TypedArray
     private _capacity: number
     private _type: ArrayType
@@ -43,7 +43,8 @@ export class Vector<T = number> implements Iterable<T> {
     }
 
     private growIfNecessary = () => {
-        if (this._length < this._capacity) return
+        if (this._length < this._capacity)
+            return
         while (this._length >= this._capacity) {
             this._capacity = Math.ceil(this._capacity * this._growFactor)
         }
@@ -67,12 +68,16 @@ export class Vector<T = number> implements Iterable<T> {
     }
 
     pop = (): T | undefined => {
-        if (this._length === 0) return undefined
+        if (this._length === 0) {
+            return undefined
+        }
         return this._array[--this._length]
     }
 
     get = (index: number): T | undefined => {
-        if (!this._sparse && index >= this._length) return undefined
+        if (!this._sparse && index >= this._length) {
+            return undefined
+        }
         return this._array[index]
     }
 

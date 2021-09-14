@@ -18,7 +18,7 @@
     "clean": "rm -rf lib",
     "test": "jest",
     "build": "tsc",
-    "profile": "yarn build && cross-env NODE_ENV=production node --cpu-prof performance/add_remove.mjs",
+    "profile": "yarn build && cross-env NODE_ENV=production node --cpu-prof performance/simple_iter.mjs",
     "prepare": "yarn clean && yarn build",
     "prepublishOnly": "yarn test --no-color"
   },
