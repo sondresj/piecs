@@ -1,7 +1,7 @@
-import { ArrayType, ReadonlyTypedArray } from './types'
+import { ArrayType } from './types'
 import { Vector } from './Vector'
 
-export class SparseSet implements Iterable<number>, ReadonlyTypedArray<number> {
+export class SparseSet {
     private dense: Vector<number>
     private indices = new Vector<number>({ sparse: true, type: 'pointer' })
 
@@ -48,7 +48,11 @@ export class SparseSet implements Iterable<number>, ReadonlyTypedArray<number> {
         return this
     }
 
-    [Symbol.iterator](): IterableIterator<number> {
-        return this.dense[Symbol.iterator]()
+    forEach = (callback: (value: number, index: number) => void) => {
+        this.dense.forEach(callback)
     }
+
+    // [Symbol.iterator](): IterableIterator<number> {
+    //     return this.dense[Symbol.iterator]()
+    // }
 }

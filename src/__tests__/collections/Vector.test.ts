@@ -45,9 +45,9 @@ describe('Vector', () => {
                 vector.push(i)
 
             let v = 0
-            for (const value of vector) {
+            vector.forEach(value => {
                 expect(value).toBe(v++)
-            }
+            })
             expect.assertions(10)
         })
     })
@@ -86,11 +86,11 @@ describe('Vector', () => {
 
             let sum = 0
             let i = 0
-            for (const value of vector) {
+            vector.forEach((value, index) => {
                 sum += value
-                i++
-            }
-            expect(i).toBe(vector.capacity)
+                i = index
+            })
+            expect(i).toBe(vector.capacity - 1)
             expect(sum).toBe(1)
         })
     })

@@ -92,7 +92,7 @@ export class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
         const dt = getElapsed()
         for (const system of this.systems.values()) {
             const query = this.systemQueries.get(system.name)!
-            system.execute(query[Symbol.iterator](), this, dt)
+            system.execute(query.forEach, this, dt)
         }
 
         this.executeDeferredActions()
@@ -266,7 +266,7 @@ export class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
         return this
     }
 
-    readonly getEntitiesWithComponent = <CT extends keyof TM>(type: CT) => {
-        return this.componentManager.getComponentEntries(type)
+    readonly forEachEntityWithComponent = <CT extends keyof TM>(type: CT, callback: (entity: number, component: TM[CT]) => void) => {
+        return this.componentManager.forEach(type, callback)
     }
 }

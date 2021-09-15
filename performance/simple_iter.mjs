@@ -28,34 +28,34 @@ function simpleIter(count) {
         name: 'ABSystem',
         query: every('a', 'b'),
         execute: (entities, world) => {
-            for (const entity of entities) {
+            entities(entity => {
                 const a = world.getEntityComponent(entity, 'a')
                 const b = world.getEntityComponent(entity, 'b')
                 world.setComponentImmediate(entity, 'a', b)
                 world.setComponentImmediate(entity, 'b', a)
-            }
+            })
         }
     }, {
         name: 'CDSystem',
         query: every('c', 'd'),
         execute: (entities, world) => {
-            for (const entity of entities) {
+            entities(entity => {
                 const c = world.getEntityComponent(entity, 'c')
                 const d = world.getEntityComponent(entity, 'd')
                 world.setComponentImmediate(entity, 'c', d)
                 world.setComponentImmediate(entity, 'd', c)
-            }
+            })
         }
     }, {
         name: 'CESystem',
         query: every('c', 'e'),
         execute: (entities, world) => {
-            for (const entity of entities) {
+            entities(entity => {
                 const c = world.getEntityComponent(entity, 'c')
                 const e = world.getEntityComponent(entity, 'e')
                 world.setComponentImmediate(entity, 'c', e)
                 world.setComponentImmediate(entity, 'e', c)
-            }
+            })
         }
     }])
 

@@ -24,21 +24,21 @@ describe('World', () => {
                 world.setComponent(e, 'foo', 2) //deferred
             },
             execute: (entities, world) => {
-                for (const entity of entities) {
+                entities((entity) => {
                     expect(entity).toBe(1)
                     expect(world.getEntityComponent(entity, 'foo')).toBe(2)
                     world.setComponent(entity, 'baz') // deferred using default value
                     expect(world.hasEntityComponent(entity, 'baz')).toBeFalsy()
-                }
+                })
             }
         }, {
             name: 'killEntitiesWithBaz',
             query: some('baz'),
             execute: (_, world) => {
-                for (const [entity] of world.getEntitiesWithComponent('baz')) {
+                world.forEachEntityWithComponent('baz', entity => {
                     world.killEntityImmediate(entity)
                     expect(world.hasEntity(entity)).toBeFalsy()
-                }
+                })
             }
         }])
 

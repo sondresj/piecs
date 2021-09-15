@@ -65,21 +65,25 @@ export class ComponentManager<TM extends ComponentTypeMap> {
         return this
     }
 
-    getComponentEntities = <CT extends keyof TM>(
-        type: CT
-    ): IterableIterator<number> => {
-        return this.getComponentMap(type).keys()
+    forEach = <CT extends keyof TM>(type: CT, callback: (entity: number, component: TM[CT]) => void) => {
+        this.getComponentMap(type).forEach(callback as any)
     }
 
-    getComponentValues = <CT extends keyof TM>(
-        type: CT
-    ): IterableIterator<TM[CT]> => {
-        return this.getComponentMap(type).values() as any
-    }
+    // getComponentEntities = <CT extends keyof TM>(
+    //     type: CT
+    // ): IterableIterator<number> => {
+    //     return this.getComponentMap(type).keys()
+    // }
 
-    getComponentEntries = <CT extends keyof TM>(
-        type: CT
-    ): IterableIterator<[entity: number, component: TM[CT]]> => {
-        return this.getComponentMap(type).entries() as any
-    }
+    // getComponentValues = <CT extends keyof TM>(
+    //     type: CT
+    // ): IterableIterator<TM[CT]> => {
+    //     return this.getComponentMap(type).values() as any
+    // }
+
+    // getComponentEntries = <CT extends keyof TM>(
+    //     type: CT
+    // ): IterableIterator<[entity: number, component: TM[CT]]> => {
+    //     return this.getComponentMap(type).entries() as any
+    // }
 }

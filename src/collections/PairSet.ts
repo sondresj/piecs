@@ -18,7 +18,7 @@ import { SparseSet } from './SparseSet'
 //     return pair & b
 // }
 
-const mask = 0xffff
+// const mask = 0xffff
 
 export class SparsePairSet {
     private _set = new SparseSet('uint32')
@@ -47,37 +47,37 @@ export class SparsePairSet {
         return this
     }
 
-    *keys(a: number) {
-        for (const pair of this._set) {
-            if (pair >> 16 & a) {
-                yield pair & mask
-            }
-        }
-    }
+    // *keys(a: number) {
+    //     for (const pair of this._set) {
+    //         if (pair >> 16 & a) {
+    //             yield pair & mask
+    //         }
+    //     }
+    // }
 
-    *values(b: number) {
-        for (const pair of this._set) {
-            if (pair & b) {
-                yield pair >> 16 & mask
-            }
-        }
-    }
+    // *values(b: number) {
+    //     for (const pair of this._set) {
+    //         if (pair & b) {
+    //             yield pair >> 16 & mask
+    //         }
+    //     }
+    // }
 
-    *entries(): IterableIterator<[key: number, value: number]> {
-        for (const pair of this._set) {
-            yield [
-                pair >> 16 & mask,
-                pair & mask
-            ]
-        }
-    }
+    // *entries(): IterableIterator<[key: number, value: number]> {
+    //     for (const pair of this._set) {
+    //         yield [
+    //             pair >> 16 & mask,
+    //             pair & mask
+    //         ]
+    //     }
+    // }
 
-    *[Symbol.iterator](): IterableIterator<[key: number, value: number]> {
-        for (const pair of this._set) {
-            yield [
-                pair >> 16 & mask,
-                pair & mask
-            ]
-        }
-    }
+    // *[Symbol.iterator](): IterableIterator<[key: number, value: number]> {
+    //     for (const pair of this._set) {
+    //         yield [
+    //             pair >> 16 & mask,
+    //             pair & mask
+    //         ]
+    //     }
+    // }
 }

@@ -22,7 +22,8 @@ describe('CompiledQuery', () => {
             archetype.addEntity(1)
             cq.tryAddMatch(archetype) // should match
 
-            expect([...cq[Symbol.iterator]()]).toEqual([1])
+            cq.forEach(entity => expect(entity).toBe(1))
+            expect.assertions(1)
         })
         it('does not add archetype matching some', () => {
             const cq = new CompiledQuery<TestType>(some('foo', 'bar'), componentIds)
@@ -31,7 +32,8 @@ describe('CompiledQuery', () => {
             archetype.addEntity(1)
             cq.tryAddMatch(archetype) // should not match
 
-            expect([...cq[Symbol.iterator]()]).toEqual([])
+            cq.forEach(() => fail('did not expect to be called'))
+            expect.assertions(0)
         })
 
         it('adds archetype matching every', () => {
@@ -41,7 +43,8 @@ describe('CompiledQuery', () => {
             archetype.addEntity(1)
             cq.tryAddMatch(archetype) // should match
 
-            expect([...cq[Symbol.iterator]()]).toEqual([1])
+            cq.forEach(entity => expect(entity).toBe(1))
+            expect.assertions(1)
         })
 
         it('does not add archetype matching every', () => {
@@ -51,7 +54,8 @@ describe('CompiledQuery', () => {
             archetype.addEntity(1)
             cq.tryAddMatch(archetype) // should not  match
 
-            expect([...cq[Symbol.iterator]()]).toEqual([])
+            cq.forEach(() => fail('did not expect to be called'))
+            expect.assertions(0)
         })
     })
 })

@@ -1,8 +1,7 @@
 import { BitMask } from './collections/Bitmask'
 import { SparseSet } from './collections/SparseSet'
-import { ReadonlyTypedArray } from './collections/types'
 
-export class Archetype implements ReadonlyTypedArray<number> {
+export class Archetype {
     // sparse indexed by componentId. These are the parent archetypes of this archetype
     protected transformations: Archetype[] = []
     private entities = new SparseSet('uint32')
@@ -52,7 +51,10 @@ export class Archetype implements ReadonlyTypedArray<number> {
         return archetype
     }
 
-    [Symbol.iterator](): IterableIterator<number> {
-        return this.entities[Symbol.iterator]()
+    forEach = (callback: (entity: number) => void) => {
+        const length = this.entities.length
+        for (let i = length - 1; i >= 0; i--) {
+            callback(this.entities.get(i)!)
+        }
     }
 }

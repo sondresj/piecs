@@ -1,4 +1,4 @@
-import { ArrayType, ReadonlyTypedArray, TypedArray } from './types'
+import { ArrayType, TypedArray } from './types'
 import { getArrayConstructor, reallocArray } from './utils'
 
 export type VectorConstructorOptions<T = number> = {
@@ -16,7 +16,7 @@ const defaultOptions: Required<VectorConstructorOptions<number>> = {
     type: 'int32',
     sparse: false
 }
-export class Vector<T = number> implements Iterable<T>, ReadonlyTypedArray<T> {
+export class Vector<T = number> {
     private _array: TypedArray
     private _capacity: number
     private _type: ArrayType
@@ -93,14 +93,26 @@ export class Vector<T = number> implements Iterable<T>, ReadonlyTypedArray<T> {
         return this
     }
 
-    *[Symbol.iterator](): IterableIterator<T> {
+    forEach = (callback: (value: T, index: number) => void): void => {
         if (this.sparse) {
-            yield *this._array.values()
+            this._array.forEach(callback as any)
             return
         }
-        for (let i = 0; i < this._length; i++) {
-            yield this._array[i]!
+
+        for (let i = 0, len = this._length; i < len; i++) {
+            callback(this._array[i], i)
         }
+        // this._array.forEach(callback as any)
     }
+
+    // *[Symbol.iterator](): IterableIterator<T> {
+    //     if (this.sparse) {
+    //         yield *this._array.values()
+    //         return
+    //     }
+    //     for (let i = 0; i < this._length; i++) {
+    //         yield this._array[i]!
+    //     }
+    // }
 
 }

@@ -32,9 +32,9 @@ export type TypedArray =
     | BigInt64Array
     | Float32Array
     | Float64Array
-    | any[]
+    | Array<any>
 
-export type ReadonlyTypedArray<T> = {
-    length: number
-    get: (index: number) => T | undefined
-}
+// export type ReadonlyTypedArray<T> = {
+//     length: number
+//     get: (index: number) => T | undefined
+// }

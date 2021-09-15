@@ -84,10 +84,16 @@ export class CompiledQuery<TM extends ComponentTypeMap> {
         return this
     }
 
-    *[Symbol.iterator](): IterableIterator<number> {
-        // TODO: Try to provide alternatives for generator functions (to reduce overhead of yield)
-        for (const archetype of this.matchingArchetypes.values()) {
-            yield *archetype
-        }
+    forEach = (callback: (entity: number) => void) => {
+        this.matchingArchetypes.forEach(archetype => {
+            archetype.forEach(callback)
+        })
     }
+
+    // *[Symbol.iterator](): IterableIterator<number> {
+    //     // TODO: Try to provide alternatives for generator functions (to reduce overhead of yield)
+    //     for (const archetype of this.matchingArchetypes.values()) {
+    //         yield *archetype
+    //     }
+    // }
 }

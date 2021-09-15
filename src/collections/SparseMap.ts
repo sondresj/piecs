@@ -3,7 +3,7 @@ import { Vector } from './Vector'
 
 
 // TODO: improve types here, to infer T based on valueType argument
-export class SparseMap<T = number> implements Iterable<[number, T]> {
+export class SparseMap<T = number> {
     private _keys: Vector<number> // dense
     private _values: Vector<T> // also dense
     private _indices = new Vector<number>({ sparse: true, type: 'pointer' })
@@ -73,23 +73,23 @@ export class SparseMap<T = number> implements Iterable<[number, T]> {
         ] : undefined
     }
 
-    *keys(): IterableIterator<number> {
-        return this._keys[Symbol.iterator]()
-    }
-    *values(): IterableIterator<T> {
-        for (const i of this._keys) {
-            yield this._values.get(i)!
+    forEach = (callback: (key: number, value: T) => void) => {
+        for (let i = 0, len = this._keys.length; i < len; i++) {
+            callback(i, this._values.get(i)!)
         }
     }
-    *entries(): IterableIterator<[number, T]> {
-        for (const i of this._keys) {
-            yield [i, this._values.get(i)!]
-        }
-    }
-    /**
-     * Key value pair appears in random order, not in order of insertion
-     */
-    [Symbol.iterator](): IterableIterator<[number, T]> {
-        return this.entries()
-    }
+
+    // *keys(): IterableIterator<number> {
+    //     return this._keys[Symbol.iterator]()
+    // }
+    // *values(): IterableIterator<T> {
+    //     for (const i of this._keys) {
+    //         yield this._values.get(i)!
+    //     }
+    // }
+    // *entries(): IterableIterator<[number, T]> {
+    //     for (const i of this._keys) {
+    //         yield [i, this._values.get(i)!]
+    //     }
+    // }
 }

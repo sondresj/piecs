@@ -48,7 +48,7 @@ export interface System<
 > {
     name: string
     init?: (world: BoundWorld<TM>) => void
-    execute: (matchingEntities: IterableIterator<number>, world: BoundWorld<TM>, dt: number) => void
+    execute: (entityIterator: (callback: (entity: number) => void) => void, world: BoundWorld<TM>, dt: number) => void
     query: Query<keyof TM>
 }
 
@@ -65,5 +65,5 @@ export interface BoundWorld<TM extends ComponentTypeMap> {
     readonly getEntityComponent: <CT extends keyof TM>(entity: number, type: CT) => TM[CT] | undefined
     readonly removeComponent: <CT extends keyof TM>(entity: number, type: CT) => this
     readonly removeComponentImmediate: <CT extends keyof TM>(entity: number, type: CT) => this
-    readonly getEntitiesWithComponent: <CT extends keyof TM>(type: CT) => IterableIterator<[entity: number, component: TM[CT]]>
+    readonly forEachEntityWithComponent: <CT extends keyof TM>(type: CT, callback: (entity: number, component: TM[CT]) => void) => void
 }

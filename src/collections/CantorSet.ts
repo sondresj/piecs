@@ -15,7 +15,7 @@ export const cantorPair = (a: number, b: number) => {
 
 // }
 
-export class SparseCantorSet implements Iterable<number> {
+export class SparseCantorSet {
     private _set: SparseSet
     constructor(type: Extract<ArrayType, `uint${number}` | 'pointer'>) {
         this._set = new SparseSet(type)
@@ -38,13 +38,9 @@ export class SparseCantorSet implements Iterable<number> {
         this._set.delete(cantorPair(a, b))
         return this
     }
-
-    [Symbol.iterator](): IterableIterator<number> {
-        throw new Error('Method not implemented.')
-    }
 }
 
-export class CantorSet implements Iterable<number> {
+export class CantorSet {
     private _set: Set<number>
     constructor() {
         this._set = new Set()
@@ -74,9 +70,5 @@ export class CantorSet implements Iterable<number> {
 
     valuesForB = () => {
         return null
-    }
-
-    [Symbol.iterator](): IterableIterator<number> {
-        throw new Error('Method not implemented.')
     }
 }
