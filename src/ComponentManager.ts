@@ -2,7 +2,7 @@ import { ArrayType } from './collections/types'
 import { ComponentTypeConfig, ComponentTypeConfigMap, ComponentTypeMap } from './types'
 import { SparseMap } from './collections/SparseMap'
 
-// The idea here is to collect all the components of the same type togheter in mememory to increase likelyhood of cpu chache hits
+// The idea here is to collect all the components of the same type togheter in memory to increase likelyhood of cpu chache hits
 
 const arrayTypes: ArrayType[] = ['any', 'float32', 'float64', 'int16', 'int32', 'int8', 'pointer', 'uint16', 'uint32', 'uint8', 'uint8c']
 const mapType = (type: string): ArrayType => arrayTypes.includes(type as any)
@@ -12,31 +12,30 @@ const mapType = (type: string): ArrayType => arrayTypes.includes(type as any)
 export class ComponentManager<TM extends ComponentTypeMap> {
     private nextComponentId = 0
     private componentIds: Map<keyof TM, number> = new Map()
-    private componentSets: Map<number, SparseMap<unknown>> = new Map()
-    private componentTypeConfigs: ComponentTypeConfigMap<TM>
+    private componentMaps: Map<number, SparseMap<unknown>> = new Map()
+    private componentTypeConfigs: Readonly<ComponentTypeConfigMap<TM>>
 
     constructor(componentTypeConfig: ComponentTypeConfigMap<TM>) {
         this.componentTypeConfigs = componentTypeConfig
         for (const [key, config] of Object.entries(componentTypeConfig) as [keyof TM, ComponentTypeConfig<any>][]) {
             const id = this.nextComponentId++
             this.componentIds.set(key, id)
-            this.componentSets.set(id, new SparseMap<unknown>('uint32', mapType(config.type) as any))
+            this.componentMaps.set(id, new SparseMap<unknown>('uint32', mapType(config.type) as any))
         }
     }
 
-    // TODO: Optimize
-    private getComponentSet = <CT extends keyof TM>(type: CT) => {
-        const componentId = this.componentIds.get(type)
-        if (componentId === undefined)
+    private getComponentMap = <CT extends keyof TM>(type: CT) => {
+        const cid = this.componentIds.get(type)
+        if (cid === undefined)
             throw new Error(`Unknown component ${type}`)
-        return this.componentSets.get(componentId)!
+        return this.componentMaps.get(cid)!
     }
 
     getComponentId = <CT extends keyof TM>(type: CT): number => {
-        const componentId = this.componentIds.get(type)
-        if (componentId === undefined)
+        const cid = this.componentIds.get(type)
+        if (cid === undefined)
             throw new Error(`Unknown component ${type}`)
-        return componentId
+        return cid
     }
 
     getComponentIdMap = (): ReadonlyMap<keyof TM, number> => this.componentIds
@@ -47,7 +46,7 @@ export class ComponentManager<TM extends ComponentTypeMap> {
         type: CT,
         value: TM[CT] = this.componentTypeConfigs[type].default
     ): this => {
-        this.getComponentSet(type).set(entity, value)
+        this.getComponentMap(type).set(entity, value)
         return this
     }
 
@@ -55,32 +54,32 @@ export class ComponentManager<TM extends ComponentTypeMap> {
         entity: number,
         type: CT
     ): TM[CT] | undefined => {
-        return this.getComponentSet(type).get(entity) as any
+        return this.getComponentMap(type).get(entity) as any
     }
 
     delete = <CT extends keyof TM>(
         entity: number,
         type: CT
     ): this => {
-        this.getComponentSet(type).delete(entity)
+        this.getComponentMap(type).delete(entity)
         return this
     }
 
     getComponentEntities = <CT extends keyof TM>(
         type: CT
     ): IterableIterator<number> => {
-        return this.getComponentSet(type).keys()
+        return this.getComponentMap(type).keys()
     }
 
     getComponentValues = <CT extends keyof TM>(
         type: CT
     ): IterableIterator<TM[CT]> => {
-        return this.getComponentSet(type).values() as any
+        return this.getComponentMap(type).values() as any
     }
 
     getComponentEntries = <CT extends keyof TM>(
         type: CT
     ): IterableIterator<[entity: number, component: TM[CT]]> => {
-        return this.getComponentSet(type).entries() as any
+        return this.getComponentMap(type).entries() as any
     }
 }

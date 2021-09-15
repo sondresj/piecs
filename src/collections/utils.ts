@@ -17,6 +17,8 @@ export const getArrayConstructor = (capacity: number, type: ArrayType): ArrayCla
         case 'uint16': return Uint16Array
         case 'int32': return Int32Array
         case 'uint32': return Uint32Array
+        case 'int64': return BigInt64Array
+        case 'uint64': return BigUint64Array
         case 'float32': return Float32Array
         case 'float64': return Float64Array
         case 'pointer': return capacity <= 1 << 8

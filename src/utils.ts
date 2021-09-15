@@ -1,9 +1,3 @@
-export const cantorPair = (a: number, b: number) => {
-    const sum = a + b
-    return (sum * (sum + 1) >> 1) + b
-}
-
-
 const now = globalThis && globalThis.performance
     ? performance.now
     : Date.now
