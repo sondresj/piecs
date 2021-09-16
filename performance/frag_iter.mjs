@@ -1,35 +1,33 @@
-import { World, every } from 'piecs'
+import { World } from '../lib/World.js'
+import { every } from '../lib/Query.js'
 
-const componentTypeConfig = Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ', (v) => ([v, {
-    type: 'uint8',
-    default: 0
-}])).reduce((res, [name, config]) => {
-    res[name] = config
-    return res
-}, {
-    data: {
-        type: 'uint8',
-        default: 0
-    }
-})
+const components = {}
 
 export default function(count) {
-    const world = new World(componentTypeConfig, [{
-        name: 'Data',
-        query: every('data'),
-        execute: (entities, world) => {
-            for (const entity of entities) {
-                const data = world.getEntityComponent(entity, 'data')
-                world.setComponentImmediate(entity, 'data', data * 2)
-            }
+    const world = new World()
+    Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').forEach(name => {
+        components[name] = world.createComponentSet(name, 'uint8', 0)
+    })
+
+    const Data = world.createComponentSet('Data', 'uint8', 0)
+    world.registerSystem({
+        name: 'DataSys',
+        query: every(Data),
+        execute: (entities) => {
+            entities(entity => {
+                const data = Data.get(entity)
+                Data.set(entity, data * 2)
+            })
         }
-    }])
+    })
+
+    world.init()
 
     for (let i = 0; i < count; i++) {
-        for (const c of Object.keys(componentTypeConfig)) {
-            const e = world.spawnEntityImmediate()
-            world.setComponentImmediate(e, 'data')
-            world.setComponentImmediate(e, c)
+        for (const c of Object.values(components)) {
+            const e = world.createEntity()
+            Data.set(e, 1)
+            c.set(e, 1)
         }
     }
 

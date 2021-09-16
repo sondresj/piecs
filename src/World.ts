@@ -1,13 +1,13 @@
-import type { System, ComponentTypeMap, BoundWorld } from './types'
+import type { System, BoundWorld } from './types'
 import { Archetype } from './Archetype'
 import { BitMask } from './collections/Bitmask'
-import { SparseSet } from './collections/SparseSet'
+import { SparseSet_Array } from './collections/SparseSet'
 import { CompiledQuery } from './Query'
 import { timer } from './utils'
-import { ComponentManager } from './ComponentManager'
-import { ComponentTypeConfigMap } from '.'
+import { ArrayType } from './collections/types'
+import { ComponentSet } from './ComponentSet'
 
-export class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
+export class World implements BoundWorld {
     /**
      * [archetype.toString()]: archetype
      */
@@ -16,69 +16,67 @@ export class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
      * [entity: number]: archetype
      */
     private entityArchetypeIds: Record<number, string> = {}
+    private entitiesDeleted = new SparseSet_Array()
+    // private entitiesKilled = new SparseSet('uint32')
     private nextEntityId = 0
-    private entitiesKilled = new SparseSet('uint32')
-    private componentManager: ComponentManager<TM>
-    /**
-     * [system.name]: System
-     */
-    private systems: Map<string, System<TM>> = new Map()
+    private nextComponentid = 0
+
+    private systems: System<any>[] = []
     /**
      * [system.name]: CompiledQuery(system.query)
      */
-    private systemQueries: Map<string, CompiledQuery<TM>> = new Map()
+    private systemQueries: Map<string, CompiledQuery> = new Map()
 
     private deferredActions: Array<() => void> = []
     private lastElapsed = 0
-    private BLANK_ARCHETYPE_ID: string
+    private BLANK_ARCHETYPE_ID = ''
+    private initialized = false
 
-    /**
-     *
-     * @param componentConfig default values for a component. also used to register components
-     * @param systems
-     */
-    constructor(
-        componentConfig: ComponentTypeConfigMap<TM>,
-        systems: System<TM>[]
-    ) {
-        this.componentManager = new ComponentManager(componentConfig)
-
-        for (const system of systems) {
-            this.systems.set(system.name, system)
-            this.systemQueries.set(system.name, new CompiledQuery(system.query, this.componentManager.getComponentIdMap()))
+    readonly createComponentSet = <T>(
+        name: string,
+        type: T extends number ? Exclude<ArrayType, 'any'> : Extract<ArrayType, 'any'>,
+        defaultValue: T
+    ): ComponentSet<T> => {
+        if (this.initialized) {
+            throw new Error('Cannot create new components after init')
         }
+        return new ComponentSet(name, type, this.nextComponentid++, defaultValue, this)
+    }
 
-        // create a blank archetype that serves as the base archetype for all entities
-        const blankArchetype = new Archetype(new BitMask(this.componentManager.getMaxComponentId()))
-        this.archetypes[blankArchetype.id] = blankArchetype
-        this.BLANK_ARCHETYPE_ID = blankArchetype.id
-
-        Object.seal(this)
+    readonly registerSystem = <TC extends InstanceType<typeof ComponentSet>>(system: System<TC>) => {
+        if (this.systemQueries.has(system.name))
+            throw new Error(`System ${system.name} already registered`)
+        this.systems.push(system)
+        this.systemQueries.set(system.name, new CompiledQuery(system.query))
+        if (this.initialized && system.init) {
+            system.init(this)
+            this._executeDeferredActions()
+        }
+        return this
     }
 
     /**
-     * Initialize world, invoking the initializer for each system
+     * Initialize world, invoking the initializer for each registered system
      * @param initialEntityComponents optional array of initial entity components
      * @returns this
      */
-    readonly init = (initialEntityComponents: Partial<TM>[] = []): this => {
-        if (this.nextEntityId > 0) {
+    readonly init = (): this => {
+        if (this.initialized) {
             throw new Error('Already initialized')
         }
+        this.initialized = true
 
-        for (const entityComponets of initialEntityComponents) {
-            for (const [type, value] of Object.entries(entityComponets)) {
-                const entity = this.spawnEntityImmediate()
-                this.setComponentImmediate(entity, type, value as any)
-            }
-        }
+        // create a blank archetype that serves as the base archetype for all entities
+        const blankArchetype = new Archetype(new BitMask(this.nextComponentid))
+        this.archetypes[blankArchetype.id] = blankArchetype
+        this.BLANK_ARCHETYPE_ID = blankArchetype.id
 
-        for (const system of this.systems.values()) {
+        this.systems.forEach(system => {
             if (system.init) {
                 system.init(this)
             }
-        }
-        this.executeDeferredActions()
+        })
+        this._executeDeferredActions()
         return this
     }
 
@@ -90,12 +88,12 @@ export class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
     readonly update = (): number => {
         const getElapsed = timer(this.lastElapsed)
         const dt = getElapsed()
-        for (const system of this.systems.values()) {
+        this.systems.forEach(system => {
             const query = this.systemQueries.get(system.name)!
             system.execute(query.forEach, this, dt)
-        }
+        })
 
-        this.executeDeferredActions()
+        this._executeDeferredActions()
 
         const totalElapsed = getElapsed()
         const executionTime = totalElapsed + this.lastElapsed
@@ -103,44 +101,19 @@ export class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
         return executionTime
     }
 
-    readonly addSystem = (system: System<TM>): this => {
-        return this
-    }
-
-    readonly pauseSystem = (name: string): this => {
-        return this
-    }
-
-    readonly unpauseSystem = (name: string): this => {
-        return this
-    }
-
-    readonly addComponentType = <CT extends string, T>(name: CT, defaultValue: T): World<TM & Record<CT, T>> => {
-        // if (this.componentIdMap.has(name)) return this
-        // this.componentIdMap.set(name, this.componentIdMap.size)
-        // // @ts-ignore
-        // this.componentConfig[name] = defaultValue
-        return this
-    }
-
-    private assertHasEntity = (entity: number) => {
-        if (this.entitiesKilled.has(entity)) {
+    private _assertHasEntity = (entity: number) => {
+        if (this.entitiesDeleted.has(entity)) {
             throw new Error(`Entity ${entity} is dead`)
         }
         if (!this.entityArchetypeIds[entity])
             throw new Error(`Entity ${entity} does not exist`)
     }
 
-    // private assertHasComponent = <CT extends keyof TM>(type: CT) => {
-    //     if (!this.componentIdMap.has(type))
-    //         throw new Error(`Component ${type} does not exist`)
-    // }
-
-    private defer = (action: () => void) => {
+    private _defer = (action: () => void) => {
         this.deferredActions.push(action)
     }
 
-    private executeDeferredActions = () => {
+    private _executeDeferredActions = () => {
         if (!this.deferredActions.length) return
 
         for (const action of this.deferredActions) {
@@ -149,124 +122,112 @@ export class World<TM extends ComponentTypeMap> implements BoundWorld<TM> {
         this.deferredActions.length = 0
     }
 
-    private getEntityArchetype = (entity: number): Archetype => {
-        this.assertHasEntity(entity)
+    private _getEntityArchetype = (entity: number): Archetype => {
+        this._assertHasEntity(entity)
         const archetypeId = this.entityArchetypeIds[entity]!
         return this.archetypes[archetypeId]!
     }
 
-    private setEntityArchetype = (entity: number, archetype: Archetype) => {
+    private _setEntityArchetype = (entity: number, archetype: Archetype) => {
         this.archetypes[archetype.id] = archetype
         this.entityArchetypeIds[entity] = archetype.id
     }
 
-    // private getComponentId = <CT extends keyof TM>(type: CT): number => {
-    //     return this.componentManager.getComponentIdMap().get(type)!
-    // }
-
-    private getNextEntityId = () => {
-        return this.entitiesKilled.length > 0
-            ? this.entitiesKilled.pop()!
+    private _getNextEntityId = () => {
+        return this.entitiesDeleted.length > 0
+            ? this.entitiesDeleted.pop()!
             : this.nextEntityId++
     }
 
     private _addEntity = (id: number) => {
         const archetype = this.archetypes[this.BLANK_ARCHETYPE_ID]!
         archetype.addEntity(id)
-        this.setEntityArchetype(id, archetype)
+        this._setEntityArchetype(id, archetype)
     }
-
-    // BoundWorld interface
 
     readonly hasEntity = (entity: number): boolean => {
-        return !this.entitiesKilled.has(entity) && !!this.entityArchetypeIds[entity]
+        return !this.entitiesDeleted.has(entity) && !!this.entityArchetypeIds[entity]
     }
 
-    readonly spawnEntity = (): number => {
-        const id = this.getNextEntityId()
-        this.defer(() => this._addEntity(id))
+    readonly createEntity = (defer = false): number => {
+        if (!this.initialized)
+            throw new Error('Not initialized')
+        const id = this._getNextEntityId()
+        if (defer) {
+            this._defer(() => this._addEntity(id))
+        } else {
+            this._addEntity(id)
+        }
         return id
     }
 
-    readonly spawnEntityImmediate = (): number => {
-        const id = this.getNextEntityId()
-        this._addEntity(id)
-        return id
+    readonly deleteEntity = (entity: number, defer = false): this => {
+        if (defer) {
+            this._defer(() => this._deleteEntityImmediate(entity))
+            return this
+        }
+        return this._deleteEntityImmediate(entity)
     }
 
-    readonly killEntity = (entity: number): this => {
-        this.defer(() => this.killEntityImmediate(entity))
-        return this
-    }
-
-    readonly killEntityImmediate = (entity: number): this => {
-        const archetype = this.getEntityArchetype(entity)
+    private _deleteEntityImmediate = (entity: number): this => {
+        const archetype = this._getEntityArchetype(entity)
         archetype.removeEntity(entity)
-        this.entitiesKilled.add(entity)
+        this.entitiesDeleted.add(entity)
         return this
     }
 
-    readonly hasEntityComponent = <CT extends keyof TM>(entity: number, type: CT): boolean => {
-        const componentId = this.componentManager.getComponentId(type)
-        const archetype = this.getEntityArchetype(entity)
+    readonly hasComponent = (entity: number, componentId: number): boolean => {
+        const archetype = this._getEntityArchetype(entity)
         return archetype.hasComponent(componentId)
     }
 
-    readonly setComponent = <CT extends keyof TM>(
+    readonly setComponent = (
         entity: number,
-        type: CT,
-        value?: TM[CT]
+        componentId: number,
+        defer = false
     ): this => {
-        this.defer(() => this.setComponentImmediate(entity, type, value))
-        return this
+        if (defer) {
+            this._assertHasEntity(entity)
+            this._defer(() => this._setComponentImmediate(entity, componentId))
+            return this
+        }
+        return this._setComponentImmediate(entity, componentId)
     }
 
-    readonly setComponentImmediate = <CT extends keyof TM>(
+    private _setComponentImmediate = (
         entity: number,
-        type: CT,
-        value?: TM[CT]
+        componentId: number
     ): this => {
-        const componentId = this.componentManager.getComponentId(type)
-        let archetype = this.getEntityArchetype(entity)
+        let archetype = this._getEntityArchetype(entity)
 
         if (!archetype.hasComponent(componentId)) {
             archetype = archetype
                 .removeEntity(entity)
                 .transform(componentId, this.archetypes)
                 .addEntity(entity)
-            this.setEntityArchetype(entity, archetype)
+            this._setEntityArchetype(entity, archetype)
             for (const query of this.systemQueries.values()) {
                 query.tryAddMatch(archetype)
             }
         }
 
-        this.componentManager.set(entity, type, value)
         return this
     }
 
-    readonly getEntityComponent = <CT extends keyof TM>(entity: number, type: CT): TM[CT] | undefined => {
-        this.assertHasEntity(entity)
-        return this.componentManager.get(entity, type)
+    readonly removeComponent = (entity: number, componentId: number, defer = false): this => {
+        if (defer) {
+            this._defer(() => this._removeComponentImmediate(entity, componentId))
+            return this
+        }
+        return this._removeComponentImmediate(entity, componentId)
     }
 
-    readonly removeComponent = <CT extends keyof TM>(entity: number, type: CT): this => {
-        this.defer(() => this.removeComponentImmediate(entity, type))
-        return this
-    }
-
-    readonly removeComponentImmediate = <CT extends keyof TM>(entity: number, type: CT): this => {
-        const componentId = this.componentManager.getComponentId(type)
-
-        const archetype = this.getEntityArchetype(entity)
+    private _removeComponentImmediate = (entity: number, componentId: number): this => {
+        const archetype = this._getEntityArchetype(entity)
             .removeEntity(entity)
             .transform(componentId, this.archetypes)
             .addEntity(entity)
-        this.setEntityArchetype(entity, archetype)
-        this.componentManager.delete(entity, type)
+        this._setEntityArchetype(entity, archetype)
         return this
-    }
-
-    readonly forEachEntityWithComponent = <CT extends keyof TM>(type: CT, callback: (entity: number, component: TM[CT]) => void) => {
-        return this.componentManager.forEach(type, callback)
     }
 }

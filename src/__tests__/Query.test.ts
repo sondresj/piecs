@@ -1,24 +1,30 @@
 import { some } from '..'
 import { Archetype } from '../Archetype'
 import { BitMask } from '../collections/Bitmask'
+import { ComponentSet } from '../ComponentSet'
 import { CompiledQuery, every } from '../Query'
 
 
 describe('CompiledQuery', () => {
-    const testTypes = {
-        foo: 0,
-        bar: '',
-        baz: false
-    }
-
-    type TestType = typeof testTypes
-    const componentIds: Map<keyof TestType, number> = new Map(Object.keys(testTypes).map((key, i) => [key, i])) as any
+    let nextComponentId = 0
+    const foo = new ComponentSet('foo', 'uint8', nextComponentId++, 0, {
+        setComponent: jest.fn(),
+        removeComponent: jest.fn()
+    } as any)// as Component<unknown>
+    const bar = new ComponentSet('bar', 'any', nextComponentId++, false, {
+        setComponent: jest.fn(),
+        removeComponent: jest.fn()
+    } as any)// as Component<unknown>
+    const baz = new ComponentSet('baz', 'any', nextComponentId++, '', {
+        setComponent: jest.fn(),
+        removeComponent: jest.fn()
+    } as any)// as Component<unknown>
 
     describe('tryAddMatch and getMatchingEntities', () => {
         it('adds archetype matching some', () => {
-            const cq = new CompiledQuery<TestType>(some('foo', 'bar'), componentIds)
+            const cq = new CompiledQuery(some(foo, bar))
             const mask = new BitMask(3)
-            const archetype = new Archetype(mask.xor(componentIds.get('foo')!))
+            const archetype = new Archetype(mask.xor(foo.id))
             archetype.addEntity(1)
             cq.tryAddMatch(archetype) // should match
 
@@ -26,9 +32,9 @@ describe('CompiledQuery', () => {
             expect.assertions(1)
         })
         it('does not add archetype matching some', () => {
-            const cq = new CompiledQuery<TestType>(some('foo', 'bar'), componentIds)
+            const cq = new CompiledQuery(some(foo, bar))
             const mask = new BitMask(3)
-            const archetype = new Archetype(mask.xor(componentIds.get('baz')!))
+            const archetype = new Archetype(mask.xor(baz.id))
             archetype.addEntity(1)
             cq.tryAddMatch(archetype) // should not match
 
@@ -37,9 +43,9 @@ describe('CompiledQuery', () => {
         })
 
         it('adds archetype matching every', () => {
-            const cq = new CompiledQuery<TestType>(every('foo', 'bar'), componentIds)
+            const cq = new CompiledQuery(every(foo, bar))
             const mask = new BitMask(3)
-            const archetype = new Archetype(mask.xor(componentIds.get('foo')!).xor(componentIds.get('bar')!))
+            const archetype = new Archetype(mask.xor(foo.id).xor(bar.id))
             archetype.addEntity(1)
             cq.tryAddMatch(archetype) // should match
 
@@ -48,9 +54,9 @@ describe('CompiledQuery', () => {
         })
 
         it('does not add archetype matching every', () => {
-            const cq = new CompiledQuery<TestType>(every('foo', 'bar'), componentIds)
+            const cq = new CompiledQuery(every(foo, bar))
             const mask = new BitMask(3)
-            const archetype = new Archetype(mask.xor(componentIds.get('foo')!))
+            const archetype = new Archetype(mask.xor(foo.id))
             archetype.addEntity(1)
             cq.tryAddMatch(archetype) // should not  match
 

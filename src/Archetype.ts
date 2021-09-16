@@ -1,10 +1,11 @@
 import { BitMask } from './collections/Bitmask'
-import { SparseSet } from './collections/SparseSet'
+import { SparseSet_Array } from './collections/SparseSet'
 
 export class Archetype {
     // sparse indexed by componentId. These are the parent archetypes of this archetype
     protected transformations: Archetype[] = []
-    private entities = new SparseSet('uint32')
+    private entities = new SparseSet_Array()
+    // private entities = new SparseSet('uint32')
     constructor(private componentMask: BitMask) {
         this.id = componentMask.toString()
     }

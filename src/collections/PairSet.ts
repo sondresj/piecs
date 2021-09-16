@@ -1,51 +1,57 @@
-import { SparseSet } from './SparseSet'
-
-// const pair = (a: number, b: number) => {
-//     return a << 16 | b
-// }
-
-// const unpair = (pair: number): [a: number, b: number] => {
-//     const a = pair >> 16 & 0xffff
-//     const b = pair & 0xffff
-//     return [a, b]
-// }
-
-// const pairHasA = (pair: number, a: number) => {
-//     return pair >> 16 & a
-// }
-
-// const pairHasB = (pair: number, b: number) => {
-//     return pair & b
-// }
-
-// const mask = 0xffff
-
+import type { ArrayClass, TypedArray } from './types'
 export class SparsePairSet {
-    private _set = new SparseSet('uint32')
+    private _array: TypedArray
+    private _capacity: number
 
+    constructor(
+        private maxKey1: number,
+        private maxKey2: number,
+        ArrayClass: ArrayClass = Float64Array
+    ) {
+        if (maxKey1 > 0xffff)
+            throw new Error(`maxKey1 cannot be larger than 65535`)
+        if (maxKey2 > 0xffff)
+            throw new Error(`maxKey2 cannot be larger than 65535`)
+        this._capacity = maxKey1 << 16 | maxKey2
+        this._array = new ArrayClass(this._capacity)
+    }
 
-    // constructor() {
+    private assertInRange = (key1: number, key2: number) => {
+        if (key1 > this.maxKey1)
+            throw new Error(`key1 ${key1} out of bounds`)
+        if (key2 > this.maxKey2)
+            throw new Error(`key2 ${key2} out of bounds`)
+    }
 
+    set = (key1: number, key2: number, value: number) => {
+        this.assertInRange(key1, key2)
+        this._array[key1 << 16 | key2] = value
+        return this
+    }
+
+    get = (key1: number, key2: number) => {
+        this.assertInRange(key1, key2)
+        return this._array[key1 << 16 | key2]
+    }
+
+    // has = (key: number, value: number) => {
+    //     this.assertInRange(key, value)
+    //     return this._array[key<<16 | value] === value
     // }
 
+    // delete = (key1: number, key2: number) => {
+    //     this.assertInRange(key1, key2)
+    //     this._array[key1<<16 | key2] = 0
+    //     return this
+    // }
 
-    get length() {
-        return this._set.length
+    subArray = (key1: number) => {
+        if ('BYTES_PER_ELEMENT' in this._array)
+            return this._array.subarray(key1 << 16, key1 << 16 | this.maxKey2)
+        return this._array.slice(key1 << 16, key1 << 16 | this.maxKey2)
     }
 
-    add = (key: number, value: number) => {
-        this._set.add(key << 16 | value)
-        return this
-    }
-
-    has = (key: number, value: number) => {
-        return this._set.has(key << 16 | value)
-    }
-
-    delete = (key: number, value: number) => {
-        this._set.delete(key << 16 | value)
-        return this
-    }
+    // values for key = [key << 16, key << 16 | 0xffff]
 
     // *keys(a: number) {
     //     for (const pair of this._set) {

@@ -51,8 +51,61 @@ export class SparseSet {
     forEach = (callback: (value: number, index: number) => void) => {
         this.dense.forEach(callback)
     }
+}
 
-    // [Symbol.iterator](): IterableIterator<number> {
-    //     return this.dense[Symbol.iterator]()
-    // }
+export class SparseSet_Array {
+    private dense: number[] = []
+    private indices: number[] = []
+    private _length = 0
+
+    get length() {
+        return this._length//this.dense.length
+    }
+
+    has = (value: number): boolean => {
+        const index = this.indices[value]
+        return index !== undefined
+            && index < this._length
+            && this.dense[index] === value
+    }
+
+    add = (value: number): this => {
+        if (this.has(value)) this
+        this.indices[value] = this._length
+        this.dense[this._length++] = value
+        return this
+    }
+
+    get = (index: number): number | undefined => {
+        if (index >= this._length) {
+            return undefined
+        }
+        return this.dense[index]
+    }
+
+    pop = (): number | undefined => {
+        if (this.length === 0) {
+            return undefined
+        }
+        return this.dense[--this._length]
+    }
+
+    delete = (value: number): this => {
+        if (!this.has(value)) return this
+
+        const index = this.indices[value]!
+        const swap = this.dense[--this._length]!
+        if (swap !== value) {
+            this.dense[index] = swap
+            this.indices[swap] = index
+        }
+
+        return this
+    }
+
+    forEach = (callback: (value: number, index: number) => void) => {
+        for (let i = 0; i < this._length; i++) {
+            callback(this.dense[i]!, i)
+        }
+    }
 }

@@ -1,40 +1,36 @@
-import { every, World } from 'piecs'
+import { World } from '../lib/World.js'
+import { every } from '../lib/Query.js'
 
 export default function(count) {
-    const world = new World({
-        a: {
-            type: 'uint32',
-            default: 0,
-        },
-        b: {
-            type: 'uint32',
-            default: 0
-        }
-    }, [{
+    const world = new World()
+    const A = world.createComponentSet('A', 'uint32', 0)
+    const B = world.createComponentSet('B', 'uint32', 0)
+
+    world.registerSystem({
         name: 'spawnB',
-        query: every('a'),
+        query: every(A),
         execute: (entities, world) => {
-            for (const entity of entities) {
-                const a = world.getEntityComponent(entity, 'a')
-                const e1 = world.spawnEntityImmediate()
-                world.setComponentImmediate(e1, 'b', a)
-                const e2 = world.spawnEntityImmediate()
-                world.setComponentImmediate(e2, 'b', a)
-            }
+            entities(entity => {
+                const a = A.get(entity)
+                const e1 = world.createEntity()
+                B.set(e1, a)
+                const e2 = world.createEntity()
+                B.set(e2, a)
+            })
         }
-    }, {
+    }).registerSystem({
         name: 'killB',
-        query: every('b'),
+        query: every(B),
         execute: (entities, world) => {
-            for (const entity of entities) {
-                world.killEntity(entity)
-            }
+            entities(world.deleteEntity)
         }
-    }])
+    })
+
+    world.init()
 
     for (let i = 0; i < count; i++) {
-        const e = world.spawnEntityImmediate()
-        world.setComponentImmediate(e, 'a')
+        const e = world.createEntity()
+        A.set(e)
     }
 
     return () => {
