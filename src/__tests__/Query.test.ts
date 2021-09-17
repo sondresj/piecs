@@ -11,11 +11,11 @@ describe('CompiledQuery', () => {
         setComponent: jest.fn(),
         removeComponent: jest.fn()
     } as any)// as Component<unknown>
-    const bar = new ComponentSet('bar', 'any', nextComponentId++, false, {
+    const bar = new ComponentSet('bar', 'boolean', nextComponentId++, false, {
         setComponent: jest.fn(),
         removeComponent: jest.fn()
     } as any)// as Component<unknown>
-    const baz = new ComponentSet('baz', 'any', nextComponentId++, '', {
+    const baz = new ComponentSet('baz', 'string', nextComponentId++, '', {
         setComponent: jest.fn(),
         removeComponent: jest.fn()
     } as any)// as Component<unknown>

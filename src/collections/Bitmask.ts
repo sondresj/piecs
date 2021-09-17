@@ -12,16 +12,16 @@ export class BitMask {
     }
 
     has = (value: number) => {
-        return Boolean(this.mask[value >> 5]! & (1 << value & 0x0000001f))
+        return Boolean(this.mask[value >> 5]! & (1 << (value & 0x1f)))
     }
 
     xor = (value: number) => {
-        this.mask[value >> 5] ^= 1 << value & 0x0000001f // & 0x0000001f is the same as % 32
+        this.mask[value >> 5] ^= 1 << (value & 0x1f) // & 0x0000001f is the same as % 32
         return this
     }
 
     toString = () => {
-        return this.mask.reduce((str, n) => str + n.toString(16), '') || '0'
+        return this.mask.reduce((str, n) => n.toString(16) + str, '') || '0'
     }
 
     copy = () => {

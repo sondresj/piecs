@@ -18,6 +18,16 @@ describe('Bitmask', () => {
             const mask = new BitMask(new Uint32Array([0b10000000100]))
             expect(mask.has(2)).toBeTruthy()
         })
+
+        it('works', () => {
+            const mask = new BitMask(53)
+            for (let i = 0; i < 53; i++) {
+                mask.xor(i)
+            }
+            for (let i = 0; i < 53; i++) {
+                expect(mask.has(i)).toBeTruthy()
+            }
+        })
     })
 
     describe('xor', () => {

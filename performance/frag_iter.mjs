@@ -1,16 +1,17 @@
-import { World } from '../lib/World.js'
+import { WorldBuilder } from '../lib/World.js'
 import { every } from '../lib/Query.js'
 
 const components = {}
 
 export default function(count) {
-    const world = new World()
-    Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').forEach(name => {
-        components[name] = world.createComponentSet(name, 'uint8', 0)
-    })
+    const builder = new WorldBuilder()
 
-    const Data = world.createComponentSet('Data', 'uint8', 0)
-    world.registerSystem({
+    Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').forEach(name => {
+        components[name] = builder.createComponentSet(name, 'uint8', 0)
+    })
+    const Data = builder.createComponentSet('Data', 'uint8', 0)
+
+    builder.registerSystem({
         name: 'DataSys',
         query: every(Data),
         execute: (entities) => {
@@ -21,13 +22,13 @@ export default function(count) {
         }
     })
 
-    world.init()
+    const world = builder.build()
 
     for (let i = 0; i < count; i++) {
         for (const c of Object.values(components)) {
             const e = world.createEntity()
-            Data.set(e, 1)
-            c.set(e, 1)
+            Data.set(e, 0)
+            c.set(e, 0)
         }
     }
 

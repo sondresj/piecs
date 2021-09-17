@@ -1,40 +1,13 @@
 import { and, every, not, some } from '../Query'
-import { World } from '../World'
+import { WorldBuilder } from '../World'
 
 describe('World', () => {
     it('works', () => {
-        /**
-         * [{
-            name: 'addBarIfFoo',
-            query: and(every('foo'), not('baz')),
-            init: (world) => {
-                const e = world.spawnEntity()
-                world.setComponent(e, 'foo', 2) //deferred
-            },
-            execute: (entities, world) => {
-                entities((entity) => {
-                    expect(entity).toBe(1)
-                    expect(world.getEntityComponent(entity, 'foo')).toBe(2)
-                    world.setComponent(entity, 'baz') // deferred using default value
-                    expect(world.hasEntityComponent(entity, 'baz')).toBeFalsy()
-                })
-            }
-        }, {
-            name: 'killEntitiesWithBaz',
-            query: some('baz'),
-            execute: (_, world) => {
-                world.forEachEntityWithComponent('baz', entity => {
-                    world.killEntityImmediate(entity)
-                    expect(world.hasEntity(entity)).toBeFalsy()
-                })
-            }
-        }]
-         */
-        const world = new World()
-        const foo = world.createComponentSet('foo', 'uint8', 0)
-        const bar = world.createComponentSet('bar', 'any', '')
-        const baz = world.createComponentSet('baz', 'any', false)
-        world.registerSystem({
+        const builder = new WorldBuilder()
+        const foo = builder.createComponentSet('foo', 'uint8', 0)
+        const bar = builder.createComponentSet('bar', 'string', '')
+        const baz = builder.createComponentSet('baz', 'boolean', false)
+        builder.registerSystem({
             name: 'addBarIfFoo',
             query: and(every(foo), not(baz)),
             init: (world) => {
@@ -64,7 +37,7 @@ describe('World', () => {
             }
         })
 
-        world.init()
+        const world = builder.build()
         const e = world.createEntity()
         bar.set(e, 'hello')
         world.update()

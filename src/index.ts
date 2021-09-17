@@ -1,8 +1,8 @@
-import { World } from './World'
+import { WorldBuilder } from './World'
 import { and, or, not, every, some } from './Query'
 export type { System, Query } from './types'
 export {
-    World,
+    WorldBuilder,
     and,
     or,
     not,

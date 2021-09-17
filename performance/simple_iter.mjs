@@ -1,15 +1,15 @@
-import { World } from '../lib/World.js'
+import { WorldBuilder } from '../lib/World.js'
 import { every } from '../lib/Query.js'
 
 export default function(count) {
-    const world = new World()
-    const A = world.createComponentSet('a', 'uint8', 0)
-    const B = world.createComponentSet('b', 'uint8', 0)
-    const C = world.createComponentSet('c', 'uint8', 0)
-    const D = world.createComponentSet('d', 'uint8', 0)
-    const E = world.createComponentSet('e', 'uint8', 0)
+    const builder = new WorldBuilder()
+    const A = builder.createComponentSet('a', 'uint8', 0)
+    const B = builder.createComponentSet('b', 'uint8', 0)
+    const C = builder.createComponentSet('c', 'uint8', 0)
+    const D = builder.createComponentSet('d', 'uint8', 0)
+    const E = builder.createComponentSet('e', 'uint8', 0)
 
-    world
+    const world = builder
         .registerSystem({
             name: 'ABSystem',
             query: every(A, B),
@@ -42,11 +42,11 @@ export default function(count) {
                     const c = C.get(entity)
                     const e = E.get(entity)
                     C.set(entity, e)
-                    C.set(entity, c)
+                    E.set(entity, c)
                 })
             }
         })
-        .init()
+        .build()
 
     for (let i = 0; i < count; i++) {
         const e1 = world.createEntity()

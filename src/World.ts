@@ -1,13 +1,27 @@
-import type { System, BoundWorld } from './types'
+import type { System, InsideWorld, IBuildWorld, OutsideWorld, InternalWorld } from './types'
 import { Archetype } from './Archetype'
 import { BitMask } from './collections/Bitmask'
 import { SparseSet_Array } from './collections/SparseSet'
 import { CompiledQuery } from './Query'
 import { timer } from './utils'
-import { ArrayType } from './collections/types'
-import { ComponentSet } from './ComponentSet'
+import { ComponentSet, ComponentType } from './ComponentSet'
 
-export class World implements BoundWorld {
+export class WorldBuilder implements IBuildWorld {
+    private world = new World()
+
+    readonly createComponentSet = <T>(name: string, type: ComponentType<T>, defaultValue: T) => {
+        return this.world.createComponentSet(name, type, defaultValue)
+    }
+    readonly registerSystem = <TC extends InstanceType<typeof ComponentSet>>(system: System<TC>) => {
+        this.world.registerSystem(system)
+        return this
+    }
+    readonly build = (): OutsideWorld => {
+        return this.world.build()
+    }
+}
+
+class World implements IBuildWorld, OutsideWorld, InsideWorld, InternalWorld {
     /**
      * [archetype.toString()]: archetype
      */
@@ -17,6 +31,7 @@ export class World implements BoundWorld {
      */
     private entityArchetypeIds: Record<number, string> = {}
     private entitiesDeleted = new SparseSet_Array()
+    // private entitiesDeleted = new SparseSet('uint32')
     // private entitiesKilled = new SparseSet('uint32')
     private nextEntityId = 0
     private nextComponentid = 0
@@ -32,9 +47,10 @@ export class World implements BoundWorld {
     private BLANK_ARCHETYPE_ID = ''
     private initialized = false
 
+    // Builder
     readonly createComponentSet = <T>(
         name: string,
-        type: T extends number ? Exclude<ArrayType, 'any'> : Extract<ArrayType, 'any'>,
+        type: ComponentType<T>,
         defaultValue: T
     ): ComponentSet<T> => {
         if (this.initialized) {
@@ -60,7 +76,7 @@ export class World implements BoundWorld {
      * @param initialEntityComponents optional array of initial entity components
      * @returns this
      */
-    readonly init = (): this => {
+    readonly build = () => {
         if (this.initialized) {
             throw new Error('Already initialized')
         }
@@ -103,7 +119,7 @@ export class World implements BoundWorld {
 
     private _assertHasEntity = (entity: number) => {
         if (this.entitiesDeleted.has(entity)) {
-            throw new Error(`Entity ${entity} is dead`)
+            throw new Error(`Entity ${entity} is deleted`)
         }
         if (!this.entityArchetypeIds[entity])
             throw new Error(`Entity ${entity} does not exist`)
@@ -199,16 +215,16 @@ export class World implements BoundWorld {
         componentId: number
     ): this => {
         let archetype = this._getEntityArchetype(entity)
+        if (archetype.hasComponent(componentId))
+            return this
 
-        if (!archetype.hasComponent(componentId)) {
-            archetype = archetype
-                .removeEntity(entity)
-                .transform(componentId, this.archetypes)
-                .addEntity(entity)
-            this._setEntityArchetype(entity, archetype)
-            for (const query of this.systemQueries.values()) {
-                query.tryAddMatch(archetype)
-            }
+        archetype = archetype
+            .removeEntity(entity)
+            .transform(componentId, this.archetypes)
+            .addEntity(entity)
+        this._setEntityArchetype(entity, archetype)
+        for (const query of this.systemQueries.values()) {
+            query.tryAddMatch(archetype)
         }
 
         return this
@@ -224,10 +240,15 @@ export class World implements BoundWorld {
 
     private _removeComponentImmediate = (entity: number, componentId: number): this => {
         const archetype = this._getEntityArchetype(entity)
+        if (!archetype.hasComponent(componentId))
+            return this
+
+        archetype
             .removeEntity(entity)
             .transform(componentId, this.archetypes)
             .addEntity(entity)
         this._setEntityArchetype(entity, archetype)
+
         return this
     }
 }
