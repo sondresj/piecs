@@ -35,9 +35,9 @@ export class ComponentSet<T> {
         })
     }
 
-    set = (entity: number, value: T = this.defaultValue, defer = false) => {
+    set = (entity: number, value: T = this.defaultValue) => {
         if (!this.world.hasComponent(entity, this.id))
-            this.world.setComponent(entity, this.id, defer)
+            this.world.setComponent(entity, this.id)
         this.values.set(entity, value)
         return this
     }
@@ -47,13 +47,14 @@ export class ComponentSet<T> {
     }
 
     get = (entity: number): T | undefined => {
-        if (!this.world.hasEntity(entity) || !this.world.hasComponent(entity, this.id))
-            return undefined
+        // TODO: this check could be done only in development to reduce performance hit of these checks in production
+        // if (!this.world.hasEntity(entity) || !this.world.hasComponent(entity, this.id))
+        //     return undefined
         return this.values.get(entity)
     }
 
-    remove = (entity: number, defer = false) => {
-        this.world.removeComponent(entity, this.id, defer)
+    remove = (entity: number) => {
+        this.world.removeComponent(entity, this.id)
         return this
     }
 }

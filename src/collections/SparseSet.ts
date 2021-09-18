@@ -71,25 +71,26 @@ export class SparseSet {
 export class SparseSet_Array {
     private dense: number[] = []
     private indices: number[] = []
-    private _length = 0
 
-    get length() {
-        return this._length
-    }
+    /**
+     * Setting length to 0 effectively clears the array.
+     * In contrast to standard arrays however, this does not release the contents of the array for garbage collecting
+     */
+    length = 0
 
     has = (value: number): boolean => {
         const index = this.indices[value]!
-        return index < this._length
+        return index < this.length
             && this.dense[index] === value
     }
 
     add = (value: number) => {
         const index = this.indices[value]!
-        if (index < this._length && this.dense[index] === value) {
+        if (index < this.length && this.dense[index] === value) {
             return
         }
-        this.indices[value] = this._length
-        this.dense[this._length++] = value
+        this.indices[value] = this.length
+        this.dense[this.length++] = value
         return this
     }
 
@@ -97,16 +98,16 @@ export class SparseSet_Array {
         if (this.length === 0) {
             return undefined
         }
-        return this.dense[--this._length]
+        return this.dense[--this.length]
     }
 
     delete = (value: number) => {
         const index = this.indices[value]!
-        if (index >= this._length || this.dense[index] !== value) {
+        if (index >= this.length || this.dense[index] !== value) {
             return
         }
 
-        const swap = this.dense[--this._length]!
+        const swap = this.dense[--this.length]!
         if (swap !== value) {
             const index = this.indices[value]!
             this.dense[index] = swap
@@ -115,6 +116,6 @@ export class SparseSet_Array {
     }
 
     toArray = () => {
-        return this.dense.slice(0, this._length)
+        return this.dense.slice(0, this.length)
     }
 }

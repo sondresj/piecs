@@ -19,7 +19,9 @@ describe('World', () => {
                 entities.forEach(entity => {
                     expect(entity).toBe(0)
                     expect(foo.get(entity)).toBe(2)
-                    baz.set(entity, undefined, true) // deferred using default value
+                    world.defer(() => {
+                        baz.set(entity) // deferred using default value
+                    })
                     expect(baz.get(entity)).toBeFalsy()
                 })
             }

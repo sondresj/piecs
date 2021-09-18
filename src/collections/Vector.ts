@@ -1,6 +1,7 @@
 import { ArrayType, TypedArray } from './types'
 import { getArrayConstructor, isTypedArray, reallocArray } from './utils'
 
+// Todo, separate sparse vector to own class
 export type VectorConstructorOptions<T = number> = {
     initialCapacity?: number
     growFactor?: number

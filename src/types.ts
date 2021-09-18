@@ -27,6 +27,7 @@ export interface InsideWorld {
     readonly hasEntity: (entity: number) => boolean
     readonly createEntity: () => number
     readonly deleteEntity: (entity: number) => InsideWorld
+    readonly defer: (action: () => void) => InternalWorld
 }
 
 export interface IBuildWorld {
@@ -43,7 +44,7 @@ export interface OutsideWorld extends InsideWorld {
 
 export interface InternalWorld {
     readonly hasEntity: (entity: number) => boolean
-    readonly setComponent: (entity: number, componentId: number, defer?: boolean) => InternalWorld
+    readonly setComponent: (entity: number, componentId: number) => InternalWorld
     readonly hasComponent: (entity: number, componentId: number) => boolean
-    readonly removeComponent: (entity: number, componentId: number, defer?: boolean) => InternalWorld
+    readonly removeComponent: (entity: number, componentId: number) => InternalWorld
 }
