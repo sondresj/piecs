@@ -21,7 +21,13 @@ export class SparseSet {
     }
 
     add = (value: number): this => {
-        if (this.has(value)) this
+        const index = this.indices.get(value)
+        if (index !== undefined
+            && index < this.dense.length
+            && this.dense.get(index) === value
+        ) {
+            return this
+        }
         this.indices.set(value, this.dense.push(value) - 1)
 
         return this
@@ -36,9 +42,14 @@ export class SparseSet {
     }
 
     delete = (value: number): this => {
-        if (!this.has(value)) return this
+        const index = this.indices.get(value)
+        if (index === undefined
+            || index >= this.dense.length
+            || this.dense.get(index) !== value
+        ) {
+            return this
+        }
 
-        const index = this.indices.get(value)!
         const swap = this.dense.pop()!
         if (swap !== value) {
             this.dense.set(index, swap)
@@ -48,9 +59,13 @@ export class SparseSet {
         return this
     }
 
-    forEach = (callback: (value: number, index: number) => void) => {
-        this.dense.forEach(callback)
+    subArray = () => {
+        return this.dense.subArray()
     }
+
+    // forEach = (callback: (value: number, index: number) => void) => {
+    //     this.dense.forEach(callback)
+    // }
 }
 
 export class SparseSet_Array {
@@ -59,28 +74,23 @@ export class SparseSet_Array {
     private _length = 0
 
     get length() {
-        return this._length//this.dense.length
+        return this._length
     }
 
     has = (value: number): boolean => {
-        const index = this.indices[value]
-        return index !== undefined
-            && index < this._length
+        const index = this.indices[value]!
+        return index < this._length
             && this.dense[index] === value
     }
 
-    add = (value: number): this => {
-        if (this.has(value)) this
+    add = (value: number) => {
+        const index = this.indices[value]!
+        if (index < this._length && this.dense[index] === value) {
+            return
+        }
         this.indices[value] = this._length
         this.dense[this._length++] = value
         return this
-    }
-
-    get = (index: number): number | undefined => {
-        if (index >= this._length) {
-            return undefined
-        }
-        return this.dense[index]
     }
 
     pop = (): number | undefined => {
@@ -90,22 +100,21 @@ export class SparseSet_Array {
         return this.dense[--this._length]
     }
 
-    delete = (value: number): this => {
-        if (!this.has(value)) return this
-
+    delete = (value: number) => {
         const index = this.indices[value]!
+        if (index >= this._length || this.dense[index] !== value) {
+            return
+        }
+
         const swap = this.dense[--this._length]!
         if (swap !== value) {
+            const index = this.indices[value]!
             this.dense[index] = swap
             this.indices[swap] = index
         }
-
-        return this
     }
 
-    forEach = (callback: (value: number, index: number) => void) => {
-        for (let i = 0; i < this._length; i++) {
-            callback(this.dense[i]!, i)
-        }
+    toArray = () => {
+        return this.dense.slice(0, this._length)
     }
 }

@@ -2,6 +2,14 @@ import type { Archetype } from './Archetype'
 import { ComponentSet } from './ComponentSet'
 import type { Query } from './types'
 
+// export const query = (...subQueries: Query<ComponentSet<any>>[] | ComponentSet<any>[]): Query<ComponentSet<any>> => ({
+//     type: 'and',
+//     subQueries: subQueries.length
+//         ? subQueries[0] instanceof ComponentSet
+//             ? [and(...subQueries as ComponentSet<any>[])]
+//             : subQueries as Query<ComponentSet<any>>[]
+//         : []
+// })
 export const every = (...types: ComponentSet<any>[]): Query<ComponentSet<any>> => ({
     type: 'every',
     match: types
@@ -55,34 +63,69 @@ const match = (query: Query<number>, archetype: Archetype): boolean => {
         case 'not':
             return !query.subQueries.every(q => match(q, archetype))
         case 'every':
-            return query.match.every(archetype.hasComponent)
+            return query.match.every(archetype.mask.has)
         case 'some':
-            return query.match.some(archetype.hasComponent)
+            return query.match.some(archetype.mask.has)
     }
 }
 
 export class CompiledQuery {
-    private matchingArchetypes: Map<string, Archetype> = new Map()
-    private transformedQuery: Query<number>
+    // private matchingArchetypes: Map<string, Archetype> = new Map()
+    public archetypes: Archetype[] = []
+    private query: Query<number>
 
     constructor(query: Query<InstanceType<typeof ComponentSet>>) {
-        this.transformedQuery = transform(query)
+        this.query = transform(query)
     }
 
-
-    tryAddMatch = (archetype: Archetype): this => {
-        if (this.matchingArchetypes.has(archetype.id))
-            return this
-
-        if (match(this.transformedQuery, archetype)) {
-            this.matchingArchetypes.set(archetype.id, archetype)
+    matches = (archetype: Archetype): boolean => {
+        const query = this.query
+        switch (query.type) {
+            case 'and':
+                return query.subQueries.every(q => match(q, archetype))
+            case 'or':
+                return query.subQueries.some(q => match(q, archetype))
+            case 'not':
+                return !query.subQueries.every(q => match(q, archetype))
+            case 'every':
+                return query.match.every(archetype.mask.has)
+            case 'some':
+                return query.match.some(archetype.mask.has)
         }
-        return this
     }
 
-    forEach = (callback: (entity: number) => void) => {
-        this.matchingArchetypes.forEach(archetype => {
-            archetype.forEach(callback)
-        })
-    }
+    // getMatchingEntities = (): Uint32Array => {
+    //     const archetypes = this.archetypes
+    //     let size = 0
+    //     const subArrays = archetypes.map(archetype => {
+    //         const arr = archetype.entities.subArray() as Uint32Array
+    //         size += arr.length
+    //         return arr
+    //     })
+    //     const arr = new Uint32Array(size)
+    //     let offset = 0
+    //     for (const subArray of subArrays) {
+    //         arr.set(subArray, offset)
+    //         offset += subArray.length
+    //     }
+    //     return arr
+    // }
+    // tryAddMatch = (archetype: Archetype): this => {
+    //     if (this.archetypes.has(archetype.id))
+    //         return this
+
+    //     if (match(this.transformedQuery, archetype)) {
+    //         this.archetypes.set(archetype.id, archetype)
+    //     }
+    //     return this
+    // }
+
+    // forEach = (callback: (entity: number) => void) => {
+    //     this.archetypes.forEach(archetype => {
+    //         const length = archetype.entities.length
+    //         for (let i = length - 1; i >= 0; i--) {
+    //             callback(archetype.entities.get(i)!)
+    //         }
+    //     })
+    // }
 }

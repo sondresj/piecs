@@ -42,3 +42,5 @@ export const reallocArray = <T>(array: ArrayLike<T>, type: ArrayType, newSize: n
     reallocated.set(array as any) // array is ArrayLike<number> here
     return reallocated
 }
+
+export const isTypedArray = (array: any): array is Exclude<TypedArray, Array<any>> => !!('BYTES_PER_ELEMENT' in array)

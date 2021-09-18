@@ -36,7 +36,8 @@ export class ComponentSet<T> {
     }
 
     set = (entity: number, value: T = this.defaultValue, defer = false) => {
-        this.world.setComponent(entity, this.id, defer)
+        if (!this.world.hasComponent(entity, this.id))
+            this.world.setComponent(entity, this.id, defer)
         this.values.set(entity, value)
         return this
     }
@@ -46,7 +47,8 @@ export class ComponentSet<T> {
     }
 
     get = (entity: number): T | undefined => {
-        if (!this.has(entity)) return undefined
+        if (!this.world.hasEntity(entity) || !this.world.hasComponent(entity, this.id))
+            return undefined
         return this.values.get(entity)
     }
 

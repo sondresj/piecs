@@ -1,5 +1,5 @@
 import { ArrayType, TypedArray } from './types'
-import { getArrayConstructor, reallocArray } from './utils'
+import { getArrayConstructor, isTypedArray, reallocArray } from './utils'
 
 export type VectorConstructorOptions<T = number> = {
     initialCapacity?: number
@@ -93,6 +93,12 @@ export class Vector<T = number> {
         return this
     }
 
+    subArray = () => {
+        if (this.sparse) return this._array
+        if (isTypedArray(this._array)) return this._array.subarray(0, this._length)
+        return this._array.slice(0, this._length)
+    }
+
     forEach = (callback: (value: T, index: number) => void): void => {
         if (this.sparse) {
             this._array.forEach(callback as any)
@@ -102,17 +108,5 @@ export class Vector<T = number> {
         for (let i = 0, len = this._length; i < len; i++) {
             callback(this._array[i], i)
         }
-        // this._array.forEach(callback as any)
     }
-
-    // *[Symbol.iterator](): IterableIterator<T> {
-    //     if (this.sparse) {
-    //         yield *this._array.values()
-    //         return
-    //     }
-    //     for (let i = 0; i < this._length; i++) {
-    //         yield this._array[i]!
-    //     }
-    // }
-
 }

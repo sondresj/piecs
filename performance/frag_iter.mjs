@@ -1,28 +1,27 @@
-import { WorldBuilder } from '../lib/World.js'
+import { World } from '../lib/World.js'
 import { every } from '../lib/Query.js'
 
 const components = {}
 
-export default function(count) {
-    const builder = new WorldBuilder()
+export default function fragIter(count) {
+    const world = new World()
 
     Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').forEach(name => {
-        components[name] = builder.createComponentSet(name, 'uint8', 0)
+        components[name] = world.createComponentSet(name, 'uint8', 0)
     })
-    const Data = builder.createComponentSet('Data', 'uint8', 0)
+    const Data = world.createComponentSet('Data', 'uint8', 0)
 
-    builder.registerSystem({
+    world.registerSystem({
         name: 'DataSys',
         query: every(Data),
         execute: (entities) => {
-            entities(entity => {
+            for (let i = entities.length - 1; i > 0; i--) {
+                const entity = entities[i]
                 const data = Data.get(entity)
                 Data.set(entity, data * 2)
-            })
+            }
         }
-    })
-
-    const world = builder.build()
+    }).init()
 
     for (let i = 0; i < count; i++) {
         for (const c of Object.values(components)) {

@@ -1,61 +1,44 @@
-import { BitMask } from './collections/Bitmask'
+import type { CompiledQuery } from './Query'
+import { BitMask, ReadonlyBitMask } from './collections/Bitmask'
 import { SparseSet_Array } from './collections/SparseSet'
 
 export class Archetype {
     // sparse indexed by componentId. These are the parent archetypes of this archetype
-    protected transformations: Archetype[] = []
-    private entities = new SparseSet_Array()
+    private _transformations: Archetype[] = []
     // private entities = new SparseSet('uint32')
-    constructor(private componentMask: BitMask) {
+    constructor(componentMask: BitMask) {
+        this.mask = componentMask
         this.id = componentMask.toString()
     }
 
+    public readonly entities = new SparseSet_Array()//('uint32')
+    public readonly mask: ReadonlyBitMask
     public readonly id: string
 
-    get length() {
-        return this.entities.length
-    }
-
-    get = (index: number): number | undefined => {
-        return this.entities.get(index)
-    }
-
-    addEntity = (entity: number) => {
-        this.entities.add(entity)
-        return this
-    }
-
-    removeEntity = (entity: number) => {
-        this.entities.delete(entity)
-        return this
-    }
-
-    hasEntity = (entity: number) => {
-        return this.entities.has(entity)
-    }
-
-    hasComponent = (componentId: number) => {
-        return this.componentMask.has(componentId)
-    }
-
-    transform = (componentId: number, archetypes: Readonly<Record<string, Archetype>>): Archetype => {
-        if (this.transformations[componentId]) {
-            return this.transformations[componentId]!
+    readonly _transform = (
+        componentId: number,
+        archetypes: Map<string, Archetype>,
+        queries: CompiledQuery[]
+    ): Archetype => {
+        if (this._transformations[componentId]) {
+            return this._transformations[componentId]!
         }
-        const nextMask = this.componentMask.copy().xor(componentId)
-        let archetype = archetypes[nextMask.toString()]
+        const nextMask = this.mask.copy().xor(componentId)
+        let archetype = archetypes.get(nextMask.toString())
+
         if (!archetype) {
             archetype = new Archetype(nextMask)
-            archetype.transformations[componentId] = this // for potential backwards transform
+            archetype._transformations[componentId] = this // for potential backwards transform
+            // Doesn't really belong here, but it does increase performance
+            archetypes.set(archetype.id, archetype)
+            for (const query of queries) {
+                if (query.matches(archetype)) {
+                    query.archetypes.push(archetype)
+                }
+            }
         }
-        this.transformations[componentId] = archetype
-        return archetype
-    }
 
-    forEach = (callback: (entity: number) => void) => {
-        const length = this.entities.length
-        for (let i = length - 1; i >= 0; i--) {
-            callback(this.entities.get(i)!)
-        }
+        this._transformations[componentId] = archetype
+        return archetype
     }
 }

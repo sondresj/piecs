@@ -1,4 +1,5 @@
 import type { ArrayClass, TypedArray } from './types'
+import { isTypedArray } from './utils'
 export class SparsePairSet {
     private _array: TypedArray
     private _capacity: number
@@ -46,7 +47,7 @@ export class SparsePairSet {
     // }
 
     subArray = (key1: number) => {
-        if ('BYTES_PER_ELEMENT' in this._array)
+        if (isTypedArray(this._array))
             return this._array.subarray(key1 << 16, key1 << 16 | this.maxKey2)
         return this._array.slice(key1 << 16, key1 << 16 | this.maxKey2)
     }

@@ -1,5 +1,12 @@
-export class BitMask {
+export interface ReadonlyBitMask {
+    has: (value: number) => boolean
+    toString: () => string
+    copy: () => BitMask
+}
+
+export class BitMask implements ReadonlyBitMask {
     protected mask: Uint32Array
+
     constructor();
     constructor(maxValue: number);
     constructor(uint32Array: Uint32Array);
@@ -11,12 +18,18 @@ export class BitMask {
         }
     }
 
-    has = (value: number) => {
-        return Boolean(this.mask[value >> 5]! & (1 << (value & 0x1f)))
+    has = (value: number): boolean => {
+        return (this.mask[value >> 5]! & (1 << (value & 0x1f))) !== 0
     }
 
     xor = (value: number) => {
-        this.mask[value >> 5] ^= 1 << (value & 0x1f) // & 0x0000001f is the same as % 32
+        const index = value >> 5
+        if (index >= this.mask.length) {
+            const newMask = new Uint32Array(index)
+            newMask.set(this.mask)
+            this.mask = newMask
+        }
+        this.mask[index] ^= 1 << (value & 0x1f) // & 0x1f is the same as % 32
         return this
     }
 

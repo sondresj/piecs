@@ -25,43 +25,39 @@ describe('CompiledQuery', () => {
             const cq = new CompiledQuery(some(foo, bar))
             const mask = new BitMask(3)
             const archetype = new Archetype(mask.xor(foo.id))
-            archetype.addEntity(1)
-            cq.tryAddMatch(archetype) // should match
-
-            cq.forEach(entity => expect(entity).toBe(1))
-            expect.assertions(1)
+            archetype.entities.add(1)
+            expect(cq.matches(archetype)).toBeTruthy() // should match
+            cq.archetypes.push(archetype)
+            const matrix = cq.archetypes.map(a => a.entities.toArray())
+            matrix.forEach(entities => entities.forEach(entity => expect(entity).toEqual(1)))
+            expect.assertions(2)
         })
         it('does not add archetype matching some', () => {
             const cq = new CompiledQuery(some(foo, bar))
             const mask = new BitMask(3)
             const archetype = new Archetype(mask.xor(baz.id))
-            archetype.addEntity(1)
-            cq.tryAddMatch(archetype) // should not match
-
-            cq.forEach(() => fail('did not expect to be called'))
-            expect.assertions(0)
+            archetype.entities.add(1)
+            expect(cq.matches(archetype)).toBeFalsy() // should not match
         })
 
         it('adds archetype matching every', () => {
             const cq = new CompiledQuery(every(foo, bar))
             const mask = new BitMask(3)
             const archetype = new Archetype(mask.xor(foo.id).xor(bar.id))
-            archetype.addEntity(1)
-            cq.tryAddMatch(archetype) // should match
-
-            cq.forEach(entity => expect(entity).toBe(1))
-            expect.assertions(1)
+            archetype.entities.add(1)
+            expect(cq.matches(archetype)).toBeTruthy() // should match
+            cq.archetypes.push(archetype)
+            const matrix = cq.archetypes.map(a => a.entities.toArray())
+            matrix.forEach(entities => entities.forEach(entity => expect(entity).toEqual(1)))
+            expect.assertions(2)
         })
 
         it('does not add archetype matching every', () => {
             const cq = new CompiledQuery(every(foo, bar))
             const mask = new BitMask(3)
             const archetype = new Archetype(mask.xor(foo.id))
-            archetype.addEntity(1)
-            cq.tryAddMatch(archetype) // should not  match
-
-            cq.forEach(() => fail('did not expect to be called'))
-            expect.assertions(0)
+            archetype.entities.add(1)
+            expect(cq.matches(archetype)).toBeFalsy() // should not match
         })
     })
 })

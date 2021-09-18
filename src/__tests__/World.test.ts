@@ -1,9 +1,9 @@
 import { and, every, not, some } from '../Query'
-import { WorldBuilder } from '../World'
+import { World } from '../World'
 
 describe('World', () => {
     it('works', () => {
-        const builder = new WorldBuilder()
+        const builder = new World()
         const foo = builder.createComponentSet('foo', 'uint8', 0)
         const bar = builder.createComponentSet('bar', 'string', '')
         const baz = builder.createComponentSet('baz', 'boolean', false)
@@ -16,7 +16,7 @@ describe('World', () => {
                 foo.set(e, 2)
             },
             execute: (entities) => {
-                entities((entity) => {
+                entities.forEach(entity => {
                     expect(entity).toBe(0)
                     expect(foo.get(entity)).toBe(2)
                     baz.set(entity, undefined, true) // deferred using default value
@@ -27,7 +27,7 @@ describe('World', () => {
             name: 'killEntitiesWithBaz',
             query: some(baz),
             execute: (entities, world) => {
-                entities(entity => {
+                entities.forEach(entity => {
                     const b = baz.get(entity)
                     if (b !== undefined) {
                         world.deleteEntity(entity)
@@ -37,7 +37,7 @@ describe('World', () => {
             }
         })
 
-        const world = builder.build()
+        const world = builder.init()
         const e = world.createEntity()
         bar.set(e, 'hello')
         world.update()

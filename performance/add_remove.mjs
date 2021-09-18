@@ -1,30 +1,30 @@
-import { WorldBuilder } from '../lib/World.js'
+import { World } from '../lib/World.js'
 import { every, not, and } from '../lib/Query.js'
 
 export default function addRemove(count) {
-    const builder = new WorldBuilder()
-    const A = builder.createComponentSet('A', 'uint32', 0)
-    const B = builder.createComponentSet('B', 'uint32', 0)
+    const world = new World()
+    const A = world.createComponentSet('A', 'uint32', 0)
+    const B = world.createComponentSet('B', 'uint32', 0)
 
-    builder.registerSystem({
+    world.registerSystem({
         name: 'addB',
         query: and(every(A), not(B)),
         execute: (entities) => {
-            entities(entity => {
+            for (let i = entities.length - 1; i > 0; i--) {
+                const entity = entities[i]
                 B.set(entity)
-            })
+            }
         }
     }).registerSystem({
         name: 'removeB',
         query: every(B),
         execute: (entities) => {
-            entities(entity => {
+            for (let i = entities.length - 1; i > 0; i--) {
+                const entity = entities[i]
                 B.remove(entity)
-            })
+            }
         }
-    })
-
-    const world = builder.build()
+    }).init()
 
     for (let i = 0; i < count; i++) {
         const e = world.createEntity()

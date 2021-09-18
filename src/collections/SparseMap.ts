@@ -53,10 +53,10 @@ export class SparseMap<T = number> {
     delete = (key: number): this => {
         if (!this.has(key)) return this
 
-        const index = this._indices.get(key)!
         const swap = this._keys.pop()!
         const swapValue = this._values.pop()!
         if (swap !== key) {
+            const index = this._indices.get(key)!
             this._keys.set(index, swap)
             this._values.set(index, swapValue)
             this._indices.set(swap, index)
@@ -73,11 +73,11 @@ export class SparseMap<T = number> {
         ] : undefined
     }
 
-    forEach = (callback: (key: number, value: T) => void) => {
-        for (let i = 0, len = this._keys.length; i < len; i++) {
-            callback(i, this._values.get(i)!)
-        }
-    }
+    // forEach = (callback: (key: number, value: T) => void) => {
+    //     for (let i = 0, len = this._keys.length; i < len; i++) {
+    //         callback(i, this._values.get(i)!)
+    //     }
+    // }
 
     // *keys(): IterableIterator<number> {
     //     return this._keys[Symbol.iterator]()

@@ -12,11 +12,14 @@ type LeafQuery<Tkeys> = {
 
 export type Query<Tkeys> = LeafQuery<Tkeys> | GroupQuery<Tkeys>
 
-export type EntityIterator = (callback: (entity: number) => void) => void
+/**
+ * The system may be executed more than once each update.
+ * But it will never be executed more than once with the same entities in the same update cycle
+ */
 export interface System<TC extends InstanceType<typeof ComponentSet>> {
     name: string
     init?: (world: InsideWorld) => void
-    execute: (entityIterator: EntityIterator, world: InsideWorld, dt: number) => void
+    execute: (entities: ReadonlyArray<number>, world: InsideWorld, dt: number) => void
     query: Query<TC>
 }
 
@@ -29,12 +32,13 @@ export interface InsideWorld {
 export interface IBuildWorld {
     readonly createComponentSet: <T>(name: string, type: ComponentType<T>, defaultValue: T) => ComponentSet<T>
     readonly registerSystem: <TC extends InstanceType<typeof ComponentSet>>(system: System<TC>) => IBuildWorld
-    readonly build: () => OutsideWorld
+    readonly init: () => OutsideWorld
 }
 
 export interface OutsideWorld extends InsideWorld {
-    readonly update: () => number
+    readonly createComponentSet: <T>(name: string, type: ComponentType<T>, defaultValue: T) => ComponentSet<T>
     readonly registerSystem: <TC extends InstanceType<typeof ComponentSet>>(system: System<TC>) => OutsideWorld
+    readonly update: () => number
 }
 
 export interface InternalWorld {

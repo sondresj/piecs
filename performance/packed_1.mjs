@@ -1,25 +1,24 @@
-import { WorldBuilder } from '../lib/World.js'
+import { World } from '../lib/World.js'
 import { every } from '../lib/Query.js'
 
-export default function(count) {
-    const builder = new WorldBuilder()
-    const A = builder.createComponentSet('A', 'uint8', 0)
-    const B = builder.createComponentSet('B', 'uint8', 0)
-    const C = builder.createComponentSet('C', 'uint8', 0)
-    const D = builder.createComponentSet('D', 'uint8', 0)
-    const E = builder.createComponentSet('E', 'uint8', 0)
-    builder.registerSystem({
+export default function packed1(count) {
+    const world = new World()
+    const A = world.createComponentSet('A', 'uint8', 0)
+    const B = world.createComponentSet('B', 'uint8', 0)
+    const C = world.createComponentSet('C', 'uint8', 0)
+    const D = world.createComponentSet('D', 'uint8', 0)
+    const E = world.createComponentSet('E', 'uint8', 0)
+    world.registerSystem({
         name: 'ASys',
         query: every(A),
         execute: (entities) => {
-            entities(entity => {
+            for (let i = entities.length - 1; i > 0; i--) {
+                const entity = entities[i]
                 const a = A.get(entity)
                 A.set(entity, a * 2)
-            })
+            }
         }
-    })
-
-    const world = builder.build()
+    }).init()
 
     for (let i = 0; i < count; i++) {
         const entity = world.createEntity()
