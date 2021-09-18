@@ -28,7 +28,7 @@ describe('CompiledQuery', () => {
             archetype.entities.add(1)
             expect(cq.matches(archetype)).toBeTruthy() // should match
             cq.archetypes.push(archetype)
-            const matrix = cq.archetypes.map(a => a.entities.toArray())
+            const matrix = cq.archetypes.map(a => a.entities.values)
             matrix.forEach(entities => entities.forEach(entity => expect(entity).toEqual(1)))
             expect.assertions(2)
         })
@@ -47,7 +47,7 @@ describe('CompiledQuery', () => {
             archetype.entities.add(1)
             expect(cq.matches(archetype)).toBeTruthy() // should match
             cq.archetypes.push(archetype)
-            const matrix = cq.archetypes.map(a => a.entities.toArray())
+            const matrix = cq.archetypes.map(a => a.entities.values)
             matrix.forEach(entities => entities.forEach(entity => expect(entity).toEqual(1)))
             expect.assertions(2)
         })

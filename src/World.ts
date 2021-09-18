@@ -1,4 +1,4 @@
-import type { System, InsideWorld, IBuildWorld, OutsideWorld, InternalWorld } from './types'
+import type { System, InsideWorld, OutsideWorld, InternalWorld } from './types'
 import { Archetype } from './Archetype'
 import { BitMask } from './collections/Bitmask'
 import { SparseSet_Array } from './collections/SparseSet'
@@ -6,7 +6,7 @@ import { CompiledQuery } from './Query'
 import { timer } from './utils'
 import { ComponentSet, ComponentType } from './ComponentSet'
 
-export class World implements IBuildWorld, OutsideWorld, InsideWorld, InternalWorld {
+export class World implements OutsideWorld, InsideWorld, InternalWorld {
     /**
      * [archetype.toString()]: archetype
      */
@@ -25,7 +25,7 @@ export class World implements IBuildWorld, OutsideWorld, InsideWorld, InternalWo
 
     private deferredActions: Array<() => void> = []
     private lastElapsed = 0
-    private BLANK_ARCHETYPE: Archetype = new Archetype(new BitMask())
+    private blankArchetype: Archetype = new Archetype(new BitMask())
     private initialized = false
 
     private _executeDeferredActions = () => {
@@ -81,7 +81,7 @@ export class World implements IBuildWorld, OutsideWorld, InsideWorld, InternalWo
         // create a blank archetype that serves as the base archetype for all entities
         const blankArchetype = new Archetype(new BitMask(this.nextComponentid))
         this.archetypes.set(blankArchetype.id, blankArchetype)
-        this.BLANK_ARCHETYPE = blankArchetype
+        this.blankArchetype = blankArchetype
 
         this.systems.forEach(system => {
             if (system.init) {
@@ -113,7 +113,7 @@ export class World implements IBuildWorld, OutsideWorld, InsideWorld, InternalWo
             const query = queries[s]!
             const archetypes = query.archetypes
             for (let a = 0, al = archetypes.length; a < al; a++) {
-                const entities = archetypes[a]!.entities.toArray()
+                const entities = archetypes[a]!.entities.values
                 if (entities.length > 0)
                     system.execute(entities, this, dt)
             }
@@ -144,11 +144,11 @@ export class World implements IBuildWorld, OutsideWorld, InsideWorld, InternalWo
     readonly createEntity = (): number => {
         if (!this.initialized) throw new Error('Not initialized')
 
-        const entity = this.entitiesDeleted.length > 0
-            ? this.entitiesDeleted.pop()!
+        const entity = this.entitiesDeleted.values.length > 0
+            ? this.entitiesDeleted.values.pop()!
             : this.nextEntityId++
 
-        const archetype = this.BLANK_ARCHETYPE
+        const archetype = this.blankArchetype
         archetype.entities.add(entity)
         this.entityArchetype[entity] = archetype
         return entity

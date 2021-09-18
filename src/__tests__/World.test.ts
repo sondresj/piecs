@@ -16,26 +16,28 @@ describe('World', () => {
                 foo.add(e, 2)
             },
             execute: (entities) => {
-                entities.forEach(entity => {
+                for (let e = entities.length - 1; e >= 0; e--) {
+                    const entity = entities[e]!
                     expect(entity).toBe(0)
                     expect(foo.get(entity)).toBe(2)
                     world.defer(() => {
                         baz.add(entity) // deferred using default value
                     })
                     expect(baz.get(entity)).toBeFalsy()
-                })
+                }
             }
         }).registerSystem({
             name: 'killEntitiesWithBaz',
             query: some(baz),
             execute: (entities, world) => {
-                entities.forEach(entity => {
+                for (let e = entities.length - 1; e >= 0; e--) {
+                    const entity = entities[e]!
                     const b = baz.get(entity)
                     if (b !== undefined) {
                         world.deleteEntity(entity)
                         expect(world.hasEntity(entity)).toBeFalsy()
                     }
-                })
+                }
             }
         })
 

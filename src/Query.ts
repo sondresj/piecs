@@ -2,14 +2,6 @@ import type { Archetype } from './Archetype'
 import { ComponentSet } from './ComponentSet'
 import type { Query } from './types'
 
-// export const query = (...subQueries: Query<ComponentSet<any>>[] | ComponentSet<any>[]): Query<ComponentSet<any>> => ({
-//     type: 'and',
-//     subQueries: subQueries.length
-//         ? subQueries[0] instanceof ComponentSet
-//             ? [and(...subQueries as ComponentSet<any>[])]
-//             : subQueries as Query<ComponentSet<any>>[]
-//         : []
-// })
 export const every = (...types: ComponentSet<any>[]): Query<ComponentSet<any>> => ({
     type: 'every',
     match: types
@@ -70,7 +62,6 @@ const match = (query: Query<number>, archetype: Archetype): boolean => {
 }
 
 export class CompiledQuery {
-    // private matchingArchetypes: Map<string, Archetype> = new Map()
     public archetypes: Archetype[] = []
     private query: Query<number>
 

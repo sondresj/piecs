@@ -42,10 +42,10 @@ export class ComponentSet<T> {
 
     /**
      * For adding component to and entity that may or may not already have that component.
-     * @see set if you want to update the value of a component the entity already has
+     * @see `set` if you want to update the value of a component the entity already has
      * @param entity
      * @param value
-     * @returns
+     * @returns*
      */
     add = (entity: number, value: T = this.defaultValue) => {
         this.world.setComponent(entity, this.id)

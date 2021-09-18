@@ -9,4 +9,4 @@ export {
     every,
     some
 }
-// export default World
+export default World

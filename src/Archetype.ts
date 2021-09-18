@@ -5,13 +5,12 @@ import { SparseSet_Array } from './collections/SparseSet'
 export class Archetype {
     // sparse indexed by componentId. These are the parent archetypes of this archetype
     private _transformations: Archetype[] = []
-    // private entities = new SparseSet('uint32')
     constructor(componentMask: BitMask) {
         this.mask = componentMask
         this.id = componentMask.toString()
     }
 
-    public readonly entities = new SparseSet_Array()//('uint32')
+    public readonly entities = new SparseSet_Array()
     public readonly mask: ReadonlyBitMask
     public readonly id: string
 

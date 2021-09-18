@@ -19,7 +19,7 @@ export type Query<Tkeys> = LeafQuery<Tkeys> | GroupQuery<Tkeys>
 export interface System<TC extends InstanceType<typeof ComponentSet>> {
     name: string
     init?: (world: InsideWorld) => void
-    execute: (entities: ReadonlyArray<number>, world: InsideWorld, dt: number) => void
+    execute: (entities: Readonly<ArrayLike<number>>, world: InsideWorld, dt: number) => void
     query: Query<TC>
 }
 
@@ -29,16 +29,10 @@ export interface InsideWorld {
     readonly deleteEntity: (entity: number) => InsideWorld
     readonly defer: (action: () => void) => InternalWorld
 }
-
-export interface IBuildWorld {
-    readonly createComponentSet: <T>(name: string, type: ComponentType<T>, defaultValue: T) => ComponentSet<T>
-    readonly registerSystem: <TC extends InstanceType<typeof ComponentSet>>(system: System<TC>) => IBuildWorld
-    readonly init: () => OutsideWorld
-}
-
 export interface OutsideWorld extends InsideWorld {
     readonly createComponentSet: <T>(name: string, type: ComponentType<T>, defaultValue: T) => ComponentSet<T>
     readonly registerSystem: <TC extends InstanceType<typeof ComponentSet>>(system: System<TC>) => OutsideWorld
+    readonly init: () => OutsideWorld
     readonly update: () => number
 }
 
