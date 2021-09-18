@@ -27,7 +27,7 @@ export default function packed5(count) {
                 for (let i = entities.length - 1; i > 0; i--) {
                     const entity = entities[i]
                     const b = B.get(entity)
-                    A.set(entity, b * 2)
+                    B.set(entity, b * 2)
                 }
             }
         }).registerSystem({
@@ -37,7 +37,7 @@ export default function packed5(count) {
                 for (let i = entities.length - 1; i > 0; i--) {
                     const entity = entities[i]
                     const c = C.get(entity)
-                    A.set(entity, c * 2)
+                    C.set(entity, c * 2)
                 }
             }
         }).registerSystem({
@@ -47,7 +47,7 @@ export default function packed5(count) {
                 for (let i = entities.length - 1; i > 0; i--) {
                     const entity = entities[i]
                     const d = D.get(entity)
-                    A.set(entity, d * 2)
+                    D.set(entity, d * 2)
                 }
             }
         }).registerSystem({
@@ -57,18 +57,18 @@ export default function packed5(count) {
                 for (let i = entities.length - 1; i > 0; i--) {
                     const entity = entities[i]
                     const e = E.get(entity)
-                    A.set(entity, e * 2)
+                    E.set(entity, e * 2)
                 }
             }
         }).init()
 
     for (let i = 0; i < count; i++) {
         const entity = world.createEntity()
-        A.set(entity)
-        B.set(entity)
-        C.set(entity)
-        D.set(entity)
-        E.set(entity)
+        A.add(entity)
+        B.add(entity)
+        C.add(entity)
+        D.add(entity)
+        E.add(entity)
     }
 
     return () => {

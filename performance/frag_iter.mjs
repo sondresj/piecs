@@ -26,8 +26,8 @@ export default function fragIter(count) {
     for (let i = 0; i < count; i++) {
         for (const c of Object.values(components)) {
             const e = world.createEntity()
-            Data.set(e, 0)
-            c.set(e, 0)
+            Data.add(e, 0)
+            c.add(e, 0)
         }
     }
 

@@ -22,11 +22,11 @@ export default function packed1(count) {
 
     for (let i = 0; i < count; i++) {
         const entity = world.createEntity()
-        A.set(entity)
-        B.set(entity)
-        C.set(entity)
-        D.set(entity)
-        E.set(entity)
+        A.add(entity)
+        B.add(entity)
+        C.add(entity)
+        D.add(entity)
+        E.add(entity)
     }
 
     return () => {

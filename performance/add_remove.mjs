@@ -12,7 +12,7 @@ export default function addRemove(count) {
         execute: (entities) => {
             for (let i = entities.length - 1; i > 0; i--) {
                 const entity = entities[i]
-                B.set(entity)
+                B.add(entity)
             }
         }
     }).registerSystem({
@@ -28,7 +28,7 @@ export default function addRemove(count) {
 
     for (let i = 0; i < count; i++) {
         const e = world.createEntity()
-        A.set(e)
+        A.add(e)
     }
 
     return () => {

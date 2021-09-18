@@ -14,9 +14,9 @@ export default function entityCycle(count) {
                 const entity = entities[i]
                 const a = A.get(entity)
                 const e1 = world.createEntity()
-                B.set(e1, a)
+                B.add(e1, a)
                 const e2 = world.createEntity()
-                B.set(e2, a)
+                B.add(e2, a)
             }
         }
     }).registerSystem({
@@ -32,7 +32,7 @@ export default function entityCycle(count) {
 
     for (let i = 0; i < count; i++) {
         const e = world.createEntity()
-        A.set(e)
+        A.add(e)
     }
 
     return () => {

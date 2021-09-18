@@ -13,14 +13,14 @@ describe('World', () => {
             init: (world) => {
                 const e = world.createEntity()
                 expect(e).toBe(0)
-                foo.set(e, 2)
+                foo.add(e, 2)
             },
             execute: (entities) => {
                 entities.forEach(entity => {
                     expect(entity).toBe(0)
                     expect(foo.get(entity)).toBe(2)
                     world.defer(() => {
-                        baz.set(entity) // deferred using default value
+                        baz.add(entity) // deferred using default value
                     })
                     expect(baz.get(entity)).toBeFalsy()
                 })
@@ -41,7 +41,7 @@ describe('World', () => {
 
         const world = builder.init()
         const e = world.createEntity()
-        bar.set(e, 'hello')
+        bar.add(e, 'hello')
         world.update()
         world.update() // for second system to run because of deferred component set
 

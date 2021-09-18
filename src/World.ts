@@ -28,7 +28,15 @@ export class World implements IBuildWorld, OutsideWorld, InsideWorld, InternalWo
     private BLANK_ARCHETYPE: Archetype = new Archetype(new BitMask())
     private initialized = false
 
-    // Builder
+    private _executeDeferredActions = () => {
+        if (!this.deferredActions.length) return
+
+        for (const action of this.deferredActions) {
+            action()
+        }
+        this.deferredActions.length = 0
+    }
+
     readonly createComponentSet = <T>(
         name: string,
         type: ComponentType<T>,
@@ -119,15 +127,11 @@ export class World implements IBuildWorld, OutsideWorld, InsideWorld, InternalWo
         return executionTime
     }
 
-    private _executeDeferredActions = () => {
-        if (!this.deferredActions.length) return
-
-        for (const action of this.deferredActions) {
-            action()
-        }
-        this.deferredActions.length = 0
-    }
-
+    /**
+     * Defer execution of an action until the end of the update cycle (after all systems has been executed)
+     * @param action The action to defer
+     * @returns this
+     */
     readonly defer = (action: () => void): this => {
         this.deferredActions.push(action)
         return this
@@ -138,8 +142,7 @@ export class World implements IBuildWorld, OutsideWorld, InsideWorld, InternalWo
     }
 
     readonly createEntity = (): number => {
-        if (!this.initialized)
-            throw new Error('Not initialized')
+        if (!this.initialized) throw new Error('Not initialized')
 
         const entity = this.entitiesDeleted.length > 0
             ? this.entitiesDeleted.pop()!
@@ -152,13 +155,13 @@ export class World implements IBuildWorld, OutsideWorld, InsideWorld, InternalWo
     }
 
     readonly deleteEntity = (entity: number): this => {
-        if (this.entitiesDeleted.has(entity)) throw new Error(`Entity ${entity} is deleted`)
+        if (this.entitiesDeleted.has(entity)) return this
 
         const archetype = this.entityArchetype[entity]
         if (!archetype) throw new Error(`Entity ${entity} does not exist`)
 
         archetype.entities.delete(entity)
-        delete this.entityArchetype[entity]
+        // delete this.entityArchetype[entity]
         this.entitiesDeleted.add(entity)
         return this
     }
@@ -182,7 +185,7 @@ export class World implements IBuildWorld, OutsideWorld, InsideWorld, InternalWo
         }
         return this
     }
-
+    // spot the difference between removeComponent and setComponent
     readonly removeComponent = (entity: number, componentId: number): this => {
         if (this.entitiesDeleted.has(entity)) throw new Error(`Entity ${entity} is deleted`)
 

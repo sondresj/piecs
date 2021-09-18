@@ -19,6 +19,11 @@ const mapType = (type: string): ArrayType => arrayTypes.includes(type as any)
     ? type as ArrayType
     : 'any'
 
+// TODO: FlagComponentSet
+export class FlagComponent {
+
+}
+
 export class ComponentSet<T> {
     private values: Vector<T>
 
@@ -35,9 +40,26 @@ export class ComponentSet<T> {
         })
     }
 
-    set = (entity: number, value: T = this.defaultValue) => {
-        if (!this.world.hasComponent(entity, this.id))
-            this.world.setComponent(entity, this.id)
+    /**
+     * For adding component to and entity that may or may not already have that component.
+     * @see set if you want to update the value of a component the entity already has
+     * @param entity
+     * @param value
+     * @returns
+     */
+    add = (entity: number, value: T = this.defaultValue) => {
+        this.world.setComponent(entity, this.id)
+        this.values.set(entity, value)
+        return this
+    }
+
+    /**
+     * For when you want to update the value of a component the entity already has
+     * @param entity
+     * @param value
+     * @returns
+     */
+    set = (entity: number, value: T) => {
         this.values.set(entity, value)
         return this
     }
