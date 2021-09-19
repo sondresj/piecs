@@ -3,7 +3,6 @@ import { Archetype } from './Archetype'
 import { BitMask } from './collections/Bitmask'
 import { SparseSet_Array } from './collections/SparseSet'
 import { CompiledQuery } from './Query'
-import { timer } from './utils'
 import { ComponentSet, ComponentType } from './ComponentSet'
 
 export class World implements OutsideWorld, InsideWorld, InternalWorld {
@@ -24,7 +23,6 @@ export class World implements OutsideWorld, InsideWorld, InternalWorld {
     private queries: CompiledQuery[] = [] // should be 1 to 1 with systems
 
     private deferredActions: Array<() => void> = []
-    private lastElapsed = 0
     private blankArchetype: Archetype = new Archetype(new BitMask())
     private initialized = false
 
@@ -103,9 +101,7 @@ export class World implements OutsideWorld, InsideWorld, InternalWorld {
      * Typically you want to update each animation frame (@see window.requestAnimationFrame)
      * @returns number of milliseconds that the update took
      */
-    readonly update = (): number => {
-        const getElapsed = timer(this.lastElapsed)
-        const dt = getElapsed()
+    readonly update = (): this => {
         const systems = this.systems
         const queries = this.queries
         for (let s = 0, sl = systems.length; s < sl; s++) {
@@ -115,16 +111,12 @@ export class World implements OutsideWorld, InsideWorld, InternalWorld {
             for (let a = 0, al = archetypes.length; a < al; a++) {
                 const entities = archetypes[a]!.entities.values
                 if (entities.length > 0)
-                    system.execute(entities, this, dt)
+                    system.execute(entities, this)
             }
         }
 
         this._executeDeferredActions()
-
-        const totalElapsed = getElapsed()
-        const executionTime = totalElapsed + this.lastElapsed
-        this.lastElapsed = totalElapsed
-        return executionTime
+        return this
     }
 
     /**
