@@ -1,0 +1,34 @@
+{
+  "name": "asm-piecs",
+  "version": "1.0.0",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "files": [
+    "index.d.ts",
+    "index.js",
+    "build"
+  ],
+  "repository": "git@github.com:sondresj/piecs.git",
+  "author": "Sondre <sondre.skaardal.jensen@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "keywords": [
+    "ecs",
+    "webassembly",
+    "assemblyscript"
+  ],
+  "scripts": {
+    "asbuild:untouched": "asc src/index.ts --target debug",
+    "asbuild:optimized": "asc src/index.ts --target release -d index.d.ts",
+    "asbuild": "yarn asbuild:untouched && yarn asbuild:optimized",
+    "test": "node __tests__",
+    "build": "yarn asbuild:optimized",
+    "prepare": "yarn build"
+  },
+  "dependencies": {
+    "@assemblyscript/loader": "^0.19.16"
+  },
+  "devDependencies": {
+    "assemblyscript": "^0.19.16"
+  }
+}
