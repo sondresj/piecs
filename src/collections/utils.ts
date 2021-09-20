@@ -1,9 +1,10 @@
-import { ArrayClass, ArrayType, TypedArray } from './types'
+import { ArrayClass, TypedArray } from './types'
+import { VectorValueType } from './Vector'
 
 const MAX_INT_CAPACITY = 4294967295
 const MAX_FLOAT_CAPACITY = Number.MAX_SAFE_INTEGER
 
-export const getArrayConstructor = (capacity: number, type: ArrayType): ArrayClass => {
+export const getArrayConstructor = (capacity: number, type: VectorValueType): ArrayClass => {
     if ((type.includes('int') || type === 'pointer') && capacity > MAX_INT_CAPACITY)
         throw new Error(`Capacity ${capacity} out of bounds`)
 
@@ -31,7 +32,7 @@ export const getArrayConstructor = (capacity: number, type: ArrayType): ArrayCla
     }
 }
 
-export const reallocArray = <T>(array: ArrayLike<T>, type: ArrayType, newSize: number): Exclude<TypedArray, Array<any>> | T[] => {
+export const reallocArray = <T>(array: ArrayLike<T>, type: VectorValueType, newSize: number): Exclude<TypedArray, Array<any>> | T[] => {
     if (type === 'any') {
         const reallocated = Array.from(array)
         reallocated.length = newSize

@@ -3,8 +3,8 @@ import { every } from '../lib/Query.js'
 
 export default function entityCycle(count) {
     const world = new World()
-    const A = world.createComponentSet('A', 'uint32', 0)
-    const B = world.createComponentSet('B', 'uint32', 0)
+    const A = world.createComponentSet('A', 'flag', true)
+    const B = world.createComponentSet('B', 'flag', true)
 
     world.registerSystem({
         name: 'spawnB',

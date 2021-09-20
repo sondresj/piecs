@@ -1,21 +1,21 @@
 import { some } from '..'
 import { Archetype } from '../Archetype'
 import { BitMask } from '../collections/Bitmask'
-import { ComponentSet } from '../ComponentSet'
+import { FlagComponentSet, StructComponentSet, VectorComponentSet } from '../ComponentSet'
 import { CompiledQuery, every } from '../Query'
 
 
 describe('CompiledQuery', () => {
     let nextComponentId = 0
-    const foo = new ComponentSet('foo', 'uint8', nextComponentId++, 0, {
+    const foo = new VectorComponentSet('foo', 'uint8', nextComponentId++, 0, {
         setComponent: jest.fn(),
         removeComponent: jest.fn()
     } as any)// as Component<unknown>
-    const bar = new ComponentSet('bar', 'boolean', nextComponentId++, false, {
+    const bar = new FlagComponentSet('bar', 'flag', nextComponentId++, {
         setComponent: jest.fn(),
         removeComponent: jest.fn()
     } as any)// as Component<unknown>
-    const baz = new ComponentSet('baz', 'string', nextComponentId++, '', {
+    const baz = new StructComponentSet('baz', ['char(10)'] as const, nextComponentId++, ['hello'], {
         setComponent: jest.fn(),
         removeComponent: jest.fn()
     } as any)// as Component<unknown>

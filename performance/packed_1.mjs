@@ -4,10 +4,10 @@ import { every } from '../lib/Query.js'
 export default function packed1(count) {
     const world = new World()
     const A = world.createComponentSet('A', 'uint8', 0)
-    const B = world.createComponentSet('B', 'uint8', 0)
-    const C = world.createComponentSet('C', 'uint8', 0)
-    const D = world.createComponentSet('D', 'uint8', 0)
-    const E = world.createComponentSet('E', 'uint8', 0)
+    const B = world.createComponentSet('B', 'flag', true)
+    const C = world.createComponentSet('C', 'flag', true)
+    const D = world.createComponentSet('D', 'flag', true)
+    const E = world.createComponentSet('E', 'flag', true)
     world.registerSystem({
         name: 'ASys',
         query: every(A),

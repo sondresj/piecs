@@ -1,34 +1,36 @@
-import { ArrayType, TypedArray } from './types'
+import { TypedArray } from './types'
 import { getArrayConstructor, isTypedArray, reallocArray } from './utils'
 
+export type VectorValueType =
+    | `uint${8 | '8c' | 16 | 32 /*| 64*/}`
+    | `int${8 | 16 | 32 /*| 64*/}`
+    | `float${32 | 64}`
+    | 'pointer'
+    | 'any'
+
 // Todo, separate sparse vector to own class
-export type VectorConstructorOptions<T = number> = {
+export type VectorOptions = {
     initialCapacity?: number
     growFactor?: number
     sparse?: boolean
-} & (T extends number
-    ? { type: Exclude<ArrayType, 'any'> }
-    : { type?: 'any' }
-)
+}
 
-const defaultOptions: Required<VectorConstructorOptions<number>> = {
+const defaultOptions: Required<VectorOptions> = {
     initialCapacity: 1 << 8,
     growFactor: 1.5,
-    type: 'int32',
     sparse: false
 }
 export class Vector<T = number> {
     private _array: TypedArray
     private _capacity: number
-    private _type: ArrayType
+    private _type: VectorValueType
     private _sparse: boolean
     private _growFactor: number
     private _length = 0
 
-    constructor(options?: VectorConstructorOptions<T>) {
+    constructor(type: T extends number ? Exclude<VectorValueType, 'any'> : 'any',  options?: VectorOptions) {
         const {
             initialCapacity,
-            type,
             sparse,
             growFactor
         } = {
@@ -43,10 +45,10 @@ export class Vector<T = number> {
         this._growFactor = Math.max(1.01, growFactor)
     }
 
-    private growIfNecessary = () => {
-        if (this._length < this._capacity)
+    private grow = (indexToAccomodate: number) => {
+        if (indexToAccomodate < this._capacity)
             return
-        while (this._length >= this._capacity) {
+        while (indexToAccomodate >= this._capacity) {
             this._capacity = Math.ceil(this._capacity * this._growFactor)
         }
         this._array = reallocArray(this._array, this._type, this._capacity)
@@ -63,7 +65,7 @@ export class Vector<T = number> {
     }
 
     push = (value: T) => {
-        this.growIfNecessary()
+        this.grow(this._length)
         this._array[this._length++] = value
         return this._length
     }
@@ -88,7 +90,7 @@ export class Vector<T = number> {
         }
         if (this._sparse && index >= this._length) {
             this._length = index + 1
-            this.growIfNecessary()
+            this.grow(this._length)
         }
         this._array[index] = value
         return this

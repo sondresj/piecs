@@ -7,7 +7,7 @@ export default function fragIter(count) {
     const world = new World()
 
     Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').forEach(name => {
-        components[name] = world.createComponentSet(name, 'uint8', 0)
+        components[name] = world.createComponentSet(name, 'flag', true)
     })
     const Data = world.createComponentSet('Data', 'uint8', 0)
 
@@ -27,7 +27,7 @@ export default function fragIter(count) {
         for (const c of Object.values(components)) {
             const e = world.createEntity()
             Data.add(e, 0)
-            c.add(e, 0)
+            c.add(e)
         }
     }
 

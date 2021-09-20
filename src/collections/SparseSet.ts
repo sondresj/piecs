@@ -1,12 +1,11 @@
-import { ArrayType } from './types'
-import { Vector } from './Vector'
+import { Vector, VectorValueType } from './Vector'
 
 export class SparseSet {
     private dense: Vector<number>
-    private indices = new Vector<number>({ sparse: true, type: 'pointer' })
+    private indices = new Vector<number>('pointer', { sparse: true })
 
-    constructor(type: Exclude<ArrayType, 'any'>) {
-        this.dense = new Vector<number>({ type })
+    constructor(type: Exclude<VectorValueType, 'any'>) {
+        this.dense = new Vector<number>(type)
     }
 
     get length() {

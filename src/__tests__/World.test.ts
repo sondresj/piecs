@@ -5,8 +5,8 @@ describe('World', () => {
     it('works', () => {
         const builder = new World()
         const foo = builder.createComponentSet('foo', 'uint8', 0)
-        const bar = builder.createComponentSet('bar', 'string', '')
-        const baz = builder.createComponentSet('baz', 'boolean', false)
+        const bar = builder.createComponentSet('bar', ['char(10)'], 'hei')
+        const baz = builder.createComponentSet('baz', 'flag', true)
         builder.registerSystem({
             name: 'addBarIfFoo',
             query: and(every(foo), not(baz)),

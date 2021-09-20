@@ -1,5 +1,5 @@
 import type { Archetype } from './Archetype'
-import { ComponentSet } from './ComponentSet'
+import { ComponentSet, FlagComponentSet, StructComponentSet, VectorComponentSet } from './ComponentSet'
 import type { Query } from './types'
 
 export const every = (...types: ComponentSet<any>[]): Query<ComponentSet<any>> => ({
@@ -13,7 +13,7 @@ export const some = (...types: ComponentSet<any>[]): Query<ComponentSet<any>> =>
 export const not = (...subQueries: Query<ComponentSet<any>>[] | ComponentSet<any>[]): Query<ComponentSet<any>> => ({
     type: 'not',
     subQueries: subQueries.length
-        ? subQueries[0] instanceof ComponentSet
+        ? (subQueries[0] instanceof VectorComponentSet || subQueries[0] instanceof StructComponentSet || subQueries[0] instanceof FlagComponentSet)
             ? [every(...subQueries as ComponentSet<any>[])]
             : subQueries as Query<ComponentSet<any>>[]
         : []
@@ -27,7 +27,7 @@ export const or = (...subQueries: Query<ComponentSet<any>>[]): Query<ComponentSe
     subQueries
 })
 
-const transform = (query: Query<InstanceType<typeof ComponentSet>>): Query<number> => {
+const transform = (query: Query<ComponentSet<any>>): Query<number> => {
     switch (query.type) {
         case 'and':
         case 'or':
@@ -65,7 +65,7 @@ export class CompiledQuery {
     public archetypes: Archetype[] = []
     private query: Query<number>
 
-    constructor(query: Query<InstanceType<typeof ComponentSet>>) {
+    constructor(query: Query<ComponentSet<any>>) {
         this.query = transform(query)
     }
 

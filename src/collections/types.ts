@@ -1,11 +1,4 @@
 
-export type ArrayType =
-    | `uint${8 | '8c' | 16 | 32 /*| 64*/}`
-    | `int${8 | 16 | 32 /*| 64*/}`
-    | `float${32 | 64}`
-    | 'pointer'
-    | 'any'
-
 export type ArrayClass =
     | Uint8ArrayConstructor
     | Uint8ClampedArrayConstructor

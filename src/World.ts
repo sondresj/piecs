@@ -3,7 +3,9 @@ import { Archetype } from './Archetype'
 import { BitMask } from './collections/Bitmask'
 import { SparseSet_Array } from './collections/SparseSet'
 import { CompiledQuery } from './Query'
-import { ComponentSet, ComponentType } from './ComponentSet'
+import { VectorComponentSet, ComponentSet, StructComponentSet, FlagComponentSet } from './ComponentSet'
+import type { StructValueType } from './collections/StructVector'
+import type { VectorValueType } from './collections/Vector'
 
 export class World implements OutsideWorld, InsideWorld, InternalWorld {
     /**
@@ -17,7 +19,7 @@ export class World implements OutsideWorld, InsideWorld, InternalWorld {
     private entitiesDeleted = new SparseSet_Array()
     // private entitiesDeleted = new SparseSet('uint32')
     private nextEntityId = 0
-    private nextComponentid = 0
+    private nextComponentId = 0
 
     private systems: System<any>[] = []
     private queries: CompiledQuery[] = [] // should be 1 to 1 with systems
@@ -37,13 +39,15 @@ export class World implements OutsideWorld, InsideWorld, InternalWorld {
 
     readonly createComponentSet = <T>(
         name: string,
-        type: ComponentType<T>,
-        defaultValue: T
+        type: VectorValueType | 'flag' | StructValueType[],
+        defaultValue: Readonly<T>
     ): ComponentSet<T> => {
-        return new ComponentSet(name, type, this.nextComponentid++, defaultValue, this)
+        if (type === 'flag') return new FlagComponentSet(name, type, this.nextComponentId++, this) as any
+        if (Array.isArray(type)) return new StructComponentSet(name, type, this.nextComponentId++, defaultValue as never, this) as any
+        return new VectorComponentSet(name, type, this.nextComponentId++, defaultValue, this) as any
     }
 
-    readonly registerSystem = <TC extends InstanceType<typeof ComponentSet>>(system: System<TC>) => {
+    readonly registerSystem = <TC extends ComponentSet<any>>(system: System<TC>) => {
         if (this.systems.some(sys => sys.name === system.name))
             throw new Error(`System ${system.name} already registered`)
         const compiledQuery = new CompiledQuery(system.query)
@@ -77,7 +81,7 @@ export class World implements OutsideWorld, InsideWorld, InternalWorld {
         this.initialized = true
 
         // create a blank archetype that serves as the base archetype for all entities
-        const blankArchetype = new Archetype(new BitMask(this.nextComponentid))
+        const blankArchetype = new Archetype(new BitMask(this.nextComponentId))
         this.archetypes.set(blankArchetype.id, blankArchetype)
         this.blankArchetype = blankArchetype
 
