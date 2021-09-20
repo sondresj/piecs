@@ -70,19 +70,7 @@ export class CompiledQuery {
     }
 
     matches = (archetype: Archetype): boolean => {
-        const query = this.query
-        switch (query.type) {
-            case 'and':
-                return query.subQueries.every(q => match(q, archetype))
-            case 'or':
-                return query.subQueries.some(q => match(q, archetype))
-            case 'not':
-                return !query.subQueries.every(q => match(q, archetype))
-            case 'every':
-                return query.match.every(archetype.mask.has)
-            case 'some':
-                return query.match.some(archetype.mask.has)
-        }
+        return match(this.query, archetype)
     }
 
     // getMatchingEntities = (): Uint32Array => {
