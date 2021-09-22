@@ -1,102 +1,87 @@
 import { Archetype } from './Archetype'
 import { BitMask } from './BitMask'
 
-abstract class QueryMask {
-    constructor(public readonly mask: BitMask){}
-    abstract test(other: BitMask): bool;
-}
-@final
-class Every extends QueryMask {
-    @inline
-    test(other: BitMask): bool {
-        return other.isSuperSetOf(this.mask)
-    }
-}
-// const Every_ID = idof<Every>()
+export const ArrayU32_ID = idof<Array<u32>>()
 
-@final
-class Some extends QueryMask {
-    @inline
-    test(other: BitMask): bool {
-        return this.mask.isSuperSetOf(other)
-    }
-}
-// const Some_ID = idof<Some>()
+const ALL: u8 = 1
+const ANY: u8 = 2
+const NOT: u8 = 4
 
-@final
-class Not extends QueryMask {
-    @inline
-    test(other: BitMask): bool {
-        return !other.isSuperSetOf(this.mask)
-    }
+export class QueryMask {
+    constructor(
+        public readonly type: u8,
+        public readonly mask: BitMask
+    ) {}
 }
-// const Not_ID = idof<Not>()
 
-export function every(componentIds: Array<native<u32>>): QueryMask {
-    const mask: BitMask = new BitMask(1) // should grow
+function makeMask(componentIds: Array<u32>): BitMask {
+    componentIds.sort()
+    const last = unchecked(componentIds[componentIds.length - 1])
+    const mask = new BitMask(last)
     for(let i = 0; i < componentIds.length; i++) {
         mask.or(componentIds[i])
     }
-    return new Every(mask)
+    return mask
 }
-export function some(componentIds: Array<native<u32>>): QueryMask {
-    const mask: BitMask = new BitMask(1) // should grow
-    for(let i = 0; i < componentIds.length; i++) {
-        mask.or(componentIds[i])
-    }
-    return new Some(mask)
+
+export function all(componentIds: Array<u32>): QueryMask {
+    const mask = makeMask(componentIds)
+    return new QueryMask(ALL, mask)
 }
-export function not(componentIds: Array<native<u32>>): QueryMask {
-    const mask: BitMask = new BitMask(1) // should grow
-    for(let i = 0; i < componentIds.length; i++) {
-        mask.or(componentIds[i])
-    }
-    return new Not(mask)
+export function any(componentIds: Array<u32>): QueryMask {
+    const mask = makeMask(componentIds)
+    return new QueryMask(ANY, mask)
+}
+export function not(componentIds: Array<u32>): QueryMask {
+    // not sure if this works, because suddenly this has all the components BUT those it matches against.. hmm
+    const mask = makeMask(componentIds).not() // todo, optimize, dumping an array here
+    return new QueryMask(NOT, mask)
 }
 
 export function or(queryMasks: Array<QueryMask>): QueryMask {
-    assert(queryMasks.length, 'Query: Empty block not allowed')
+    assert(queryMasks.length, 'Query: Empty array of queries is not allowed')
     let mask: BitMask = unchecked(queryMasks[0].mask)
     for(let i = 1; i < queryMasks.length; i++) {
         const queryMask: QueryMask = unchecked(queryMasks[i])
         let qmask: BitMask = queryMask.mask
-        if(queryMask instanceof Not) { // not sure if this actually work, might be true as long as queryMask is an instance extending QueryMask
-            qmask = qmask.not() // not sure if this works either, because suddenly this has all the components BUT those it matches against.. hmm
-        }
         mask = mask.intersection(qmask) // not sure about this either..
     }
-    return new Some(mask)
+    return new QueryMask(ANY, mask)
 }
 
 export function and(queryMasks: Array<QueryMask>): QueryMask {
-    assert(queryMasks.length, 'Query: Empty block not allowed')
+    assert(queryMasks.length, 'Query: Empty array of queries is not allowed')
     let mask: BitMask = unchecked(queryMasks[0].mask)
     for(let i = 1; i < queryMasks.length; i++) {
         const queryMask: QueryMask = unchecked(queryMasks[i])
         let qmask: BitMask = queryMask.mask
-        if(queryMask instanceof Not) { // not sure if this actually work, might be true as long as queryMask is an instance extending QueryMask
-            qmask = qmask.not() // not sure if this works either, because suddenly this has all the components BUT those it matches against.. hmm
-        }
         mask = mask.union(qmask) // not sure about this either..
     }
-    return new Every(mask)
+    return new QueryMask(ALL, mask)
 }
 
-@final class Query {
+export class Query {
     [key: i32]: Archetype
 
     private _archetypes: Array<Archetype> = new Array()
-    constructor(private _queryMasks: Array<QueryMask>){}
+    constructor(
+        private _queryMasks: Array<QueryMask>
+    ){}
 
-    tryAddMatch(archetype: Archetype): void {
+    tryAdd(archetype: Archetype): void {
         const queries = this._queryMasks
-        for(let i = queries.length; i >= 0; i--) {
+        const targetMask = archetype.mask
+        for(let i: i32 = 0; i < queries.length; i++) {
             const query = unchecked(queries[i])
-            if(!query.test(archetype.mask)) return
+            // assert(query.type & (ALL | ANY | NOT))
+            if(query.type == ALL && !query.mask.isSuperSetOf(targetMask)) return
+            if(query.type == ANY && !targetMask.isSuperSetOf(query.mask)) return
+            if(query.type == NOT && query.mask.isSuperSetOf(targetMask)) return
         }
         this._archetypes.push(archetype)
     }
 
+    @inline
     get length(): i32 {
         return this._archetypes.length
     }
@@ -113,8 +98,7 @@ export function and(queryMasks: Array<QueryMask>): QueryMask {
         return unchecked(this._archetypes[i])
     }
 }
-export { Query }
 
-export function createQuery(masks: Array<QueryMask>): Query {
-    return new Query(masks)
-}
+// export function createQuery(masks: Array<QueryMask>): Query {
+//     return new Query(masks)
+// }

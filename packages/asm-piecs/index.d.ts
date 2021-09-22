@@ -71,8 +71,16 @@ export class World extends InsideWorld {
   setComponent(entity: u32, componentId: u32): void;
   removeComponent(entity: u32, componentId: u32): void;
 }
-export function every(componentIds: usize): usize;
-export function some(componentIds: usize): usize;
+export var ArrayU32_ID: u32;
+export class QueryMask {
+  static wrap(ptr: usize): QueryMask;
+  valueOf(): usize;
+  readonly type: u8;
+  readonly mask: usize;
+  constructor(type: u8, mask: usize);
+}
+export function all(componentIds: usize): usize;
+export function any(componentIds: usize): usize;
 export function not(componentIds: usize): usize;
 export function or(queryMasks: usize): usize;
 export function and(queryMasks: usize): usize;
@@ -80,12 +88,11 @@ export class Query {
   static wrap(ptr: usize): Query;
   valueOf(): usize;
   constructor(_queryMasks: usize);
-  tryAddMatch(archetype: usize): void;
+  tryAdd(archetype: usize): void;
   get length(): i32;
   __get(i: i32): usize;
   __uget(i: i32): usize;
 }
-export function createQuery(masks: usize): usize;
 export class SparseSet {
   static wrap(ptr: usize): SparseSet;
   valueOf(): usize;
@@ -115,4 +122,9 @@ export class Vector {
   subArray(): usize;
 }
 export const memory: WebAssembly.Memory;
+export function __new(size: usize, id: u32): usize;
+export function __pin(ptr: usize): usize;
+export function __unpin(ptr: usize): void;
+export function __collect(): void;
+export const __rtti_base: usize;
 export const __setArgumentsLength: ((n: i32) => void) | undefined;

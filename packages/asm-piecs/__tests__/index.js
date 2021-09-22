@@ -1,7 +1,19 @@
 const assert = require('assert')
 
-const { __getString } = require('..')
-const { Vector, SparseSet, BitMask } = require('..')
+const {
+    __getString,
+    __newArray,
+    ArrayU32_ID,
+    Query,
+    Archetype,
+    Vector,
+    SparseSet,
+    BitMask,
+    all,
+    QueryMask,
+    any,
+    not
+} = require('..')
 
 let suites = 0
 let tests = 0
@@ -52,7 +64,8 @@ const test = (desc, cb) => {
         console.log('\u2705', desc)
     } catch(err) {
         console.log('\u274C', desc)
-        console.error(color(colors.FgRed, err.message))
+        console.log(color(colors.FgRed, err.message))
+        console.error(err)
     }
 }
 
@@ -187,6 +200,41 @@ describe('BitMask', () => {
         assert.ok(!symdiff.has(18))
         assert.ok(symdiff.has(5))
         assert.ok(symdiff.has(4))
+    })
+})
+
+describe('Query', () => {
+    const archMask = new BitMask(5)
+    archMask.or(0)
+    archMask.or(1)
+    archMask.or(2)
+    archMask.or(3)
+    const archetype = new Archetype(archMask.valueOf())
+
+    test('archetype is match for all', () => {
+        const componentIds = __newArray(ArrayU32_ID, [1, 2]) // all are in archetype, but archetype has more
+        const qmask = QueryMask.wrap(all(componentIds.valueOf()))
+        const query = new Query(qmask.valueOf())
+        query.tryAdd(archetype.valueOf())
+        assert.strictEqual(query.length, 1)
+        assert.strictEqual(Archetype.wrap(query.__get(0)).id, archetype.id)
+    })
+
+    test('archetype is match for any', () => {
+        const componentIds = __newArray(ArrayU32_ID, [6, 2]) // 6 is not in archetype
+        const qmask = QueryMask.wrap(any(componentIds.valueOf()))
+        const query = new Query(qmask.valueOf())
+        query.tryAdd(archetype.valueOf())
+        assert.strictEqual(query.length, 1)
+        assert.strictEqual(Archetype.wrap(query.__get(0)).id, archetype.id)
+    })
+
+    test('archetype is not match for not', () => {
+        const componentIds = __newArray(ArrayU32_ID, [2]) // 2 is in archetype
+        const qmask = QueryMask.wrap(not(componentIds.valueOf()))
+        const query = new Query(qmask.valueOf())
+        query.tryAdd(archetype.valueOf())
+        assert.strictEqual(query.length, 0)
     })
 })
 

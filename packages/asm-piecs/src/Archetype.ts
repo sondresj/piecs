@@ -77,7 +77,7 @@ export class Archetype {
             // todo
             for (let i = 0; i < queries.length; i++) {
                 const q = unchecked(queries[i])
-                q.tryAddMatch(archetype)
+                q.tryAdd(archetype)
             }
         }
 

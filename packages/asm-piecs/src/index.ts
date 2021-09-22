@@ -65,7 +65,7 @@ export class World extends InsideWorld {
             for (let i = 0; i < archetypes.length; i++) {
                 const archetype = unchecked(archetypes[i])
                 const query = unchecked(this.queries[i])
-                query.tryAddMatch(archetype)
+                query.tryAdd(archetype)
             }
         }
 
@@ -88,7 +88,7 @@ export class World extends InsideWorld {
 
         for (let i = 0; i < this.queries.length; i++) {
             const query = unchecked(this.queries[i])
-            query.tryAddMatch(blankArchetype)
+            query.tryAdd(blankArchetype)
         }
         this._executeDeferredActions()
         return
