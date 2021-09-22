@@ -6262,9 +6262,9 @@
       local.get $2
       i32.load offset=4
       local.tee $2
-      i32.store offset=12
-      local.get $2
+      i32.store offset=16
       local.get $3
+      local.get $2
       call $src/BitMask/BitMask#isSuperSetOf
      else
       i32.const 0
@@ -6527,74 +6527,6 @@
   i32.add
   global.set $~lib/memory/__stack_pointer
   local.get $0
- )
- (func $src/BitMask/BitMask#not (param $0 i32) (result i32)
-  (local $1 i32)
-  (local $2 i32)
-  (local $3 i32)
-  global.get $~lib/memory/__stack_pointer
-  i32.const 8
-  i32.sub
-  global.set $~lib/memory/__stack_pointer
-  global.get $~lib/memory/__stack_pointer
-  i32.const 5852
-  i32.lt_s
-  if
-   i32.const 22256
-   i32.const 22304
-   i32.const 1
-   i32.const 1
-   call $~lib/builtins/abort
-   unreachable
-  end
-  global.get $~lib/memory/__stack_pointer
-  local.tee $1
-  i64.const 0
-  i64.store
-  local.get $1
-  i32.const 0
-  local.get $0
-  i32.load offset=8
-  call $src/BitMask/BitMask#constructor
-  local.tee $1
-  i32.store
-  loop $for-loop|0
-   global.get $~lib/memory/__stack_pointer
-   local.get $0
-   i32.load
-   local.tee $3
-   i32.store offset=4
-   local.get $3
-   i32.load offset=8
-   i32.const 2
-   i32.shr_u
-   local.get $2
-   i32.gt_u
-   if
-    local.get $1
-    i32.load
-    i32.load offset=4
-    local.get $2
-    local.get $0
-    i32.load
-    i32.load offset=4
-    i32.add
-    i32.load
-    i32.const -1
-    i32.xor
-    i32.store
-    local.get $2
-    i32.const 1
-    i32.add
-    local.set $2
-    br $for-loop|0
-   end
-  end
-  global.get $~lib/memory/__stack_pointer
-  i32.const 8
-  i32.add
-  global.set $~lib/memory/__stack_pointer
-  local.get $1
  )
  (func $src/BitMask/BitMask#union (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
@@ -11444,30 +11376,90 @@
   unreachable
  )
  (func $export:src/BitMask/BitMask#not (param $0 i32) (result i32)
+  (local $1 i32)
+  (local $2 i32)
+  (local $3 i32)
   global.get $~lib/memory/__stack_pointer
   i32.const 4
   i32.sub
   global.set $~lib/memory/__stack_pointer
-  global.get $~lib/memory/__stack_pointer
-  i32.const 5852
-  i32.lt_s
-  if
-   i32.const 22256
-   i32.const 22304
-   i32.const 1
-   i32.const 1
-   call $~lib/builtins/abort
-   unreachable
+  block $folding-inner0
+   global.get $~lib/memory/__stack_pointer
+   i32.const 5852
+   i32.lt_s
+   br_if $folding-inner0
+   global.get $~lib/memory/__stack_pointer
+   local.tee $1
+   local.get $0
+   i32.store
+   local.get $1
+   i32.const 8
+   i32.sub
+   global.set $~lib/memory/__stack_pointer
+   global.get $~lib/memory/__stack_pointer
+   i32.const 5852
+   i32.lt_s
+   br_if $folding-inner0
+   global.get $~lib/memory/__stack_pointer
+   local.tee $1
+   i64.const 0
+   i64.store
+   local.get $1
+   i32.const 0
+   local.get $0
+   i32.load offset=8
+   call $src/BitMask/BitMask#constructor
+   local.tee $1
+   i32.store
+   loop $for-loop|0
+    global.get $~lib/memory/__stack_pointer
+    local.get $0
+    i32.load
+    local.tee $3
+    i32.store offset=4
+    local.get $3
+    i32.load offset=8
+    i32.const 2
+    i32.shr_u
+    local.get $2
+    i32.gt_u
+    if
+     local.get $1
+     i32.load
+     i32.load offset=4
+     local.get $2
+     local.get $0
+     i32.load
+     i32.load offset=4
+     i32.add
+     i32.load
+     i32.const -1
+     i32.xor
+     i32.store
+     local.get $2
+     i32.const 1
+     i32.add
+     local.set $2
+     br $for-loop|0
+    end
+   end
+   global.get $~lib/memory/__stack_pointer
+   i32.const 8
+   i32.add
+   global.set $~lib/memory/__stack_pointer
+   global.get $~lib/memory/__stack_pointer
+   i32.const 4
+   i32.add
+   global.set $~lib/memory/__stack_pointer
+   local.get $1
+   return
   end
-  global.get $~lib/memory/__stack_pointer
-  local.get $0
-  i32.store
-  local.get $0
-  call $src/BitMask/BitMask#not
-  global.get $~lib/memory/__stack_pointer
-  i32.const 4
-  i32.add
-  global.set $~lib/memory/__stack_pointer
+  i32.const 22256
+  i32.const 22304
+  i32.const 1
+  i32.const 1
+  call $~lib/builtins/abort
+  unreachable
  )
  (func $export:src/BitMask/BitMask#union (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
@@ -12972,7 +12964,7 @@
    local.get $0
    i32.store
    local.get $1
-   i32.const 8
+   i32.const 4
    i32.sub
    global.set $~lib/memory/__stack_pointer
    global.get $~lib/memory/__stack_pointer
@@ -12981,25 +12973,19 @@
    br_if $folding-inner0
    global.get $~lib/memory/__stack_pointer
    local.tee $1
-   i64.const 0
-   i64.store
-   local.get $0
-   call $src/Query/makeMask
-   local.set $0
-   global.get $~lib/memory/__stack_pointer
-   local.get $0
+   i32.const 0
    i32.store
    local.get $1
    local.get $0
-   call $src/BitMask/BitMask#not
+   call $src/Query/makeMask
    local.tee $0
-   i32.store offset=4
+   i32.store
    i32.const 0
    i32.const 4
    local.get $0
    call $src/Query/QueryMask#constructor
    global.get $~lib/memory/__stack_pointer
-   i32.const 8
+   i32.const 4
    i32.add
    global.set $~lib/memory/__stack_pointer
    global.get $~lib/memory/__stack_pointer
@@ -13054,7 +13040,7 @@
    if
     i32.const 5312
     i32.const 5424
-    i32.const 42
+    i32.const 41
     i32.const 5
     call $~lib/builtins/abort
     unreachable
@@ -13163,7 +13149,7 @@
    if
     i32.const 5312
     i32.const 5424
-    i32.const 53
+    i32.const 52
     i32.const 5
     call $~lib/builtins/abort
     unreachable

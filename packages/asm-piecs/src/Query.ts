@@ -33,8 +33,7 @@ export function any(componentIds: Array<u32>): QueryMask {
     return new QueryMask(ANY, mask)
 }
 export function not(componentIds: Array<u32>): QueryMask {
-    // not sure if this works, because suddenly this has all the components BUT those it matches against.. hmm
-    const mask = makeMask(componentIds).not() // todo, optimize, dumping an array here
+    const mask = makeMask(componentIds)
     return new QueryMask(NOT, mask)
 }
 
@@ -76,7 +75,7 @@ export class Query {
             // assert(query.type & (ALL | ANY | NOT))
             if(query.type == ALL && !query.mask.isSuperSetOf(targetMask)) return
             if(query.type == ANY && !targetMask.isSuperSetOf(query.mask)) return
-            if(query.type == NOT && query.mask.isSuperSetOf(targetMask)) return
+            if(query.type == NOT && targetMask.isSuperSetOf(query.mask)) return
         }
         this._archetypes.push(archetype)
     }
