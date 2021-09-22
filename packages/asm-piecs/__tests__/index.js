@@ -171,6 +171,23 @@ describe('BitMask', () => {
         assert.ok(union.has(5))
         assert.ok(union.has(4))
     })
+    test('get symmetricDifference', () => {
+        const a = new BitMask(50) // 2xu32
+        a.or(36)
+        a.or(18)
+        a.or(4)
+        const b = new BitMask(50)
+        b.or(37)
+        b.or(18)
+        b.or(5)
+
+        const symdiff = BitMask.wrap(a.symmetrictDifference(b))
+        assert.ok(symdiff.has(36))
+        assert.ok(symdiff.has(37))
+        assert.ok(!symdiff.has(18))
+        assert.ok(symdiff.has(5))
+        assert.ok(symdiff.has(4))
+    })
 })
 
 
