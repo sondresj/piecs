@@ -8,18 +8,14 @@ export class Vector extends RelativeIndexable<u32> {
     private _length: u32
     private _sparse: bool
     private _growFactor: f32
-    // private _bytesPerElement: number =
 
     constructor(
-        // array: TypedArray<T>,
         size: u32,
-        growFactor: number,
+        growFactor: f32,
         sparse: bool
     ){
         super()
-        // this._array = array
-        // this._bytesPerElement = sizeof<T>()
-        this._size = size //array.byteLength / this._bytesPerElement
+        this._size = size
         this._array = new Uint32Array(size)
         this._growFactor = f32(Math.max(growFactor, 1.1))
         this._sparse = sparse
@@ -38,7 +34,6 @@ export class Vector extends RelativeIndexable<u32> {
         return this._sparse
     }
 
-    @inline
     private grow(target: u32): void {
         if (target < this._size) {
             return
@@ -55,7 +50,6 @@ export class Vector extends RelativeIndexable<u32> {
     __get(index: u32): u32 {
         assert(this.sparse || index < this._length, `Vector: Index ${index} is out of bounds. Check index < Vector.length`)
         assert(index < this._size, `Vector: Index ${index} is out of bounds. Check index < Vector.size`)
-        // return unchecked(this._array[index])
         return load<u32>(this._array.dataStart + <usize>index)
     }
 
@@ -63,7 +57,18 @@ export class Vector extends RelativeIndexable<u32> {
     __set(index: u32, value: native<u32>): void {
         assert(this._sparse || index < this._length, `Vector: Index ${index} is out of bounds. Check index < Vector.length`)
         this.grow(index)
-        // unchecked(this._array[index] = value)
+        store<u32>(this._array.dataStart + <usize>index, value)
+    }
+
+    @operator('{}')
+    __uget(index: u32): u32 {
+        assert(index < this._size, `Vector: Index ${index} is out of bounds. Check index < Vector.size`)
+        return load<u32>(this._array.dataStart + <usize>index)
+    }
+
+    @operator('{}=')
+    __uset(index: u32, value: native<u32>): void {
+        this.grow(index)
         store<u32>(this._array.dataStart + <usize>index, value)
     }
 

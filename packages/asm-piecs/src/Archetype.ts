@@ -26,6 +26,11 @@ export class Archetype {
         return this._entities[index]
     }
 
+    @operator('{}')
+    __uget(index: u32): u32 {
+        return unchecked(this._entities[index])
+    }
+
     @inline
     hasComponent(componentId: u32): bool {
         return this.mask.has(componentId)
@@ -56,6 +61,8 @@ export class Archetype {
         archetypes: Map<string, Archetype>,
         queries: Array<Query>
     ): Archetype {
+        // TODO: Array in asm can't be holey (have undefined entries)...
+        // consider using map instead of allocating a giant array
         if(this._transformations[componentId]) {
             return unchecked(this._transformations[componentId])
         }

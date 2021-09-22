@@ -18,7 +18,7 @@ class Every extends QueryMask {
 class Some extends QueryMask {
     @inline
     test(other: BitMask): bool {
-        return other.isSubSetOf(this.mask)
+        return this.mask.isSuperSetOf(other)
     }
 }
 // const Some_ID = idof<Some>()
@@ -63,7 +63,7 @@ export function or(queryMasks: Array<QueryMask>): QueryMask {
         if(queryMask instanceof Not) { // not sure if this actually work, might be true as long as queryMask is an instance extending QueryMask
             qmask = qmask.not() // not sure if this works either, because suddenly this has all the components BUT those it matches against.. hmm
         }
-        mask = mask.intersection(qmask)
+        mask = mask.intersection(qmask) // not sure about this either..
     }
     return new Some(mask)
 }
@@ -77,7 +77,7 @@ export function and(queryMasks: Array<QueryMask>): QueryMask {
         if(queryMask instanceof Not) { // not sure if this actually work, might be true as long as queryMask is an instance extending QueryMask
             qmask = qmask.not() // not sure if this works either, because suddenly this has all the components BUT those it matches against.. hmm
         }
-        mask = mask.union(qmask)
+        mask = mask.union(qmask) // not sure about this either..
     }
     return new Every(mask)
 }

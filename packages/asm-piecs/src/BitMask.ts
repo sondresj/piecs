@@ -14,17 +14,16 @@ export class BitMask {
         return <bool>(unchecked(this._mask[index] >> (value & mod32)) & 1)
     }
 
-    @inline
-    __grow(target: u32): void {
-        if (target >= this._size) {
+    __grow(valueToAccomodate: u32): void {
+        if (valueToAccomodate >= this.maxValue) {
+            this.maxValue = valueToAccomodate
             const oldMask = this._mask
-            this._size = target
-            this._mask = new Uint32Array(target)
+            this._size = u32(Math.ceil(valueToAccomodate / 32.0))
+            this._mask = new Uint32Array(this._size)
             memory.copy(this._mask.dataStart, oldMask.dataStart, oldMask.length)
         }
     }
 
-    // @operator("^")
     xor(value: u32): this {
         const index = value >> 5
         this.__grow(index)
@@ -32,7 +31,6 @@ export class BitMask {
         return this
     }
 
-    // @operator("|")
     or(value: u32): this {
         const index = value >> 5
         this.__grow(index)
@@ -40,7 +38,6 @@ export class BitMask {
         return this
     }
 
-    // @operator("&")
     and(value: u32): this {
         const index = value >> 5
         this.__grow(index)
@@ -48,7 +45,6 @@ export class BitMask {
         return this
     }
 
-    // @operator.prefix("~")
     not(): BitMask {
         const newBitMask: BitMask = new BitMask(this.maxValue)
         for(let i: u32 = 0; i < <u32>this._mask.length; i++) {
@@ -58,7 +54,6 @@ export class BitMask {
         return newBitMask
     }
 
-    // @operator("|")
     union(other: BitMask): BitMask {
         const maxValue: u32 = <u32>Math.max(this.maxValue, other.maxValue)
         const union: BitMask = new BitMask(maxValue)
@@ -70,7 +65,6 @@ export class BitMask {
         return union
     }
 
-    // @operator("&")
     intersection(other: BitMask): BitMask {
         const maxValue: u32 = <u32>Math.min(this.maxValue, other.maxValue)
         const intersection: BitMask = new BitMask(maxValue)
@@ -80,12 +74,20 @@ export class BitMask {
             store<u32>(intersection._mask.dataStart + <usize>i, a & b)
         }
         return intersection
+    }
+
+    symmetrictDifference(other: BitMask): BitMask {
+        const maxValue: u32 = <u32>Math.min(this.maxValue, other.maxValue)
+        const symDiff: BitMask = new BitMask(maxValue)
+        for(let i: u32 = 0; i < <u32>symDiff._mask.length; i++) {
+            const a = load<u32>(this._mask.dataStart + <usize>i)
+            const b = load<u32>(other._mask.dataStart + <usize>i)
+            store<u32>(symDiff._mask.dataStart + <usize>i, a ^ b)
+        }
+        return symDiff
 
     }
 
-    //symmetricDifference TODO (basically xor this and other)
-
-    // this mask includes all of the other mask
     isSuperSetOf(other: BitMask): bool {
         if(other._mask.length > this._mask.length) return false
         for(let i: u32 = 0; i < <u32>other._mask.length; i++) {
@@ -96,20 +98,9 @@ export class BitMask {
         return true
     }
 
-    // this mask includes some of the other mask
-    isSubSetOf(other: BitMask): bool {
-        if(other._mask.length < this._mask.length) return false
-        for(let i: u32 = 0; i < <u32>this._mask.length; i++) {
-            const a: u32 = load<u32>(this._mask.dataStart + <usize>i)
-            const b: u32 = load<u32>(other._mask.dataStart + <usize>i)
-            if((a & b) != a) return false
-        }
-        return true
-    }
-
     toString(): string {
         if(this._mask.length == 0) return '0'
-        return this._mask.reduce((str, n) => n.toString(16).concat(str), '')
+        return this._mask.reduceRight((str, n) => str.concat(n.toString(16)), '')
     }
 
     copy(): BitMask {

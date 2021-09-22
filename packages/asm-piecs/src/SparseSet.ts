@@ -33,8 +33,13 @@ export class SparseSet extends RelativeIndexable<u32> {
     @operator("[]") // doesn't work from js for some reason,
     get(index: u32): u32 {
         assert(index < this._dense.length, `SparseSet: Index ${index} is out of bounds. Check SparseSet.length > index`)
-        // return unchecked(this._dense[index])
         return this._dense[index]
+    }
+
+    @inline
+    @operator("{}") // doesn't work from js for some reason,
+    uget(index: u32): u32 {
+        return unchecked(this._dense[index])
     }
 
     @inline

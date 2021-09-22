@@ -19,6 +19,7 @@ export class Archetype {
   readonly id: usize;
   get length(): u32;
   __get(index: u32): u32;
+  __uget(index: u32): u32;
   hasComponent(componentId: u32): bool;
   hasEntity(entity: u32): bool;
   addEntity(entity: u32): void;
@@ -33,15 +34,15 @@ export class BitMask {
   protected maxValue: u32;
   constructor(maxValue: u32);
   has(value: u32): bool;
-  __grow(target: u32): void;
+  __grow(valueToAccomodate: u32): void;
   xor(value: u32): usize;
   or(value: u32): usize;
   and(value: u32): usize;
   not(): usize;
   union(other: usize): usize;
   intersection(other: usize): usize;
+  symmetrictDifference(other: usize): usize;
   isSuperSetOf(other: usize): bool;
-  isSubSetOf(other: usize): bool;
   toString(): usize;
   copy(): usize;
 }
@@ -93,6 +94,7 @@ export class SparseSet {
   get values(): usize;
   has(value: u32): bool;
   get(index: u32): u32;
+  uget(index: u32): u32;
   add(value: u32): usize;
   pop(): u32;
   delete(value: u32): usize;
@@ -101,11 +103,13 @@ export class Vector {
   static wrap(ptr: usize): Vector;
   valueOf(): usize;
   get length(): u32;
-  constructor(size: u32, growFactor: f64, sparse: bool);
+  constructor(size: u32, growFactor: f32, sparse: bool);
   get size(): u32;
   get sparse(): bool;
   __get(index: u32): u32;
   __set(index: u32, value: u32): void;
+  __uget(index: u32): u32;
+  __uset(index: u32, value: u32): void;
   push(value: u32): u32;
   pop(): u32;
   subArray(): usize;

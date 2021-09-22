@@ -97,7 +97,6 @@ export class World extends InsideWorld {
     /**
      * Update the world, invoking all systems.
      * Typically you want to update each animation frame (@see window.requestAnimationFrame)
-     * @returns number of milliseconds that the update took
      */
     update(): this {
         const systems: System[] = this.systems
