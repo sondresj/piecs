@@ -18,10 +18,10 @@
     "assemblyscript"
   ],
   "scripts": {
-    "asbuild:untouched": "asc src/index.ts --target debug",
-    "asbuild:optimized": "asc src/index.ts --target release -d index.d.ts",
+    "asbuild:untouched": "asc --target debug",
+    "asbuild:optimized": "asc --target release -d index.d.ts",
     "asbuild": "yarn asbuild:untouched && yarn asbuild:optimized",
-    "test": "node __tests__",
+    "test": "node --experimental-wasi-unstable-preview1 __tests__ ",
     "build": "yarn asbuild:optimized",
     "prepare": "yarn build"
   },

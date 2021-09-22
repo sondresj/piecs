@@ -1,4 +1,12 @@
 {
+  "entries": [
+    "./src/Archetype.ts",
+    "./src/BitMask.ts",
+    "./src/index.ts",
+    "./src/Query.ts",
+    "./src/SparseSet.ts",
+    "./src/Vector.ts"
+  ],
   "targets": {
     "debug": {
       "binaryFile": "build/untouched.wasm",

@@ -1,0 +1,120 @@
+const mod32 = 0x0000001f
+export class BitMask {
+    protected _mask: Uint32Array
+    private _size: u32
+    constructor(protected maxValue: u32) {
+        this._size = u32(Math.ceil(maxValue / 32.0))
+        this._mask = new Uint32Array(this._size)
+    }
+
+    @inline
+    has(value: u32): bool {
+        const index = value >> 5
+        if(index >= this._size) return false
+        return <bool>(unchecked(this._mask[index] >> (value & mod32)) & 1)
+    }
+
+    @inline
+    __grow(target: u32): void {
+        if (target >= this._size) {
+            const oldMask = this._mask
+            this._size = target
+            this._mask = new Uint32Array(target)
+            memory.copy(this._mask.dataStart, oldMask.dataStart, oldMask.length)
+        }
+    }
+
+    // @operator("^")
+    xor(value: u32): this {
+        const index = value >> 5
+        this.__grow(index)
+        unchecked(this._mask[index] ^= 1 << (value & mod32))
+        return this
+    }
+
+    // @operator("|")
+    or(value: u32): this {
+        const index = value >> 5
+        this.__grow(index)
+        unchecked(this._mask[index] |= 1 << (value & mod32))
+        return this
+    }
+
+    // @operator("&")
+    and(value: u32): this {
+        const index = value >> 5
+        this.__grow(index)
+        unchecked(this._mask[index] &= 1 << (value & mod32))
+        return this
+    }
+
+    // @operator.prefix("~")
+    not(): BitMask {
+        const newBitMask: BitMask = new BitMask(this.maxValue)
+        for(let i: u32 = 0; i < <u32>this._mask.length; i++) {
+            const val: u32 = load<u32>(this._mask.dataStart + <usize>i)
+            store<u32>(newBitMask._mask.dataStart, ~val)
+        }
+        return newBitMask
+    }
+
+    // @operator("|")
+    union(other: BitMask): BitMask {
+        const maxValue: u32 = <u32>Math.max(this.maxValue, other.maxValue)
+        const union: BitMask = new BitMask(maxValue)
+        for(let i: u32 = 0; i < <u32>other._mask.length; i++) {
+            const a = load<u32>(this._mask.dataStart + <usize>i)
+            const b = load<u32>(other._mask.dataStart + <usize>i)
+            store<u32>(union._mask.dataStart + <usize>i, a | b)
+        }
+        return union
+    }
+
+    // @operator("&")
+    intersection(other: BitMask): BitMask {
+        const maxValue: u32 = <u32>Math.min(this.maxValue, other.maxValue)
+        const intersection: BitMask = new BitMask(maxValue)
+        for(let i: u32 = 0; i < <u32>intersection._mask.length; i++) {
+            const a = load<u32>(this._mask.dataStart + <usize>i)
+            const b = load<u32>(other._mask.dataStart + <usize>i)
+            store<u32>(intersection._mask.dataStart + <usize>i, a & b)
+        }
+        return intersection
+
+    }
+
+    //symmetricDifference TODO (basically xor this and other)
+
+    // this mask includes all of the other mask
+    isSuperSetOf(other: BitMask): bool {
+        if(other._mask.length > this._mask.length) return false
+        for(let i: u32 = 0; i < <u32>other._mask.length; i++) {
+            const a: u32 = load<u32>(this._mask.dataStart + <usize>i)
+            const b: u32 = load<u32>(other._mask.dataStart + <usize>i)
+            if((a & b) != b) return false
+        }
+        return true
+    }
+
+    // this mask includes some of the other mask
+    isSubSetOf(other: BitMask): bool {
+        if(other._mask.length < this._mask.length) return false
+        for(let i: u32 = 0; i < <u32>this._mask.length; i++) {
+            const a: u32 = load<u32>(this._mask.dataStart + <usize>i)
+            const b: u32 = load<u32>(other._mask.dataStart + <usize>i)
+            if((a & b) != a) return false
+        }
+        return true
+    }
+
+    toString(): string {
+        if(this._mask.length == 0) return '0'
+        return this._mask.reduce((str, n) => n.toString(16).concat(str), '')
+    }
+
+    copy(): BitMask {
+        const newBitMask: BitMask = new BitMask(this._mask.length)
+        memory.copy(newBitMask._mask.dataStart, this._mask.dataStart, this._mask.length)
+        return newBitMask
+    }
+}
