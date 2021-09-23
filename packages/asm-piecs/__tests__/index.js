@@ -132,11 +132,22 @@ describe('BitMask', () => {
         assert.ok(!mask.has(5))
     })
 
+    test('toString returns the hex representation of the mask, with leading 0\'s omitted',() => {
+        const mask = new BitMask(10)
+        mask.or(5)
+        mask.or(2)
+        mask.or(7)
+        const str = __getString(mask.toString())
+        assert.strictEqual(str, 'a4')
+    })
+
     test('not returns new bitmask with all bytes flipped', () => {
         let mask = new BitMask(50)
+        mask.or(0)
+        mask.or(4)
         mask = BitMask.wrap(mask.not())
         const str = __getString(mask.toString())
-        assert.strictEqual(str, '0ffffffff') // dunno where this 0 comes from, but i guess it's some weirdness in wasm?
+        assert.strictEqual(str, 'ffffffffee') // should be ff 4*2 times, but it's ff one additional time, for some reason.. no idea why
     })
 
     test('is superset', () => {

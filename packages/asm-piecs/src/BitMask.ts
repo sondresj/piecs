@@ -49,7 +49,7 @@ export class BitMask {
         const newBitMask: BitMask = new BitMask(this.maxValue)
         for(let i: u32 = 0; i < <u32>this._mask.length; i++) {
             const val: u32 = load<u32>(this._mask.dataStart + <usize>i)
-            store<u32>(newBitMask._mask.dataStart, ~val)
+            store<u32>(newBitMask._mask.dataStart + <usize>i, ~val)
         }
         return newBitMask
     }
