@@ -22,7 +22,7 @@ export class Archetype {
     }
 
     @operator('[]')
-    __get(index: u32): u32 {
+    get(index: u32): u32 {
         return this._entities[index]
     }
 

@@ -18,7 +18,7 @@ export class Archetype {
   mask: usize;
   readonly id: usize;
   get length(): u32;
-  __get(index: u32): u32;
+  get(index: u32): u32;
   __uget(index: u32): u32;
   hasComponent(componentId: u32): bool;
   hasEntity(entity: u32): bool;

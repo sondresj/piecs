@@ -167,7 +167,7 @@
  (export "Archetype#set:mask" (func $export:src/Archetype/Archetype#set:mask))
  (export "Archetype#get:id" (func $export:src/Archetype/Archetype#get:id))
  (export "Archetype#get:length" (func $export:src/Archetype/Archetype#get:length))
- (export "Archetype#__get" (func $export:src/Archetype/Archetype#__get))
+ (export "Archetype#get" (func $export:src/Archetype/Archetype#get))
  (export "Archetype#__uget" (func $export:src/Archetype/Archetype#__uget))
  (export "Archetype#hasComponent" (func $export:src/Archetype/Archetype#hasComponent))
  (export "Archetype#hasEntity" (func $export:src/Archetype/Archetype#hasEntity))
@@ -10226,7 +10226,7 @@
   call $~lib/builtins/abort
   unreachable
  )
- (func $export:src/Archetype/Archetype#__get (param $0 i32) (param $1 i32) (result i32)
+ (func $export:src/Archetype/Archetype#get (param $0 i32) (param $1 i32) (result i32)
   (local $2 i32)
   global.get $~lib/memory/__stack_pointer
   i32.const 4
