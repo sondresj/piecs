@@ -6,7 +6,7 @@ import { Vector } from './Vector'
 export class Archetype {
     [key: u32]: u32
 
-    private _transformations: Array<Archetype> = new Array()
+    private _transformations: Map<u32, Archetype> = new Map()
     private _entities: SparseSet = new SparseSet(1<<10)
 
     constructor(componentMask: BitMask) {
@@ -63,15 +63,15 @@ export class Archetype {
     ): Archetype {
         // TODO: Array in asm can't be holey (have undefined entries)...
         // consider using map instead of allocating a giant array
-        if(this._transformations[componentId]) {
-            return unchecked(this._transformations[componentId])
+        if(this._transformations.has(componentId)) {
+            return unchecked(this._transformations.get(componentId))
         }
         const nextMask = this.mask.copy().xor(componentId)
         let archetype = archetypes.get(nextMask.toString())
 
         if (!archetype) {
             archetype = new Archetype(nextMask)
-            archetype._transformations[componentId] = this // for potential backwards transform
+            archetype._transformations.set(componentId, this) // for potential backwards transform
             // Doesn't really belong here, but it does increase performance
             archetypes.set(archetype.id, archetype)
             // todo
@@ -81,7 +81,7 @@ export class Archetype {
             }
         }
 
-        this._transformations[componentId] = archetype
+        this._transformations.set(componentId, archetype)
         return archetype
     }
 }

@@ -3,7 +3,6 @@ import { BitMask } from './BitMask'
 import { Query } from './Query'
 import { RelativeIndexable } from './RelativeIndexable'
 import { SparseSet } from './SparseSet'
-import { ComponentSet } from './types'
 
 export abstract class InsideWorld {
     abstract hasEntity(entity: u32): bool
@@ -17,7 +16,7 @@ export class World extends InsideWorld {
     /**
      * [archetype.toString()]: archetype
      */
-    private archetypes: Map<string, Archetype> = new Map()//: Record<string, Archetype> = {}
+    private archetypes: Map<string, Archetype> = new Map()
     /**
      * [entity: number]: archetype
      */
@@ -43,20 +42,11 @@ export class World extends InsideWorld {
         this.deferredActions.length = 0
     }
 
-    createComponentSet<T>(
-        name: string,
-        type: string, //VectorValueType | 'flag' | StructValueType[],
-        defaultValue: T
-    ): ComponentSet<T> {
-        // if (type === 'flag') return new FlagComponentSet(name, type, this.nextComponentId++, this) as any
-        // if (Array.isArray(type)) return new StructComponentSet(name, type, this.nextComponentId++, defaultValue as never, this) as any
-        // return new VectorComponentSet(name, type, this.nextComponentId++, defaultValue, this) as any
-        return null as any
+    getNextComponentId(): u32 {
+        return this.nextComponentId++
     }
 
     registerSystem(system: System, query: Query): this {
-        // if (this.systems.some(sys => sys.name === system.name))
-        //     throw new Error(`System ${system.name} already registered`)
         this.systems.push(system)
         this.queries.push(query)
 
