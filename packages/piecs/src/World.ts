@@ -1,8 +1,8 @@
 import type { System, InsideWorld, OutsideWorld, InternalWorld } from './types'
 import { Archetype } from './Archetype'
-import { BitMask } from './collections/Bitmask'
+import { BitmaskSet } from './collections/BitmaskSet'
 import { SparseSet_Array } from './collections/SparseSet'
-import { CompiledQuery } from './Query'
+import { Query } from './Query'
 import { VectorComponentSet, ComponentSet, StructComponentSet, FlagComponentSet } from './ComponentSet'
 import type { StructValueType } from './collections/StructVector'
 import type { VectorValueType } from './collections/Vector'
@@ -21,11 +21,11 @@ export class World implements OutsideWorld, InsideWorld, InternalWorld {
     private nextEntityId = 0
     private nextComponentId = 0
 
-    private systems: System<any>[] = []
-    private queries: CompiledQuery[] = [] // should be 1 to 1 with systems
+    private systems: System[] = []
+    private queries: Query[] = [] // should be 1 to 1 with systems
 
     private deferredActions: Array<() => void> = []
-    private blankArchetype: Archetype = new Archetype(new BitMask())
+    private blankArchetype: Archetype = new Archetype(new BitmaskSet(0))
     private initialized = false
 
     private _executeDeferredActions = () => {
@@ -47,12 +47,11 @@ export class World implements OutsideWorld, InsideWorld, InternalWorld {
         return new VectorComponentSet(name, type, this.nextComponentId++, defaultValue, this) as any
     }
 
-    readonly registerSystem = <TC extends ComponentSet<any>>(system: System<TC>) => {
+    readonly registerSystem = (system: System) => {
         if (this.systems.some(sys => sys.name === system.name))
             throw new Error(`System ${system.name} already registered`)
-        const compiledQuery = new CompiledQuery(system.query)
         this.systems.push(system)
-        this.queries.push(compiledQuery)
+        this.queries.push(system.query)
 
         if (this.initialized) {
             if (system.init) {
@@ -60,8 +59,7 @@ export class World implements OutsideWorld, InsideWorld, InternalWorld {
                 // this._executeDeferredActions() // ??
             }
             for (const archetype of this.archetypes.values()) {
-                if (compiledQuery.matches(archetype))
-                    compiledQuery.archetypes.push(archetype)
+                system.query.tryAdd(archetype)
             }
         }
 
@@ -81,7 +79,7 @@ export class World implements OutsideWorld, InsideWorld, InternalWorld {
         this.initialized = true
 
         // create a blank archetype that serves as the base archetype for all entities
-        const blankArchetype = new Archetype(new BitMask(this.nextComponentId))
+        const blankArchetype = new Archetype(new BitmaskSet(this.nextComponentId))
         this.archetypes.set(blankArchetype.id, blankArchetype)
         this.blankArchetype = blankArchetype
 
@@ -92,9 +90,7 @@ export class World implements OutsideWorld, InsideWorld, InternalWorld {
         })
 
         this.queries.forEach(query => {
-            if (query.matches(blankArchetype)) {
-                query.archetypes.push(blankArchetype)
-            }
+            query.tryAdd(blankArchetype)
         })
         this._executeDeferredActions()
         return this

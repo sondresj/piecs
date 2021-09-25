@@ -1,5 +1,5 @@
 import { World } from '../lib/World.js'
-import { every } from '../lib/Query.js'
+import { all, query } from '../lib/Query.js'
 
 export default function simpleIter(count) {
     const world = new World()
@@ -12,7 +12,7 @@ export default function simpleIter(count) {
     world
         .registerSystem({
             name: 'ABSystem',
-            query: every(A, B),
+            query: query(all(A.id, B.id)),
             execute: (entities) => {
                 for (let i = entities.length - 1; i > 0; i--) {
                     const entity = entities[i]
@@ -25,7 +25,7 @@ export default function simpleIter(count) {
         })
         .registerSystem({
             name: 'CDSystem',
-            query: every(C, D),
+            query: query(all(C.id, D.id)),
             execute: (entities) => {
                 for (let i = entities.length - 1; i > 0; i--) {
                     const entity = entities[i]
@@ -38,7 +38,7 @@ export default function simpleIter(count) {
         })
         .registerSystem({
             name: 'CESystem',
-            query: every(C, E),
+            query: query(all(C.id, E.id)),
             execute: (entities) => {
                 for (let i = entities.length - 1; i > 0; i--) {
                     const entity = entities[i]

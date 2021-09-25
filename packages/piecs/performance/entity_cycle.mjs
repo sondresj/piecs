@@ -1,5 +1,5 @@
 import { World } from '../lib/World.js'
-import { every } from '../lib/Query.js'
+import { all, query } from '../lib/Query.js'
 
 export default function entityCycle(count) {
     const world = new World()
@@ -8,7 +8,7 @@ export default function entityCycle(count) {
 
     world.registerSystem({
         name: 'spawnB',
-        query: every(A),
+        query: query(all(A.id)),
         execute: (entities, world) => {
             for (let i = entities.length - 1; i > 0; i--) {
                 const entity = entities[i]
@@ -21,7 +21,7 @@ export default function entityCycle(count) {
         }
     }).registerSystem({
         name: 'killB',
-        query: every(B),
+        query: query(all(B.id)),
         execute: (entities, world) => {
             for (let i = entities.length - 1; i > 0; i--) {
                 const entity = entities[i]

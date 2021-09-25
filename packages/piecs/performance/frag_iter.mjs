@@ -1,5 +1,5 @@
 import { World } from '../lib/World.js'
-import { every } from '../lib/Query.js'
+import { all, query } from '../lib/Query.js'
 
 const components = {}
 
@@ -13,7 +13,7 @@ export default function fragIter(count) {
 
     world.registerSystem({
         name: 'DataSys',
-        query: every(Data),
+        query: query(all(Data.id)),
         execute: (entities) => {
             for (let i = entities.length - 1; i > 0; i--) {
                 const entity = entities[i]

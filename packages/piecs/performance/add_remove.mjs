@@ -1,5 +1,5 @@
 import { World } from '../lib/World.js'
-import { every, not, and } from '../lib/Query.js'
+import { all, not, and, query} from '../lib/Query.js'
 
 export default function addRemove(count) {
     const world = new World()
@@ -8,7 +8,7 @@ export default function addRemove(count) {
 
     world.registerSystem({
         name: 'addB',
-        query: and(every(A), not(B)),
+        query: query(and(all(A.id), not(B.id))),
         execute: (entities) => {
             for (let i = entities.length - 1; i > 0; i--) {
                 const entity = entities[i]
@@ -17,7 +17,7 @@ export default function addRemove(count) {
         }
     }).registerSystem({
         name: 'removeB',
-        query: every(B),
+        query: query(all(B.id)),
         execute: (entities) => {
             for (let i = entities.length - 1; i > 0; i--) {
                 const entity = entities[i]

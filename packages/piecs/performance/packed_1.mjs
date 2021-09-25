@@ -1,5 +1,5 @@
 import { World } from '../lib/World.js'
-import { every } from '../lib/Query.js'
+import { all, query } from '../lib/Query.js'
 
 export default function packed1(count) {
     const world = new World()
@@ -10,7 +10,7 @@ export default function packed1(count) {
     const E = world.createComponentSet('E', 'flag', true)
     world.registerSystem({
         name: 'ASys',
-        query: every(A),
+        query: query(all(A.id)),
         execute: (entities) => {
             for (let i = entities.length - 1; i > 0; i--) {
                 const entity = entities[i]

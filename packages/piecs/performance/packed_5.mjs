@@ -1,5 +1,5 @@
 import { World } from '../lib/World.js'
-import { every } from '../lib/Query.js'
+import { all, query } from '../lib/Query.js'
 
 export default function packed5(count) {
     const world = new World()
@@ -12,7 +12,7 @@ export default function packed5(count) {
     world
         .registerSystem({
             name: 'ASystem',
-            query: every(A),
+            query: query(all(A.id)),
             execute: (entities) => {
                 for (let i = entities.length - 1; i > 0; i--) {
                     const entity = entities[i]
@@ -22,7 +22,7 @@ export default function packed5(count) {
             }
         }).registerSystem({
             name: 'BSystem',
-            query: every(B),
+            query: query(all(B.id)),
             execute: (entities) => {
                 for (let i = entities.length - 1; i > 0; i--) {
                     const entity = entities[i]
@@ -32,7 +32,7 @@ export default function packed5(count) {
             }
         }).registerSystem({
             name: 'CSystem',
-            query: every(C),
+            query: query(all(C.id)),
             execute: (entities) => {
                 for (let i = entities.length - 1; i > 0; i--) {
                     const entity = entities[i]
@@ -42,7 +42,7 @@ export default function packed5(count) {
             }
         }).registerSystem({
             name: 'DSystem',
-            query: every(D),
+            query: query(all(D.id)),
             execute: (entities) => {
                 for (let i = entities.length - 1; i > 0; i--) {
                     const entity = entities[i]
@@ -52,7 +52,7 @@ export default function packed5(count) {
             }
         }).registerSystem({
             name: 'ESystem',
-            query: every(E),
+            query: query(all(E.id)),
             execute: (entities) => {
                 for (let i = entities.length - 1; i > 0; i--) {
                     const entity = entities[i]

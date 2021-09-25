@@ -1,4 +1,4 @@
-import { and, every, not, some } from '../Query'
+import { and, all, not, any, query } from '../Query'
 import { World } from '../World'
 
 describe('World', () => {
@@ -9,9 +9,9 @@ describe('World', () => {
         const baz = builder.createComponentSet('baz', 'flag', true)
         builder.registerSystem({
             name: 'addBarIfFoo',
-            query: and(every(foo), not(baz)),
+            query: query(and(all(foo.id), not(baz.id))),
             init: (world) => {
-                const e = world.createEntity()
+                const e = world.createEntity() // 0
                 expect(e).toBe(0)
                 foo.add(e, 2)
             },
@@ -28,7 +28,7 @@ describe('World', () => {
             }
         }).registerSystem({
             name: 'killEntitiesWithBaz',
-            query: some(baz),
+            query: query(any(baz.id)),
             execute: (entities, world) => {
                 for (let e = entities.length - 1; e >= 0; e--) {
                     const entity = entities[e]!
@@ -42,7 +42,7 @@ describe('World', () => {
         })
 
         const world = builder.init()
-        const e = world.createEntity()
+        const e = world.createEntity() // 1
         bar.add(e, 'hello')
         world.update()
         world.update() // for second system to run because of deferred component set

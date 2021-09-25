@@ -15,7 +15,13 @@ export class BitMask {
     }
 
     __grow(valueToAccomodate: u32): void {
-        if (valueToAccomodate >= this.maxValue) {
+        if (valueToAccomodate > this.maxValue) {
+            this.maxValue = valueToAccomodate
+        } else {
+            return
+        }
+        const index = valueToAccomodate >> 5
+        if (index >= this._size) {
             this.maxValue = valueToAccomodate
             const oldMask = this._mask
             this._size = u32(Math.ceil(valueToAccomodate / 32.0))
@@ -25,22 +31,22 @@ export class BitMask {
     }
 
     xor(value: u32): this {
+        this.__grow(value)
         const index = value >> 5
-        this.__grow(index)
         unchecked(this._mask[index] ^= 1 << (value & mod32))
         return this
     }
 
     or(value: u32): this {
+        this.__grow(value)
         const index = value >> 5
-        this.__grow(index)
         unchecked(this._mask[index] |= 1 << (value & mod32))
         return this
     }
 
     and(value: u32): this {
+        this.__grow(value)
         const index = value >> 5
-        this.__grow(index)
         unchecked(this._mask[index] &= 1 << (value & mod32))
         return this
     }
@@ -77,7 +83,7 @@ export class BitMask {
     }
 
     symmetrictDifference(other: BitMask): BitMask {
-        const maxValue: u32 = <u32>Math.min(this.maxValue, other.maxValue)
+        const maxValue: u32 = <u32>Math.max(this.maxValue, other.maxValue)
         const symDiff: BitMask = new BitMask(maxValue)
         for(let i: u32 = 0; i < <u32>symDiff._mask.length; i++) {
             const a = load<u32>(this._mask.dataStart + <usize>i)
@@ -88,12 +94,22 @@ export class BitMask {
 
     }
 
-    isSuperSetOf(other: BitMask): bool {
-        if(other._mask.length > this._mask.length) return false
+    contains(other: BitMask): bool {
+        if(other._size > this._size) return false
         for(let i: u32 = 0; i < <u32>other._mask.length; i++) {
             const a: u32 = load<u32>(this._mask.dataStart + <usize>i)
             const b: u32 = load<u32>(other._mask.dataStart + <usize>i)
             if((a & b) != b) return false
+        }
+        return true
+    }
+
+    intersects(other: BitMask): bool {
+        const length = <u32>Math.min(this._mask.length, other._mask.length)
+        for (let i: u32 = 0; i < length; i++) {
+            const a: u32 = load<u32>(this._mask.dataStart + <usize>i)
+            const b: u32 = load<u32>(other._mask.dataStart + <usize>i)
+            if ((a & b) == 0) return false
         }
         return true
     }

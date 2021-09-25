@@ -1,110 +1,79 @@
-import type { Archetype } from './Archetype'
-import { ComponentSet, FlagComponentSet, StructComponentSet, VectorComponentSet } from './ComponentSet'
-import type { Query } from './types'
+import { Archetype } from './Archetype'
+import { BitmaskSet } from './collections/BitmaskSet'
 
-export const every = (...types: ComponentSet<any>[]): Query<ComponentSet<any>> => ({
-    type: 'every',
-    match: types
-})
-export const some = (...types: ComponentSet<any>[]): Query<ComponentSet<any>> => ({
-    type: 'some',
-    match: types
-})
-export const not = (...subQueries: Query<ComponentSet<any>>[] | ComponentSet<any>[]): Query<ComponentSet<any>> => ({
-    type: 'not',
-    subQueries: subQueries.length
-        ? (subQueries[0] instanceof VectorComponentSet || subQueries[0] instanceof StructComponentSet || subQueries[0] instanceof FlagComponentSet)
-            ? [every(...subQueries as ComponentSet<any>[])]
-            : subQueries as Query<ComponentSet<any>>[]
-        : []
-})
-export const and = (...subQueries: Query<ComponentSet<any>>[]): Query<ComponentSet<any>> => ({
-    type: 'and',
-    subQueries
-})
-export const or = (...subQueries: Query<ComponentSet<any>>[]): Query<ComponentSet<any>> => ({
-    type: 'or',
-    subQueries
-})
+export type QueryMatcher = (target: BitmaskSet) => boolean
+const alwaysTrue: QueryMatcher = () => true
+const alwaysFalse: QueryMatcher = () => false
 
-const transform = (query: Query<ComponentSet<any>>): Query<number> => {
-    switch (query.type) {
-        case 'and':
-        case 'or':
-        case 'not':
-            return {
-                type: query.type,
-                subQueries: query.subQueries.map(q => transform(q))
-            }
-        case 'every':
-        case 'some':
-            return {
-                type: query.type,
-                match: query.match.map(component => component.id)
-            }
-        default: throw new Error(`Invalid query type ${(query as any).type}. Valid query types: and, or, not, every, some`)
+function makeMask(componentIds: Array<number>): BitmaskSet {
+    componentIds.sort()
+    const last = componentIds[componentIds.length - 1]!
+    const mask = new BitmaskSet(last)
+    for (let i = 0; i < componentIds.length; i++) {
+        mask.or(componentIds[i]!)
     }
+    return mask
 }
 
-const match = (query: Query<number>, archetype: Archetype): boolean => {
-    switch (query.type) {
-        case 'and':
-            return query.subQueries.every(q => match(q, archetype))
-        case 'or':
-            return query.subQueries.some(q => match(q, archetype))
-        case 'not':
-            return !query.subQueries.every(q => match(q, archetype))
-        case 'every':
-            return query.match.every(archetype.mask.has)
-        case 'some':
-            return query.match.some(archetype.mask.has)
-    }
+export function all(...componentIds: Array<number>): QueryMatcher {
+    if (!componentIds.length) return alwaysFalse
+    const mask = makeMask(componentIds)
+    return target => target.contains(mask)
 }
 
-export class CompiledQuery {
-    public archetypes: Archetype[] = []
-    private query: Query<number>
+export function any(...componentIds: Array<number>): QueryMatcher {
+    if (!componentIds.length) return alwaysTrue
+    const mask = makeMask(componentIds)
+    return target => mask.intersects(target)
+}
 
-    constructor(query: Query<ComponentSet<any>>) {
-        this.query = transform(query)
+export function not(...componentIds: Array<number>): QueryMatcher {
+    if (!componentIds.length) return alwaysTrue
+    const mask = makeMask(componentIds)
+    return (target) => !target.intersects(mask)
+}
+
+export function and(matcher: QueryMatcher, ...matchers: QueryMatcher[]): QueryMatcher {
+    return (target) => matcher(target)
+        && matchers.every(m => m(target))
+}
+
+export function or(matcher: QueryMatcher, ...matchers: QueryMatcher[]): QueryMatcher {
+    return (target) => matcher(target)
+        || matchers.some(m => m(target))
+}
+
+export const query = (...matchers: Array<QueryMatcher>) => {
+    return Query.from(matchers)
+}
+
+export class Query {
+    public readonly archetypes: Array<Archetype> = []
+    private _matcher: QueryMatcher
+    constructor(matcher: QueryMatcher) {
+        this._matcher = matcher
     }
 
-    matches = (archetype: Archetype): boolean => {
-        return match(this.query, archetype)
+    static from(matchers: Array<QueryMatcher>): Query {
+        if (!matchers.length) return new Query(alwaysTrue)
+        const [first, ...rest] = matchers
+        return new Query(matchers.length
+            ? and(first!, ...rest)
+            : first!
+        )
     }
 
-    // getMatchingEntities = (): Uint32Array => {
-    //     const archetypes = this.archetypes
-    //     let size = 0
-    //     const subArrays = archetypes.map(archetype => {
-    //         const arr = archetype.entities.subArray() as Uint32Array
-    //         size += arr.length
-    //         return arr
-    //     })
-    //     const arr = new Uint32Array(size)
-    //     let offset = 0
-    //     for (const subArray of subArrays) {
-    //         arr.set(subArray, offset)
-    //         offset += subArray.length
-    //     }
-    //     return arr
-    // }
-    // tryAddMatch = (archetype: Archetype): this => {
-    //     if (this.archetypes.has(archetype.id))
-    //         return this
+    tryAdd(archetype: Archetype): boolean {
+        if (!this._matcher(archetype.mask)) return false
+        this.archetypes.push(archetype)
+        return true
+    }
 
-    //     if (match(this.transformedQuery, archetype)) {
-    //         this.archetypes.set(archetype.id, archetype)
-    //     }
-    //     return this
-    // }
+    get length(): number {
+        return this.archetypes.length
+    }
 
-    // forEach = (callback: (entity: number) => void) => {
-    //     this.archetypes.forEach(archetype => {
-    //         const length = archetype.entities.length
-    //         for (let i = length - 1; i >= 0; i--) {
-    //             callback(archetype.entities.get(i)!)
-    //         }
-    //     })
-    // }
+    get(i: number): Archetype | undefined {
+        return this.archetypes[i]
+    }
 }

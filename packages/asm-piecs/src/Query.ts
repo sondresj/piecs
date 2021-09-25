@@ -73,9 +73,9 @@ export class Query {
         for(let i: i32 = 0; i < queries.length; i++) {
             const query = unchecked(queries[i])
             // assert(query.type & (ALL | ANY | NOT))
-            if(query.type == ALL && !query.mask.isSuperSetOf(targetMask)) return
-            if(query.type == ANY && !targetMask.isSuperSetOf(query.mask)) return
-            if(query.type == NOT && targetMask.isSuperSetOf(query.mask)) return
+            if(query.type == ALL && !query.mask.contains(targetMask)) return
+            if(query.type == ANY && !targetMask.contains(query.mask)) return
+            if(query.type == NOT && targetMask.contains(query.mask)) return
         }
         this._archetypes.push(archetype)
     }

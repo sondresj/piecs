@@ -1,12 +1,13 @@
 import { World } from './World'
-import { and, or, not, every, some } from './Query'
-export type { System, Query } from './types'
+import { and, or, not, any, all, query } from './Query'
+export type { System } from './types'
 export {
     World,
+    query,
     and,
     or,
     not,
-    every,
-    some
+    all,
+    any
 }
 export default World

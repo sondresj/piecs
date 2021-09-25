@@ -1,28 +1,17 @@
 import { StructValueType } from './collections/StructVector'
 import { VectorValueType } from './collections/Vector'
-import { VectorComponentSet, ComponentSet } from './ComponentSet'
-
-type GroupQuery<Tkeys> = {
-    type: 'and' | 'or' | 'not'
-    subQueries: Query<Tkeys>[]
-}
-
-type LeafQuery<Tkeys> = {
-    type: 'every' | 'some'
-    match: Tkeys[]
-}
-
-export type Query<Tkeys> = LeafQuery<Tkeys> | GroupQuery<Tkeys>
+import { ComponentSet } from './ComponentSet'
+import { Query } from './Query'
 
 /**
  * The system may be executed more than once each update.
  * But it will never be executed more than once with the same entities in the same update cycle
  */
-export interface System<TC extends ComponentSet<any>> {
+export interface System {
     name: string
     init?: (world: InsideWorld) => void
     execute: (entities: Readonly<ArrayLike<number>>, world: InsideWorld) => void
-    query: Query<TC>
+    query: Query
 }
 
 export interface InsideWorld {
@@ -33,7 +22,7 @@ export interface InsideWorld {
 }
 export interface OutsideWorld extends InsideWorld {
     readonly createComponentSet: <T>(name: string, type: VectorValueType | 'flag' | StructValueType[], defaultValue: T) => ComponentSet<T>
-    readonly registerSystem: <TC extends InstanceType<typeof VectorComponentSet>>(system: System<TC>) => OutsideWorld
+    readonly registerSystem: (system: System) => OutsideWorld
     readonly init: () => OutsideWorld
     readonly update: () => OutsideWorld
 }
