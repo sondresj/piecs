@@ -61,9 +61,7 @@ export class Archetype {
         archetypes: Map<string, Archetype>,
         queries: Array<Query>
     ): Archetype {
-        // TODO: Array in asm can't be holey (have undefined entries)...
-        // consider using map instead of allocating a giant array
-        if(this._transformations.has(componentId)) {
+        if (this._transformations.has(componentId)) {
             return unchecked(this._transformations.get(componentId))
         }
         const nextMask = this.mask.copy().xor(componentId)

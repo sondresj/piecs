@@ -21,11 +21,11 @@ const not = (...componentIds) => {
 }
 const and = (...queryMasks) => {
     const maskArr = __newArray(ArrayU32_ID, queryMasks.map(qm => qm.valueOf()))
-    return wasm.QueryMask.wrap(wasm.and(maskArr.valueOf()))
+    return wasm.QueryMaskGroup.wrap(wasm.and(maskArr.valueOf()))
 }
 const or = (...queryMasks) => {
     const maskArr = __newArray(ArrayU32_ID, queryMasks.map(qm => qm.valueOf()))
-    return wasm.QueryMask.wrap(wasm.or(maskArr.valueOf()))
+    return wasm.QueryMaskGroup.wrap(wasm.or(maskArr.valueOf()))
 }
 const query = (queryMask) => {
     return new wasm.Query(queryMask.valueOf())
@@ -36,4 +36,3 @@ module.exports = {
 }
 
 // Archetype
-

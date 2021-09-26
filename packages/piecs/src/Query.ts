@@ -24,7 +24,7 @@ export function all(...componentIds: Array<number>): QueryMatcher {
 export function any(...componentIds: Array<number>): QueryMatcher {
     if (!componentIds.length) return alwaysTrue
     const mask = makeMask(componentIds)
-    return target => mask.intersects(target)
+    return target => target.intersects(mask)
 }
 
 export function not(...componentIds: Array<number>): QueryMatcher {

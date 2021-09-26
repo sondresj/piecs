@@ -1,24 +1,56 @@
 import { Archetype } from './Archetype'
 import { BitMask } from './BitMask'
+import { RelativeIndexable } from './RelativeIndexable'
 
 export const ArrayU32_ID = idof<Array<u32>>()
 
-const ALL: u8 = 1
-const ANY: u8 = 2
-const NOT: u8 = 4
+const ALL: u8 = 1 << 0
+const ANY: u8 = 1 << 1
+const NOT: u8 = 1 << 2
 
 export class QueryMask {
     constructor(
-        public readonly type: u8,
-        public readonly mask: BitMask
+        private readonly type: u8,
+        private readonly mask: BitMask
     ) {}
+
+    @inline
+    match(target: BitMask): bool {
+        if (this.type == ALL) return target.contains(this.mask)
+        if (this.type == ANY) return target.intersects(this.mask)
+        if (this.type == NOT) return !target.intersects(this.mask)
+        return false
+    }
+}
+
+const AND: u8 = 1 << 3
+const OR: u8 = 1 << 4
+
+export class QueryMaskGroup {
+    constructor(
+        private readonly type: u8,
+        private readonly subQueries: Array<QueryMask>
+    ) {}
+
+    match(target: BitMask): bool {
+        const type = this.type
+        const queries = this.subQueries
+        const ql = queries.length
+        for (let i: i32 = 0; i < ql; i++) {
+            const query = unchecked(queries[i])
+            const matches = query.match(target)
+            if (matches && type == OR) return true
+            if (!matches && type == AND) return false
+        }
+        return true
+    }
 }
 
 function makeMask(componentIds: Array<u32>): BitMask {
     componentIds.sort()
     const last = unchecked(componentIds[componentIds.length - 1])
     const mask = new BitMask(last)
-    for(let i = 0; i < componentIds.length; i++) {
+    for (let i = 0; i < componentIds.length; i++) {
         mask.or(componentIds[i])
     }
     return mask
@@ -37,67 +69,63 @@ export function not(componentIds: Array<u32>): QueryMask {
     return new QueryMask(NOT, mask)
 }
 
-export function or(queryMasks: Array<QueryMask>): QueryMask {
-    assert(queryMasks.length, 'Query: Empty array of queries is not allowed')
-    let mask: BitMask = unchecked(queryMasks[0].mask)
-    for(let i = 1; i < queryMasks.length; i++) {
-        const queryMask: QueryMask = unchecked(queryMasks[i])
-        let qmask: BitMask = queryMask.mask
-        mask = mask.intersection(qmask) // not sure about this either..
-    }
-    return new QueryMask(ANY, mask)
+export function and(subQueries: Array<QueryMask>): QueryMaskGroup {
+    return new QueryMaskGroup(AND, subQueries)
 }
 
-export function and(queryMasks: Array<QueryMask>): QueryMask {
-    assert(queryMasks.length, 'Query: Empty array of queries is not allowed')
-    let mask: BitMask = unchecked(queryMasks[0].mask)
-    for(let i = 1; i < queryMasks.length; i++) {
-        const queryMask: QueryMask = unchecked(queryMasks[i])
-        let qmask: BitMask = queryMask.mask
-        mask = mask.union(qmask) // not sure about this either..
-    }
-    return new QueryMask(ALL, mask)
+export function or(subQueries: Array<QueryMask>): QueryMaskGroup {
+    return new QueryMaskGroup(OR, subQueries)
 }
 
-export class Query {
-    [key: i32]: Archetype
+export function query<T>(values: Array<T>): Query {
+    if (isReference<T>()) {
+        if (idof<T>() === idof<QueryMaskGroup>()) {
+            // @ts-ignore
+            return new Query(<Array<QueryMaskGroup>>values)
+        }
+        if (idof<T>() === idof<QueryMask>()) {
+            // @ts-ignore
+            return new Query([and(<Array<QueryMask>>values)])
+        }
+    }
+    // @ts-ignore
+    return new Query([and([all(<Array<u32>>values)])])
+}
+
+
+export class Query extends RelativeIndexable<Archetype> {
+    [key: u32]: Archetype
 
     private _archetypes: Array<Archetype> = new Array()
-    constructor(
-        private _queryMasks: Array<QueryMask>
-    ){}
+    private _query: QueryMaskGroup
 
-    tryAdd(archetype: Archetype): void {
-        const queries = this._queryMasks
-        const targetMask = archetype.mask
-        for(let i: i32 = 0; i < queries.length; i++) {
-            const query = unchecked(queries[i])
-            // assert(query.type & (ALL | ANY | NOT))
-            if(query.type == ALL && !query.mask.contains(targetMask)) return
-            if(query.type == ANY && !targetMask.contains(query.mask)) return
-            if(query.type == NOT && targetMask.contains(query.mask)) return
-        }
+    constructor(query: QueryMaskGroup) {
+        super()
+        this._query = query
+    }
+
+    tryAdd(archetype: Archetype): bool {
+        const query = this._query
+        const target = archetype.mask
+        if (!query.match(target)) return false
         this._archetypes.push(archetype)
+        return true
     }
 
     @inline
-    get length(): i32 {
+    get length(): u32 {
         return this._archetypes.length
     }
 
     @inline
     @operator('[]')
-    __get(i: i32): Archetype {
+    get(i: u32): Archetype {
         return this._archetypes[i]
     }
 
     @inline
     @operator('{}')
-    __uget(i: i32): Archetype {
+    __uget(i: u32): Archetype {
         return unchecked(this._archetypes[i])
     }
 }
-
-// export function createQuery(masks: Array<QueryMask>): Query {
-//     return new Query(masks)
-// }

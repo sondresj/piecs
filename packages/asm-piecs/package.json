@@ -23,7 +23,8 @@
     "asbuild": "yarn asbuild:untouched && yarn asbuild:optimized",
     "test": "node --experimental-wasi-unstable-preview1 __tests__ ",
     "build": "yarn asbuild:optimized",
-    "prepare": "yarn build"
+    "prepare": "yarn build",
+    "lint": "eslint"
   },
   "dependencies": {
     "@assemblyscript/loader": "^0.19.16"

@@ -1,8 +1,8 @@
 const mod32 = 0x0000001f
 
 export class BitmaskSet {
-    protected _mask: Uint32Array
-    protected _maxValue: number
+    private _mask: Uint32Array
+    private _maxValue: number
     private _size: number
     constructor(maxValue: number) {
         this._maxValue = Math.max(maxValue, 1)
@@ -65,8 +65,8 @@ export class BitmaskSet {
         const maxValue = Math.max(this._maxValue, other._maxValue)
         const union: BitmaskSet = new BitmaskSet(maxValue)
         for (let i = 0; i < other._mask.length; i++) {
-            const a = this._mask[i]!
-            const b = other._mask[i]!
+            const a = this._mask[i] || 0
+            const b = other._mask[i] || 0
             union._mask[i] = a | b
         }
         return union
@@ -84,11 +84,10 @@ export class BitmaskSet {
     }
 
     difference(other: BitmaskSet): BitmaskSet {
-        const maxValue = Math.max(this._maxValue, other._maxValue)
-        const diff = new BitmaskSet(maxValue)
+        const diff = new BitmaskSet(this._maxValue)
         for (let i = 0; i < diff._mask.length; i++) {
             const a = this._mask[i]!
-            const b = other._mask[i]!
+            const b = other._mask[i] || 0
             diff._mask[i] = a & ~b
         }
         return diff
@@ -98,8 +97,8 @@ export class BitmaskSet {
         const maxValue = Math.max(this._maxValue, other._maxValue)
         const symDiff = new BitmaskSet(maxValue)
         for (let i = 0; i < symDiff._mask.length; i++) {
-            const a = this._mask[i]!
-            const b = other._mask[i]!
+            const a = this._mask[i] || 0
+            const b = other._mask[i] || 0
             symDiff._mask[i] = a ^ b
         }
         return symDiff
@@ -120,9 +119,9 @@ export class BitmaskSet {
         for (let i = 0; i < length; i++) {
             const a = this._mask[i]!
             const b = other._mask[i]!
-            if ((a & b) == 0) return false
+            if ((a & b) != 0) return true
         }
-        return true
+        return false
     }
 
     toString(): string {

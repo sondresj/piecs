@@ -30,8 +30,6 @@ export class Archetype {
 export class BitMask {
   static wrap(ptr: usize): BitMask;
   valueOf(): usize;
-  protected _mask: usize;
-  protected maxValue: u32;
   constructor(maxValue: u32);
   has(value: u32): bool;
   __grow(valueToAccomodate: u32): void;
@@ -41,8 +39,10 @@ export class BitMask {
   not(): usize;
   union(other: usize): usize;
   intersection(other: usize): usize;
+  difference(other: usize): usize;
   symmetrictDifference(other: usize): usize;
-  isSuperSetOf(other: usize): bool;
+  contains(other: usize): bool;
+  intersects(other: usize): bool;
   toString(): usize;
   copy(): usize;
 }
@@ -52,7 +52,6 @@ export abstract class InsideWorld {
   hasEntity(entity: u32): bool;
   createEntity(): u32;
   deleteEntity(entity: u32): void;
-  defer(action: usize): void;
   constructor();
 }
 export class World extends InsideWorld {
@@ -61,12 +60,9 @@ export class World extends InsideWorld {
   hasEntity(entity: u32): bool;
   createEntity(): u32;
   deleteEntity(entity: u32): void;
-  defer(action: usize): void;
   constructor();
-  _executeDeferredActions(): void;
-  registerSystem(system: usize, query: usize): usize;
+  getNextComponentId(): u32;
   init(): void;
-  update(): usize;
   hasComponent(entity: u32, componentId: u32): bool;
   setComponent(entity: u32, componentId: u32): void;
   removeComponent(entity: u32, componentId: u32): void;
@@ -75,23 +71,28 @@ export var ArrayU32_ID: u32;
 export class QueryMask {
   static wrap(ptr: usize): QueryMask;
   valueOf(): usize;
-  readonly type: u8;
-  readonly mask: usize;
   constructor(type: u8, mask: usize);
+  match(target: usize): bool;
+}
+export class QueryMaskGroup {
+  static wrap(ptr: usize): QueryMaskGroup;
+  valueOf(): usize;
+  constructor(type: u8, subQueries: usize);
+  match(target: usize): bool;
 }
 export function all(componentIds: usize): usize;
 export function any(componentIds: usize): usize;
 export function not(componentIds: usize): usize;
-export function or(queryMasks: usize): usize;
-export function and(queryMasks: usize): usize;
+export function and(subQueries: usize): usize;
+export function or(subQueries: usize): usize;
 export class Query {
   static wrap(ptr: usize): Query;
   valueOf(): usize;
-  constructor(_queryMasks: usize);
-  tryAdd(archetype: usize): void;
-  get length(): i32;
-  __get(i: i32): usize;
-  __uget(i: i32): usize;
+  get length(): u32;
+  constructor(query: usize);
+  tryAdd(archetype: usize): bool;
+  get(i: u32): usize;
+  __uget(i: u32): usize;
 }
 export class SparseSet {
   static wrap(ptr: usize): SparseSet;

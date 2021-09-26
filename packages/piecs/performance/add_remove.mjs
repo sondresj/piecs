@@ -1,5 +1,5 @@
 import { World } from '../lib/World.js'
-import { all, not, and, query} from '../lib/Query.js'
+import { all, not, and, query } from '../lib/Query.js'
 
 export default function addRemove(count) {
     const world = new World()

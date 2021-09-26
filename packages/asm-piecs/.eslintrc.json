@@ -1,6 +1,18 @@
 {
-    "root": false,
+    "root": true,
+    "extends": [
+        "dintero/typescript"
+    ],
+    "plugins": [
+        "import"
+    ],
     "rules": {
+        "semi": ["error", "never"],
+        "@typescript-eslint/no-empty-function": "warn", // temporary lower from error to warn
+        "@typescript-eslint/no-non-null-assertion": "off",
+        "@typescript-eslint/no-unused-vars": "off",
         "@typescript-eslint/no-var-requires": "off",
+        "@typescript-eslint/no-array-constructor": "off",
+        "function-paren-newline": "off"
     }
 }

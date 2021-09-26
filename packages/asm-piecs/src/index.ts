@@ -1,17 +1,14 @@
 import { Archetype } from './Archetype'
 import { BitMask } from './BitMask'
 import { Query } from './Query'
-import { RelativeIndexable } from './RelativeIndexable'
 import { SparseSet } from './SparseSet'
 
 export abstract class InsideWorld {
     abstract hasEntity(entity: u32): bool
     abstract createEntity(): u32
     abstract deleteEntity(entity: u32): void
-    abstract defer(action: () => void): void
 }
 
-type System = (entities: RelativeIndexable<u32>, world: InsideWorld) => void
 export class World extends InsideWorld {
     /**
      * [archetype.toString()]: archetype
@@ -25,41 +22,13 @@ export class World extends InsideWorld {
     private nextEntityId: u32 = 0
     private nextComponentId: u32 = 0
 
-    private systems: Array<System> = new Array()
     private queries: Array<Query> = new Array() // should be 1 to 1 with systems
 
-    private deferredActions: Array<() => void> = []
     private blankArchetype: Archetype = new Archetype(new BitMask(1))
     private initialized: bool = false
 
-    @inline
-    _executeDeferredActions(): void {
-        if (!this.deferredActions.length) return
-
-        for (let i = 0; i < this.deferredActions.length; i++) {
-            unchecked(this.deferredActions[i])()
-        }
-        this.deferredActions.length = 0
-    }
-
     getNextComponentId(): u32 {
         return this.nextComponentId++
-    }
-
-    registerSystem(system: System, query: Query): this {
-        this.systems.push(system)
-        this.queries.push(query)
-
-        if (this.initialized) {
-            const archetypes: Array<Archetype> = this.archetypes.values()
-            for (let i = 0; i < archetypes.length; i++) {
-                const archetype = unchecked(archetypes[i])
-                const query = unchecked(this.queries[i])
-                query.tryAdd(archetype)
-            }
-        }
-
-        return this
     }
 
     /**
@@ -80,40 +49,6 @@ export class World extends InsideWorld {
             const query = unchecked(this.queries[i])
             query.tryAdd(blankArchetype)
         }
-        this._executeDeferredActions()
-        return
-    }
-
-    /**
-     * Update the world, invoking all systems.
-     * Typically you want to update each animation frame (@see window.requestAnimationFrame)
-     */
-    update(): this {
-        const systems: System[] = this.systems
-        const queries: Query[] = this.queries
-        for (let s = 0, sl = systems.length; s < sl; s++) {
-            const system = unchecked(systems[s])
-            const query = unchecked(queries[s])
-            for (let a = 0, al = query.length; a < al; a++) {
-                const archetype = unchecked(query[a])
-                if (archetype.length > 0){
-                    system(archetype.entities, this)
-                }
-            }
-        }
-
-        this._executeDeferredActions()
-        return this
-    }
-
-    /**
-     * Defer execution of an action until the end of the update cycle (after all systems has been executed)
-     * @param action The action to defer
-     * @returns this
-     */
-    @inline
-    defer(action: () => void): void {
-        this.deferredActions.push(action)
         return
     }
 

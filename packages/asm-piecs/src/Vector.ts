@@ -13,7 +13,7 @@ export class Vector extends RelativeIndexable<u32> {
         size: u32,
         growFactor: f32,
         sparse: bool
-    ){
+    ) {
         super()
         this._size = size
         this._array = new Uint32Array(size)
@@ -87,7 +87,7 @@ export class Vector extends RelativeIndexable<u32> {
 
     @inline
     subArray(): Uint32Array {
-        if(this._sparse) return this._array
+        if (this._sparse) return this._array
         return this._array.subarray(0, this._length)
     }
 }
