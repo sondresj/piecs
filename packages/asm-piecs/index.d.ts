@@ -46,26 +46,19 @@ export class BitMask {
   toString(): usize;
   copy(): usize;
 }
-export abstract class InsideWorld {
-  static wrap(ptr: usize): InsideWorld;
-  valueOf(): usize;
-  hasEntity(entity: u32): bool;
-  createEntity(): u32;
-  deleteEntity(entity: u32): void;
-  constructor();
-}
-export class World extends InsideWorld {
+export class World {
   static wrap(ptr: usize): World;
   valueOf(): usize;
+  getNextComponentId(): u32;
+  registerQuery(query: usize): void;
+  init(): void;
   hasEntity(entity: u32): bool;
   createEntity(): u32;
   deleteEntity(entity: u32): void;
-  constructor();
-  getNextComponentId(): u32;
-  init(): void;
   hasComponent(entity: u32, componentId: u32): bool;
   setComponent(entity: u32, componentId: u32): void;
   removeComponent(entity: u32, componentId: u32): void;
+  constructor();
 }
 export var ArrayU32_ID: u32;
 export class QueryMask {

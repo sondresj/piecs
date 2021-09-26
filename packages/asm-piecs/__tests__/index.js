@@ -2,18 +2,11 @@ const assert = require('assert')
 
 const {
     __getString,
-    // __newArray,
-    // ArrayU32_ID,
     Archetype,
     Vector,
     SparseSet,
     BitMask,
-    // Query,
-    // all,
-    // QueryMask,
-    // any,
-    // not,
-    // and
+    World,
 } = require('..')
 
 const {
@@ -264,6 +257,22 @@ describe('Query', () => {
         assert.ok(q.tryAdd(archetype.valueOf()))
         assert.strictEqual(q.length, 1)
         assert.strictEqual(Archetype.wrap(q.get(0)).id, archetype.id)
+    })
+})
+
+describe('World', () => {
+    test('works', () => {
+        const world = new World()
+        const q = query(and(all(world.getNextComponentId())))
+        world.registerQuery(q.valueOf())
+        world.init()
+        const e = world.createEntity()
+        world.setComponent(e, 0)
+        assert.ok(world.hasEntity(0))
+        assert.ok(world.hasComponent(0, 0))
+        const arch = Archetype.wrap(q.get(0))
+        assert.ok(arch.hasEntity(0))
+        assert.ok(arch.hasComponent(0))
     })
 })
 

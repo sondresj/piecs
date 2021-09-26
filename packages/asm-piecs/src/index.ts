@@ -3,13 +3,7 @@ import { BitMask } from './BitMask'
 import { Query } from './Query'
 import { SparseSet } from './SparseSet'
 
-export abstract class InsideWorld {
-    abstract hasEntity(entity: u32): bool
-    abstract createEntity(): u32
-    abstract deleteEntity(entity: u32): void
-}
-
-export class World extends InsideWorld {
+export class World {
     /**
      * [archetype.toString()]: archetype
      */
@@ -17,18 +11,31 @@ export class World extends InsideWorld {
     /**
      * [entity: number]: archetype
      */
-    private entityArchetype: Archetype[] = []
+    private entityArchetype: Array<Archetype> = new Array()
     private entitiesDeleted: SparseSet = new SparseSet(1<<8)
     private nextEntityId: u32 = 0
     private nextComponentId: u32 = 0
 
-    private queries: Array<Query> = new Array() // should be 1 to 1 with systems
+    private queries: Array<Query> = new Array()
 
     private blankArchetype: Archetype = new Archetype(new BitMask(1))
     private initialized: bool = false
 
     getNextComponentId(): u32 {
         return this.nextComponentId++
+    }
+
+    registerQuery(query: Query): void {
+        this.queries.push(query)
+
+        if (this.initialized) {
+            const archetypes = this.archetypes.values()
+            const l = archetypes.length
+            for (let i = 0; i < l; i++) {
+                const archetype = unchecked(archetypes[i])
+                query.tryAdd(archetype)
+            }
+        }
     }
 
     /**
@@ -45,7 +52,8 @@ export class World extends InsideWorld {
         this.archetypes.set(blankArchetype.id, blankArchetype)
         this.blankArchetype = blankArchetype
 
-        for (let i = 0; i < this.queries.length; i++) {
+        const l = this.queries.length
+        for (let i = 0; i < l; i++) {
             const query = unchecked(this.queries[i])
             query.tryAdd(blankArchetype)
         }

@@ -1,7 +1,6 @@
 const wasm = require('.')
 const {
     __newArray,
-    __getString,
     ArrayU32_ID
 } = require('.')
 
@@ -28,11 +27,15 @@ const or = (...queryMasks) => {
     return wasm.QueryMaskGroup.wrap(wasm.or(maskArr.valueOf()))
 }
 const query = (queryMask) => {
-    return new wasm.Query(queryMask.valueOf())
+    const q = new wasm.Query(queryMask.valueOf())
+    return q
 }
 
 module.exports = {
-    all, any, not, and, or, query
+    all,
+    any,
+    not,
+    and,
+    or,
+    query,
 }
-
-// Archetype
