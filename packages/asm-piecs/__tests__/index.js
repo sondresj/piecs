@@ -2,6 +2,7 @@ const assert = require('assert')
 
 const {
     __getString,
+    __getArray,
     Archetype,
     Vector,
     SparseSet,
@@ -72,19 +73,11 @@ const test = (desc, cb) => {
     }
 }
 
-describe('Vector', () => {
-    test('Checked index assignment', () => {
-        const vector = new Vector(10, 1.5, false)
-        vector[0] = 1
-        assert.strictEqual(vector[0], 1)
-    })
-
-})
-
 describe('SparseSet', () => {
     test('set entry, expect has entry', () => {
         const set = new SparseSet(10)
         set.add(5)
+        assert.ok(set.length)
         assert.ok(set.has(5))
     })
 
@@ -215,6 +208,12 @@ describe('BitMask', () => {
         assert.ok(symdiff.has(5))
         assert.ok(symdiff.has(4))
     })
+    test('copy', () => {
+        const mask = new BitMask(50)
+        mask.or(42)
+        const copy = BitMask.wrap(mask.copy())
+        assert.ok(copy.has(42))
+    })
 })
 
 describe('Query', () => {
@@ -228,51 +227,52 @@ describe('Query', () => {
     test('archetype is match for all', () => {
         const q = query(and(all(1, 2))) // 0110
         q['']
-        assert.ok(q.tryAdd(archetype.valueOf()))
+        assert.ok(q.tryAdd(archetype))
         assert.strictEqual(q.length, 1)
-        assert.strictEqual(Archetype.wrap(q.get(0)).id, archetype.id)
     })
 
     test('archetype is match for any', () => {
         const q = query(and(any(6, 2)))
-        assert.ok(q.tryAdd(archetype.valueOf()))
+        assert.ok(q.tryAdd(archetype))
         assert.strictEqual(q.length, 1)
-        assert.strictEqual(Archetype.wrap(q.get(0)).id, archetype.id)
     })
 
     test('archetype is not match for not', () => {
         const q = query(and(not(2)))
-        assert.ok(!q.tryAdd(archetype.valueOf()))
+        assert.ok(!q.tryAdd(archetype))
         assert.strictEqual(q.length, 0)
     })
 
     test('archetype is match for all and not', () => {
         const q = query(and(all(2, 3), not(6)))
-        assert.ok(q.tryAdd(archetype.valueOf()))
+        assert.ok(q.tryAdd(archetype))
         assert.strictEqual(q.length, 1)
-        assert.strictEqual(Archetype.wrap(q.get(0)).id, archetype.id)
     })
     test('archetype is match for all or all and not', () => {
         const q = query(or(all(8), and(all(2, 3), not(6))))
-        assert.ok(q.tryAdd(archetype.valueOf()))
+        assert.ok(q.tryAdd(archetype))
         assert.strictEqual(q.length, 1)
-        assert.strictEqual(Archetype.wrap(q.get(0)).id, archetype.id)
     })
 })
 
 describe('World', () => {
     test('works', () => {
         const world = new World()
-        const q = query(and(all(world.getNextComponentId())))
-        world.registerQuery(q.valueOf())
+        const c1 = world.getNextComponentId()
+        const c2 = world.getNextComponentId()
+        const q = query(and(any(c2, c1)))
+        world.registerQuery(q.__ptr)
         world.init()
         const e = world.createEntity()
-        world.setComponent(e, 0)
-        assert.ok(world.hasEntity(0))
-        assert.ok(world.hasComponent(0, 0))
-        const arch = Archetype.wrap(q.get(0))
-        assert.ok(arch.hasEntity(0))
-        assert.ok(arch.hasComponent(0))
+        world.setComponent(e, c1)
+        world.setComponent(e, c2)
+        assert.ok(world.hasEntity(e))
+        // assert.ok(world.hasComponent(e, c1))
+        assert.ok(world.hasComponent(e, c2))
+        assert.ok(q.length)
+        const entities = q.get(0)
+        assert.ok(entities.length)
+        assert.strictEqual(entities[0], e)
     })
 })
 

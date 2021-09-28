@@ -11,7 +11,7 @@ export class World {
     /**
      * [entity: number]: archetype
      */
-    private entityArchetype: Array<Archetype> = new Array()
+    private entityArchetype: Array<Archetype | null> = new Array()
     private entitiesDeleted: SparseSet = new SparseSet(1<<8)
     private nextEntityId: u32 = 0
     private nextComponentId: u32 = 0
@@ -85,27 +85,23 @@ export class World {
         if (!archetype) throw new Error(`Entity ${entity} does not exist`)
 
         archetype.removeEntity(entity)
-        // delete this.entityArchetype[entity]
         this.entitiesDeleted.add(entity)
         return
     }
 
     hasComponent(entity: u32, componentId: u32): bool {
         const archetype = this.entityArchetype[entity]
-        return !!archetype && archetype.hasComponent(componentId)
+        return archetype != null && archetype.hasComponent(componentId)
     }
 
     setComponent(entity: u32, componentId: u32): void {
         if (this.entitiesDeleted.has(entity)) throw new Error(`Entity ${entity} is deleted`)
 
-        let archetype = this.entityArchetype[entity]
+        const archetype = this.entityArchetype[entity]
         if (!archetype) throw new Error(`Entity ${entity} does not exist`)
 
         if (!archetype.hasComponent(componentId)) {
-            archetype.removeEntity(entity)
-            archetype = archetype.transform(componentId, this.archetypes, this.queries)
-            archetype.addEntity(entity)
-            this.entityArchetype[entity] = archetype
+            this._transformEntity(archetype, entity, componentId)
         }
         return
     }
@@ -113,15 +109,20 @@ export class World {
     removeComponent(entity: u32, componentId: u32): void {
         if (this.entitiesDeleted.has(entity)) throw new Error(`Entity ${entity} is deleted`)
 
-        let archetype = this.entityArchetype[entity]
+        const archetype = this.entityArchetype[entity]
         if (!archetype) throw new Error(`Entity ${entity} does not exist`)
 
         if (archetype.hasComponent(componentId)) {
-            archetype.removeEntity(entity)
-            archetype = archetype.transform(componentId, this.archetypes, this.queries)
-            archetype.addEntity(entity)
-            this.entityArchetype[entity] = archetype
+            this._transformEntity(archetype, entity, componentId)
         }
         return
+    }
+
+    @inline
+    private _transformEntity(archetype: Archetype, entity: u32, componentId: u32): void {
+        archetype.removeEntity(entity)
+        archetype = archetype.transform(componentId, this.archetypes, this.queries)
+        archetype.addEntity(entity)
+        this.entityArchetype[entity] = archetype
     }
 }

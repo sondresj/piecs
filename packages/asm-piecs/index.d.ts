@@ -17,9 +17,9 @@ export class Archetype {
   constructor(componentMask: usize);
   mask: usize;
   readonly id: usize;
-  get length(): u32;
-  get(index: u32): u32;
-  __uget(index: u32): u32;
+  get length(): i32;
+  get(index: i32): u32;
+  __uget(index: i32): u32;
   hasComponent(componentId: u32): bool;
   hasEntity(entity: u32): bool;
   addEntity(entity: u32): void;
@@ -81,39 +81,24 @@ export function or(subQueries: usize): usize;
 export class Query {
   static wrap(ptr: usize): Query;
   valueOf(): usize;
-  get length(): u32;
   constructor(query: usize);
   tryAdd(archetype: usize): bool;
-  get(i: u32): usize;
-  __uget(i: u32): usize;
+  get length(): i32;
+  get(i: i32): usize;
+  __uget(i: i32): usize;
 }
 export class SparseSet {
   static wrap(ptr: usize): SparseSet;
   valueOf(): usize;
-  get length(): u32;
   constructor(initialSize: u32);
   get values(): usize;
+  get length(): i32;
   has(value: u32): bool;
-  get(index: u32): u32;
-  uget(index: u32): u32;
+  get(index: i32): u32;
+  uget(index: i32): u32;
   add(value: u32): usize;
   pop(): u32;
   delete(value: u32): usize;
-}
-export class Vector {
-  static wrap(ptr: usize): Vector;
-  valueOf(): usize;
-  get length(): u32;
-  constructor(size: u32, growFactor: f32, sparse: bool);
-  get size(): u32;
-  get sparse(): bool;
-  __get(index: u32): u32;
-  __set(index: u32, value: u32): void;
-  __uget(index: u32): u32;
-  __uset(index: u32, value: u32): void;
-  push(value: u32): u32;
-  pop(): u32;
-  subArray(): usize;
 }
 export const memory: WebAssembly.Memory;
 export function __new(size: usize, id: u32): usize;

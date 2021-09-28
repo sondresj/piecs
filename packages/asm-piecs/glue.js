@@ -1,6 +1,7 @@
 const wasm = require('.')
 const {
     __newArray,
+    __getArray,
     ArrayU32_ID
 } = require('.')
 
@@ -26,9 +27,20 @@ const or = (...queryMasks) => {
     const maskArr = __newArray(ArrayU32_ID, queryMasks.map(qm => qm.valueOf()))
     return wasm.QueryMaskGroup.wrap(wasm.or(maskArr.valueOf()))
 }
-const query = (queryMask) => {
-    const q = new wasm.Query(queryMask.valueOf())
-    return q
+const query = (queryMaskGroup) => {
+    const q = new wasm.Query(queryMaskGroup.valueOf())
+    return {
+        get length() {
+            return q.length
+        },
+        get(i) {
+            return __getArray(q.get(i))
+        },
+        tryAdd(archetype) {
+            return q.tryAdd(archetype.valueOf())
+        },
+        __ptr: q.valueOf()
+    }
 }
 
 module.exports = {

@@ -1,6 +1,5 @@
 import { Archetype } from './Archetype'
 import { BitMask } from './BitMask'
-import { RelativeIndexable } from './RelativeIndexable'
 
 export const ArrayU32_ID = idof<Array<u32>>()
 
@@ -93,39 +92,39 @@ export function query<T>(values: Array<T>): Query {
 }
 
 
-export class Query extends RelativeIndexable<Archetype> {
-    [key: u32]: Archetype
+export class Query {
+    [key: i32]: Array<u32>
 
-    private _archetypes: Array<Archetype> = new Array()
+    private _archetypes: Array<Archetype> = new Array<Archetype>()
     private _query: QueryMaskGroup
 
     constructor(query: QueryMaskGroup) {
-        super()
         this._query = query
     }
 
     tryAdd(archetype: Archetype): bool {
         const query = this._query
         const target = archetype.mask
-        if (!query.match(target)) return false
+        const matches = query.match(target)
+        if (!matches) return false
         this._archetypes.push(archetype)
         return true
     }
 
     @inline
-    get length(): u32 {
+    get length(): i32 {
         return this._archetypes.length
     }
 
     @inline
     @operator('[]')
-    get(i: u32): Archetype {
-        return this._archetypes[i]
+    get(i: native<i32>): Array<u32> {
+        return this._archetypes[i].entities
     }
 
     @inline
     @operator('{}')
-    __uget(i: u32): Archetype {
-        return unchecked(this._archetypes[i])
+    __uget(i: native<i32>): Array<u32> {
+        return unchecked(this._archetypes[i]).entities
     }
 }
