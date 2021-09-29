@@ -7,11 +7,11 @@ export class World {
     /**
      * [archetype.toString()]: archetype
      */
-    private archetypes: Map<string, Archetype> = new Map()
+    private archetypes: Map<string, Archetype> = new Map<string, Archetype>()
     /**
      * [entity: number]: archetype
      */
-    private entityArchetype: Array<Archetype | null> = new Array()
+    private entityArchetype: Array<Archetype | null> = new Array<Archetype | null>()
     private entitiesDeleted: SparseSet = new SparseSet(1<<8)
     private nextEntityId: u32 = 0
     private nextComponentId: u32 = 0
@@ -89,6 +89,7 @@ export class World {
         return
     }
 
+    @inline
     hasComponent(entity: u32, componentId: u32): bool {
         const archetype = this.entityArchetype[entity]
         return archetype != null && archetype.hasComponent(componentId)

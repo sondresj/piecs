@@ -100,6 +100,23 @@ export class SparseSet {
   pop(): u32;
   delete(value: u32): usize;
 }
+export class FlagComponentSet {
+  static wrap(ptr: usize): FlagComponentSet;
+  valueOf(): usize;
+  constructor(world: usize);
+  get id(): u32;
+  add(entity: u32): void;
+  has(entity: u32): bool;
+  remove(entity: u32): void;
+}
+export var flagComponentSet_ID: u32;
+export var i8ComponentSet_ID: u32;
+export var i16ComponentSet_ID: u32;
+export var i32ComponentSet_ID: u32;
+export var u8ComponentSet_ID: u32;
+export var u16ComponentSet_ID: u32;
+export var u32ComponentSet_ID: u32;
+export var f32ComponentSet_ID: u32;
 export const memory: WebAssembly.Memory;
 export function __new(size: usize, id: u32): usize;
 export function __pin(ptr: usize): usize;

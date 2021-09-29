@@ -7,6 +7,9 @@ const ALL: u8 = 1 << 0
 const ANY: u8 = 1 << 1
 const NOT: u8 = 1 << 2
 
+const GROUP_AND: u8 = 1 << 3
+const GROUP_OR: u8 = 1 << 4
+
 export class QueryMask {
     constructor(
         private readonly type: u8,
@@ -22,9 +25,6 @@ export class QueryMask {
     }
 }
 
-const AND: u8 = 1 << 3
-const OR: u8 = 1 << 4
-
 export class QueryMaskGroup {
     constructor(
         private readonly type: u8,
@@ -38,10 +38,16 @@ export class QueryMaskGroup {
         for (let i: i32 = 0; i < ql; i++) {
             const query = unchecked(queries[i])
             const matches = query.match(target)
-            if (matches && type == OR) return true
-            if (!matches && type == AND) return false
+            if (matches && type == GROUP_OR) return true
+            // !matches && type == GROUP_OR : continue..
+            // matches && type == GROUP_AND : continue
+            if (!matches && type == GROUP_AND) return false
         }
-        return true
+        // not returned from for loop means 1 of 2 cases:
+        // 1. type is AND, and everything matched
+        // 2. type is OR and nothing matched
+        // return true for case 1, false for case 2
+        return type == GROUP_AND
     }
 }
 
@@ -69,11 +75,11 @@ export function not(componentIds: Array<u32>): QueryMask {
 }
 
 export function and(subQueries: Array<QueryMask>): QueryMaskGroup {
-    return new QueryMaskGroup(AND, subQueries)
+    return new QueryMaskGroup(GROUP_AND, subQueries)
 }
 
 export function or(subQueries: Array<QueryMask>): QueryMaskGroup {
-    return new QueryMaskGroup(OR, subQueries)
+    return new QueryMaskGroup(GROUP_OR, subQueries)
 }
 
 export function query<T>(values: Array<T>): Query {
@@ -111,18 +117,15 @@ export class Query {
         return true
     }
 
-    @inline
     get length(): i32 {
         return this._archetypes.length
     }
 
-    @inline
     @operator('[]')
     get(i: native<i32>): Array<u32> {
         return this._archetypes[i].entities
     }
 
-    @inline
     @operator('{}')
     __uget(i: native<i32>): Array<u32> {
         return unchecked(this._archetypes[i]).entities

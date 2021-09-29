@@ -19,7 +19,7 @@
   ],
   "scripts": {
     "asbuild:untouched": "asc --target debug --exportRuntime",
-    "asbuild:optimized": "asc --target release --exportRuntime -Ospeed -d index.d.ts",
+    "asbuild:optimized": "asc --target release --exportRuntime -d index.d.ts",
     "asbuild": "yarn asbuild:untouched && yarn asbuild:optimized",
     "test": "node --experimental-wasi-unstable-preview1 __tests__ ",
     "build": "yarn asbuild:optimized",
