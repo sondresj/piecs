@@ -64,12 +64,16 @@ export var ArrayU32_ID: u32;
 export class QueryMask {
   static wrap(ptr: usize): QueryMask;
   valueOf(): usize;
+  readonly type: u8;
+  readonly mask: usize;
   constructor(type: u8, mask: usize);
   match(target: usize): bool;
 }
 export class QueryMaskGroup {
   static wrap(ptr: usize): QueryMaskGroup;
   valueOf(): usize;
+  readonly type: u8;
+  readonly subQueries: usize;
   constructor(type: u8, subQueries: usize);
   match(target: usize): bool;
 }

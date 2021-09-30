@@ -12,8 +12,8 @@ const GROUP_OR: u8 = 1 << 4
 
 export class QueryMask {
     constructor(
-        private readonly type: u8,
-        private readonly mask: BitMask
+        readonly type: u8,
+        readonly mask: BitMask
     ) {}
 
     @inline
@@ -27,8 +27,8 @@ export class QueryMask {
 
 export class QueryMaskGroup {
     constructor(
-        private readonly type: u8,
-        private readonly subQueries: Array<QueryMask>
+        readonly type: u8,
+        readonly subQueries: Array<QueryMask>
     ) {}
 
     match(target: BitMask): bool {
@@ -111,8 +111,9 @@ export class Query {
     tryAdd(archetype: Archetype): bool {
         const query = this._query
         const target = archetype.mask
-        const matches = query.match(target)
-        if (!matches) return false
+        if (!query.match(target)) {
+            return false
+        }
         this._archetypes.push(archetype)
         return true
     }
@@ -122,12 +123,12 @@ export class Query {
     }
 
     @operator('[]')
-    get(i: native<i32>): Array<u32> {
+    get(i: i32): Array<u32> {
         return this._archetypes[i].entities
     }
 
     @operator('{}')
-    __uget(i: native<i32>): Array<u32> {
+    __uget(i: i32): Array<u32> {
         return unchecked(this._archetypes[i]).entities
     }
 }

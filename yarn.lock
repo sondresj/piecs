@@ -2,10 +2,10 @@
 # yarn lockfile v1
 
 
-"@assemblyscript/loader@^0.19.16":
-  version "0.19.16"
-  resolved "https://registry.yarnpkg.com/@assemblyscript/loader/-/loader-0.19.16.tgz#481063138724deef314dc0930714eebf39117683"
-  integrity sha512-Skp0eLY3oP2YfAxaHq4IpsUZQOpllkBB0dNDrhck42mGQTimAJ6KegXMuFVa9PIP6gw3bDlCs2iIegfGnXiuFg==
+"@assemblyscript/loader@^0.19.17":
+  version "0.19.17"
+  resolved "https://registry.yarnpkg.com/@assemblyscript/loader/-/loader-0.19.17.tgz#53acafdb5a88a6d87ee99689e38b83be2c5c226a"
+  integrity sha512-V2lrYgii5Qy81v4lZq+FeT8X30UcwCkB5aZJ/U/2GHCBxrjiriBLRybr9SI+8Id/H7vMaWcOgq2iBf9PXVaeXQ==
 
 "@babel/code-frame@7.12.11":
   version "7.12.11"
@@ -929,10 +929,10 @@ array.prototype.flat@^1.2.4:
     define-properties "^1.1.3"
     es-abstract "^1.18.0-next.1"
 
-assemblyscript@^0.19.16:
-  version "0.19.16"
-  resolved "https://registry.yarnpkg.com/assemblyscript/-/assemblyscript-0.19.16.tgz#fc06c9892755775e8e31a59249fbc361fd49e1d1"
-  integrity sha512-AMNdwcat+EEsxjkVQ5vOE/lDbXBvy1swQKAuMG2Ken+DZufZH7wKHIAVKR5liteW/jLL3T971l1MN+onP/bixA==
+assemblyscript@^0.19.17:
+  version "0.19.17"
+  resolved "https://registry.yarnpkg.com/assemblyscript/-/assemblyscript-0.19.17.tgz#b1dc9842a024a65eaf1f9943b3094e7c98b9f055"
+  integrity sha512-KY80XCUFaocBR9V+Xx9oaG2ftkO1Da13MDcF6ZB25Nlir8SHPQBzR7nqCqmVHxp5FoE3pAnxJMNmQmS3JiTUTA==
   dependencies:
     binaryen "101.0.0-nightly.20210904"
     long "^4.0.0"

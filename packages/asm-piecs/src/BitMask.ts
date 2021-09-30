@@ -2,7 +2,7 @@ const mod32 = 0x0000001f
 export class BitMask {
     // assemblyscript Array uses arraybuffer under the hood, so might as well use regular Array
     // Just using the Array for the growing feature when you set length.
-    // Any other operation on the array is done using native wasm load/store instructions  
+    // Any other operation on the array is done using native wasm load/store instructions
     private _mask: Array<u32>
     private _maxValue: u32
     private _size: u32
@@ -121,7 +121,7 @@ export class BitMask {
         }
         return diff
     }
-    
+
     symmetrictDifference(other: BitMask): BitMask {
         const al: u32 = <u32> this._mask.length
         const bl: u32 = <u32>other._mask.length
@@ -140,7 +140,7 @@ export class BitMask {
         }
         return symDiff
     }
-    
+
     contains(other: BitMask): bool {
         if (other._size > this._size) return false
         const l = <u32>other._mask.length

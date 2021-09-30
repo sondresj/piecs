@@ -19,7 +19,8 @@ module.exports = describe('World', () => {
         const world = new World()
         const c1 = world.getNextComponentId()
         const c2 = world.getNextComponentId()
-        const q = query(and(any(c2, c1)))
+        const q = query(and(all(c2, c1)))
+        // @ts-ignore
         world.registerQuery(q.__ptr)
         world.init()
         const e = world.createEntity()

@@ -4,5 +4,6 @@
         "noEmit": true,
         "moduleResolution": "node",
         "checkJs": true
-    }
+    },
+    "exclude": ["index.d.ts"]
 }

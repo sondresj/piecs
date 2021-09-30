@@ -9,6 +9,7 @@ bitMask()
 query()
 sparseSet()
 world()
+// inline()
 
 const {
     suites,

@@ -19,7 +19,7 @@ export class SparseSet {
     }
 
     @inline
-    has(value: native<u32>): bool {
+    has(value: u32): bool {
         if (value >= <u32> this._indices.length)
             return false
         const index = unchecked(this._indices[value])
@@ -41,7 +41,7 @@ export class SparseSet {
     }
 
     @inline
-    add(value: native<u32>): this {
+    add(value: u32): this {
         if (!this.has(value)) {
             this._indices[<i32>value] = this._dense.push(value) - 1
         }
@@ -54,7 +54,7 @@ export class SparseSet {
     }
 
     @inline
-    delete(value: native<u32>): this {
+    delete(value: u32): this {
         if (this.has(value)) {
             const swap = this._dense.pop()
             if (swap !== value) {

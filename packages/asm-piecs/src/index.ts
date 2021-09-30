@@ -101,7 +101,7 @@ export class World {
         const archetype = this.entityArchetype[entity]
         if (!archetype) throw new Error(`Entity ${entity} does not exist`)
 
-        if (!archetype.hasComponent(componentId)) {
+        if (!archetype.hasComponent(componentId) || !archetype.mask.has(componentId)) {
             this._transformEntity(archetype, entity, componentId)
         }
         return
@@ -113,7 +113,7 @@ export class World {
         const archetype = this.entityArchetype[entity]
         if (!archetype) throw new Error(`Entity ${entity} does not exist`)
 
-        if (archetype.hasComponent(componentId)) {
+        if (archetype.mask.has(componentId) == true) {
             this._transformEntity(archetype, entity, componentId)
         }
         return

@@ -11,26 +11,27 @@ const {
 
 const all = (/** @type {number[]} */ ...componentIds) => {
     const ids = __newArray(ArrayU32_ID, componentIds)
-    return wasm.QueryMask.wrap(wasm.all(ids.valueOf()))
+    return wasm.QueryMask.wrap(wasm.all(ids))
 }
 const any = (/** @type {number[]} */ ...componentIds) => {
     const ids = __newArray(ArrayU32_ID, componentIds)
-    return wasm.QueryMask.wrap(wasm.any(ids.valueOf()))
+    return wasm.QueryMask.wrap(wasm.any(ids))
 }
 const not = (/** @type {number[]} */ ...componentIds) => {
     const ids = __newArray(ArrayU32_ID, componentIds)
-    return wasm.QueryMask.wrap(wasm.not(ids.valueOf()))
+    return wasm.QueryMask.wrap(wasm.not(ids))
 }
 const and = (/** @type {wasm.QueryMask[]} */ ...queryMasks) => {
-    const maskArr = __newArray(ArrayU32_ID, queryMasks.map(qm => qm.valueOf()))
-    return wasm.QueryMaskGroup.wrap(wasm.and(maskArr.valueOf()))
+    const maskArr = __newArray(ArrayU32_ID, queryMasks.map(qm => qm))
+    return wasm.QueryMaskGroup.wrap(wasm.and(maskArr))
 }
 const or = (/** @type {wasm.QueryMask[]} */ ...queryMasks) => {
-    const maskArr = __newArray(ArrayU32_ID, queryMasks.map(qm => qm.valueOf()))
-    return wasm.QueryMaskGroup.wrap(wasm.or(maskArr.valueOf()))
+    const maskArr = __newArray(ArrayU32_ID, queryMasks.map(qm => qm))
+    return wasm.QueryMaskGroup.wrap(wasm.or(maskArr))
 }
 const query = (/** @type {wasm.QueryMaskGroup} */ queryMaskGroup) => {
-    const q = new wasm.Query(queryMaskGroup.valueOf())
+    // @ts-ignore
+    const q = new wasm.Query(queryMaskGroup)
     return {
         get length() {
             return q.length
@@ -45,9 +46,10 @@ const query = (/** @type {wasm.QueryMaskGroup} */ queryMaskGroup) => {
          * @param {number | wasm.Archetype} archetype
          */
         tryAdd(archetype) {
-            return q.tryAdd(archetype.valueOf())
+            // @ts-ignore
+            return q.tryAdd(archetype)
         },
-        __ptr: q.valueOf()
+        __ptr: q
     }
 }
 
