@@ -5,7 +5,8 @@ import { SparseSet } from './SparseSet'
 export class Archetype {
     [key: i32]: u32
 
-    private _transformations: Map<u32, Archetype> = new Map()
+    private _transformations: Array<Archetype | null> = new Array<Archetype | null>()
+    // private _transformations: Map<u32, Archetype> = new Map()
     private _entities: SparseSet = new SparseSet(1<<10)
 
     constructor(componentMask: BitMask) {
@@ -62,18 +63,20 @@ export class Archetype {
         archetypes: Map<string, Archetype>,
         queries: Array<Query>
     ): Archetype {
-        if (this._transformations.has(componentId)) {
-            return unchecked(this._transformations.get(componentId))
+        let archetype: Archetype | null = <u32> this._transformations.length > componentId
+            ? this._transformations[componentId]
+            : null
+        if (archetype != null) {
+            return archetype
         }
         const nextMask = this.mask.copy().xor(componentId)
         const nextMaskId = nextMask.toString()
-        let archetype: Archetype | null = null
 
         if (archetypes.has(nextMaskId)) {
             archetype = archetypes.get(nextMaskId)
         } else {
             archetype = new Archetype(nextMask)
-            archetype._transformations.set(componentId, this) // for potential backwards transform
+            archetype._transformations[componentId] = this // for potential backwards transform
             // Doesn't really belong here, but it does increase performance
             archetypes.set(archetype.id, archetype)
             for (let i = 0; i < queries.length; i++) {
@@ -82,7 +85,7 @@ export class Archetype {
             }
         }
 
-        this._transformations.set(componentId, archetype)
+        this._transformations[componentId] = archetype
         return archetype
     }
 }

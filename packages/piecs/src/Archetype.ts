@@ -1,41 +1,66 @@
-import { BitmaskSet } from './collections/BitmaskSet'
-import { SparseSet_Array } from './collections/SparseSet'
+import { BitSet } from './collections/BitSet'
+import { createSparseSet, SparseSet } from './collections/SparseSet'
 import { Query } from './Query'
 
-export class Archetype {
-    // sparse indexed by componentId. These are the parent archetypes of this archetype
-    private _transformations: Archetype[] = []
-    constructor(componentMask: BitmaskSet) {
-        this.mask = componentMask
-        this.id = componentMask.toString()
-    }
+export type Archetype = {
+    readonly id: string
+    readonly mask: BitSet
+    readonly entitySet: SparseSet
+    readonly entities: ReadonlyArray<number>
+    readonly adjacent: Archetype[]
 
-    public readonly entities = new SparseSet_Array()
-    public readonly mask: BitmaskSet
-    public readonly id: string
-
-    readonly _transform = (
+    transform (
         componentId: number,
-        archetypes: Map<string, Archetype>,
         queries: Query[]
-    ): Archetype => {
-        if (this._transformations[componentId]) {
-            return this._transformations[componentId]!
-        }
-        const nextMask = this.mask.copy().xor(componentId)
-        let archetype = archetypes.get(nextMask.toString())
+    ): Archetype
+}
 
-        if (!archetype) {
-            archetype = new Archetype(nextMask)
-            archetype._transformations[componentId] = this // for potential backwards transform
-            // Doesn't really belong here, but it does increase performance
-            archetypes.set(archetype.id, archetype)
-            for (const query of queries) {
+export function createArchetype(bitmask: BitSet): Archetype {
+    const mask = bitmask.copy()
+    const id = mask.toString()
+    const entitySet = createSparseSet()
+    const adjacent: Archetype[] = []
+
+    return {
+        id,
+        mask,
+        entitySet: entitySet,
+        entities: entitySet.values,
+        adjacent,
+        transform: function(
+            componentId: number,
+            queries: Query[]
+        ): Archetype {
+            let archetype = adjacent[componentId]
+            if (archetype) {
+                return archetype
+            }
+
+            const nextMask = mask.copy().xor(componentId)
+            archetype = createArchetype(nextMask)
+            const ql = queries.length
+            for (let i = 0; i < ql; i++) {
+                const query = queries[i]!
                 query.tryAdd(archetype)
             }
-        }
 
-        this._transformations[componentId] = archetype
-        return archetype
+            // connect archetypes in graph
+            archetype.adjacent[componentId] = this
+            adjacent[componentId] = archetype
+
+            return archetype
+        },
+    }
+}
+
+export function traverseArchetypeGraph(archetype: Archetype, callback: (archetype: Archetype) => boolean | void) {
+    if (callback(archetype) === false) return
+    const adjacent = archetype.adjacent
+    const l = adjacent.length
+    for (let i = 0; i < l; i++) {
+        const arch = adjacent[i]
+        // adjacent is sparse, so there can be empty slots
+        if (!arch) continue
+        traverseArchetypeGraph(arch, callback)
     }
 }

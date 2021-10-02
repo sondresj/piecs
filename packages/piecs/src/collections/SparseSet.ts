@@ -1,107 +1,80 @@
-import { Vector, VectorValueType } from './Vector'
+// export class SparseSet {
+//     readonly values: number[] = []
+//     private _indices: number[] = []
 
-export class SparseSet {
-    private dense: Vector<number>
-    private indices = new Vector<number>('pointer', { sparse: true })
+//     has = (value: number): boolean => {
+//         const index = this._indices[value]!
+//         return index < this.values.length
+//             && this.values[index] === value
+//     }
 
-    constructor(type: Exclude<VectorValueType, 'any'>) {
-        this.dense = new Vector<number>(type)
-    }
+//     add = (value: number) => {
+//         const index = this._indices[value]!
+//         if (index < this.values.length && this.values[index] === value) {
+//             return
+//         }
+//         this._indices[value] = this.values.push(value) - 1
+//     }
 
-    get length() {
-        return this.dense.length
-    }
+//     delete = (value: number) => {
+//         const index = this._indices[value]!
+//         if (index >= this.values.length || this.values[index] !== value) {
+//             return
+//         }
 
-    has = (value: number): boolean => {
-        const index = this.indices.get(value)
-        return index !== undefined
-            && index < this.dense.length
-            && this.dense.get(index) === value
-    }
+//         const swap = this.values.pop()!
+//         if (swap !== value) {
+//             const index = this._indices[value]!
+//             this.values[index] = swap
+//             this._indices[swap] = index
+//         }
+//     }
+// }
 
-    add = (value: number): this => {
-        const index = this.indices.get(value)
-        if (index !== undefined
-            && index < this.dense.length
-            && this.dense.get(index) === value
-        ) {
-            return this
-        }
-        this.indices.set(value, this.dense.push(value) - 1)
-
-        return this
-    }
-
-    get = (index: number): number | undefined => {
-        return this.dense.get(index)
-    }
-
-    pop = (): number | undefined => {
-        return this.dense.pop()
-    }
-
-    delete = (value: number): this => {
-        const index = this.indices.get(value)
-        if (index === undefined
-            || index >= this.dense.length
-            || this.dense.get(index) !== value
-        ) {
-            return this
-        }
-
-        const swap = this.dense.pop()!
-        if (swap !== value) {
-            this.dense.set(index, swap)
-            this.indices.set(swap, index)
-        }
-
-        return this
-    }
-
-    subArray = () => {
-        return this.dense.subArray()
-    }
-
-    // forEach = (callback: (value: number, index: number) => void) => {
-    //     this.dense.forEach(callback)
-    // }
+export type SparseSet = {
+    readonly values: ReadonlyArray<number>
+    has: (value: number) => boolean
+    add: (value: number) => void
+    remove: (value: number) => void
 }
-export class SparseSet_Array {
-    readonly values: number[] = []
-    private indices: number[] = []
 
-    /**
-     * Setting length to 0 effectively clears the array.
-     * In contrast to standard arrays however, this does not release the contents of the array for garbage collecting
-     */
-    // length = 0
+export const createSparseSet = (): SparseSet => {
+    const values: number[] = []
+    const indices: number[] = []
 
-    has = (value: number): boolean => {
-        const index = this.indices[value]!
-        return index < this.values.length
-            && this.values[index] === value
+    const has = (value: number): boolean => {
+        const index = indices[value]!
+        return index < values.length
+            && values[index] === value
     }
 
-    add = (value: number) => {
-        const index = this.indices[value]!
-        if (index < this.values.length && this.values[index] === value) {
-            return
+    const add = (value: number) => {
+        const index = indices[value]
+        const l = values.length
+        if (index === undefined || index >= l || values[index] !== value) {
+            indices[value] = l
+            values.push(value)
         }
-        this.indices[value] = this.values.push(value) - 1
-        return this
     }
 
-    delete = (value: number) => {
-        const index = this.indices[value]!
-        if (index >= this.values.length || this.values[index] !== value) {
+    const remove = (value: number) => {
+        const index = indices[value]
+        if (index === undefined || index >= values.length || values[index] !== value) {
             return
         }
 
-        const swap = this.values.pop()!
+        const swap = values.pop()!
         if (swap !== value) {
-            const index = this.indices[value]!
-            this.values[index] = swap
-            this.indices[swap] = index
+            const index = indices[value]!
+            values[index] = swap
+            indices[swap] = index
         }
+    }
+
+    return {
+        values,
+        has,
+        add,
+        remove
     }
 }

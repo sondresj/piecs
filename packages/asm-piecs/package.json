@@ -19,11 +19,11 @@
   ],
   "scripts": {
     "asbuild:untouched": "asc --target debug --exportRuntime --runtime minimal",
-    "asbuild:optimized": "asc --target release --exportRuntime --runtime minimal -d index.d.ts",
+    "asbuild:optimized": "asc --target release --exportRuntime --runtime minimal --noAssert -d index.d.ts",
     "asbuild": "yarn asbuild:untouched && yarn asbuild:optimized",
     "test": "node --experimental-wasi-unstable-preview1 __tests__ ",
     "build": "yarn asbuild:optimized",
-    "profile": "cross-env NODE_ENV=production node --experimental-wasi-unstable-preview1 --cpu-prof __tests__/performance/bench.js >> result.log",
+    "profile": "cross-env NODE_ENV=production node --turbo-inline-js-wasm-calls --cpu-prof __tests__/performance/bench.js >> result.log",
     "prepare": "yarn build",
     "lint": "eslint"
   },

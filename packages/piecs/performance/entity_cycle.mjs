@@ -1,41 +1,38 @@
 import { World } from '../lib/World.js'
 import { all, query } from '../lib/Query.js'
 
-export default function entityCycle(count) {
+export default function createEntityCycle(count) {
     const world = new World()
-    const A = world.createComponentSet('A', 'flag', true)
-    const B = world.createComponentSet('B', 'flag', true)
+    const A = world.getNextComponentId()
+    const B = world.getNextComponentId() //world.createComponentSet('B', 'flag', true)
 
-    world.registerSystem({
-        name: 'spawnB',
-        query: query(all(A.id)),
-        execute: (entities, world) => {
-            for (let i = entities.length - 1; i > 0; i--) {
-                const entity = entities[i]
-                const a = A.get(entity)
-                const e1 = world.createEntity()
-                B.add(e1, a)
-                const e2 = world.createEntity()
-                B.add(e2, a)
+    world
+        .registerSystem((queryResults, world) => {
+            for (let i = 0; i < queryResults.length; i++) {
+                const entities = queryResults[i].entities
+                for (let j = entities.length - 1; j >= 0; j--) {
+                    const e1 = world.createEntity()
+                    world.setComponent(e1, B)
+                    const e2 = world.createEntity()
+                    world.setComponent(e2, B)
+                }
             }
-        }
-    }).registerSystem({
-        name: 'killB',
-        query: query(all(B.id)),
-        execute: (entities, world) => {
-            for (let i = entities.length - 1; i > 0; i--) {
-                const entity = entities[i]
-                world.deleteEntity(entity)
+        }, query(all(A)))
+        .registerSystem((queryResults, world) => {
+            for (let i = 0; i < queryResults.length; i++) {
+                const entities = queryResults[i].entities
+                for (let j = entities.length - 1; j >= 0; j--) {
+                    const entity = entities[j]
+                    world.deleteEntity(entity)
+                }
             }
-        }
-    }).init()
+        }, query(all(B)))
+        .init([A], [B])
 
     for (let i = 0; i < count; i++) {
         const e = world.createEntity()
-        A.add(e)
+        world.setComponent(e, A)
     }
 
-    return () => {
-        world.update()
-    }
+    return world.update
 }

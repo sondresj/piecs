@@ -1,37 +1,36 @@
 import { World } from '../lib/World.js'
 import { all, not, and, query } from '../lib/Query.js'
 
-export default function addRemove(count) {
+export default function createAddRemove(count) {
     const world = new World()
-    const A = world.createComponentSet('A', 'flag', true)
-    const B = world.createComponentSet('B', 'flag', true)
+    const A = world.getNextComponentId()
+    const B = world.getNextComponentId()
 
-    world.registerSystem({
-        name: 'addB',
-        query: query(and(all(A.id), not(B.id))),
-        execute: (entities) => {
-            for (let i = entities.length - 1; i > 0; i--) {
-                const entity = entities[i]
-                B.add(entity)
+    world
+        .registerSystem((queryResults, world) => {
+            for (let i = 0; i < queryResults.length; i++) {
+                const entities = queryResults[i].entities
+                for (let j = entities.length - 1; j >= 0; j--) {
+                    const entity = entities[i]
+                    world.setComponent(entity, B)
+                }
             }
-        }
-    }).registerSystem({
-        name: 'removeB',
-        query: query(all(B.id)),
-        execute: (entities) => {
-            for (let i = entities.length - 1; i > 0; i--) {
-                const entity = entities[i]
-                B.remove(entity)
+        }, query(and(all(A), not(B))))
+        .registerSystem((queryResults, world) => {
+            for (let i = 0; i < queryResults.length; i++) {
+                const entities = queryResults[i].entities
+                for (let j = entities.length - 1; j >= 0; j--) {
+                    const entity = entities[i]
+                    world.removeComponent(entity, B)
+                }
             }
-        }
-    }).init()
+        }, query(all(B)))
+        .init([A], [A, B])
 
     for (let i = 0; i < count; i++) {
         const e = world.createEntity()
-        A.add(e)
+        world.setComponent(e, A)
     }
 
-    return () => {
-        world.update()
-    }
+    return world.update
 }

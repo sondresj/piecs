@@ -3,35 +3,34 @@ import { all, query } from '../lib/Query.js'
 
 const components = {}
 
-export default function fragIter(count) {
+export default function createFragIter(count) {
     const world = new World()
 
     Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').forEach(name => {
-        components[name] = world.createComponentSet(name, 'flag', true)
+        components[name] = world.getNextComponentId() //world.createComponentSet(name, 'flag', true)
     })
     const Data = world.createComponentSet('Data', 'uint8', 0)
 
-    world.registerSystem({
-        name: 'DataSys',
-        query: query(all(Data.id)),
-        execute: (entities) => {
-            for (let i = entities.length - 1; i > 0; i--) {
-                const entity = entities[i]
-                const data = Data.get(entity)
-                Data.set(entity, data * 2)
+    world
+        .registerSystem((queryResults, world) => {
+            for (let i = 0; i < queryResults.length; i++) {
+                const entities = queryResults[i].entities
+                for (let j = entities.length - 1; j >= 0; j--) {
+                    const entity = entities[i]
+                    const data = Data.get(entity)
+                    Data.set(entity, data * 2)
+                }
             }
-        }
-    }).init()
+        },  query(all(Data.id)))
+        .init(...Object.values(components).map(c => [c, Data.id]))
 
     for (let i = 0; i < count; i++) {
         for (const c of Object.values(components)) {
             const e = world.createEntity()
+            world.setComponent(e, c)
             Data.add(e, 0)
-            c.add(e)
         }
     }
 
-    return () => {
-        world.update()
-    }
+    return world.update
 }

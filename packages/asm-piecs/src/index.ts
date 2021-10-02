@@ -4,22 +4,14 @@ import { Query } from './Query'
 import { SparseSet } from './SparseSet'
 
 export class World {
-    /**
-     * [archetype.toString()]: archetype
-     */
     private archetypes: Map<string, Archetype> = new Map<string, Archetype>()
-    /**
-     * [entity: number]: archetype
-     */
     private entityArchetype: Array<Archetype | null> = new Array<Archetype | null>()
     private entitiesDeleted: SparseSet = new SparseSet(1<<8)
     private nextEntityId: u32 = 0
     private nextComponentId: u32 = 0
-
-    private queries: Array<Query> = new Array()
-
     private blankArchetype: Archetype = new Archetype(new BitMask(1))
     private initialized: bool = false
+    private queries: Array<Query> = new Array()
 
     getNextComponentId(): u32 {
         return this.nextComponentId++
@@ -38,13 +30,8 @@ export class World {
         }
     }
 
-    /**
-     * Initialize world, invoking the initializer for each registered system
-     * @param initialEntityComponents optional array of initial entity components
-     * @returns this
-     */
     init(): void {
-        assert(!this.initialized, 'Attempted to rebuild world, this is not allowed')
+        assert(!this.initialized, 'Attempted to re-init world, this is not allowed')
         this.initialized = true
 
         // create a blank archetype that serves as the base archetype for all entities
@@ -61,8 +48,15 @@ export class World {
     }
 
     @inline
+    getEntityArchetype(entity: u32): Archetype | null {
+        return entity < <u32> this.entityArchetype.length
+            ? this.entityArchetype[entity]
+            : null
+    }
+
+    @inline
     hasEntity(entity: u32): bool {
-        return !this.entitiesDeleted.has(entity) && !!this.entityArchetype[entity]
+        return !this.entitiesDeleted.has(entity) && this.getEntityArchetype(entity) != null
     }
 
     createEntity(): u32 {
@@ -81,7 +75,7 @@ export class World {
     deleteEntity(entity: u32): void {
         if (this.entitiesDeleted.has(entity)) return
 
-        const archetype = this.entityArchetype[entity]
+        const archetype = this.getEntityArchetype(entity)
         if (!archetype) throw new Error(`Entity ${entity} does not exist`)
 
         archetype.removeEntity(entity)
@@ -91,29 +85,29 @@ export class World {
 
     @inline
     hasComponent(entity: u32, componentId: u32): bool {
-        const archetype = this.entityArchetype[entity]
+        const archetype = this.getEntityArchetype(entity)
         return archetype != null && archetype.hasComponent(componentId)
     }
 
     setComponent(entity: u32, componentId: u32): void {
         if (this.entitiesDeleted.has(entity)) throw new Error(`Entity ${entity} is deleted`)
 
-        const archetype = this.entityArchetype[entity]
+        const archetype = this.getEntityArchetype(entity)
         if (!archetype) throw new Error(`Entity ${entity} does not exist`)
 
-        if (!archetype.hasComponent(componentId) || !archetype.mask.has(componentId)) {
+        if (!archetype.hasComponent(componentId)) {
             this._transformEntity(archetype, entity, componentId)
         }
         return
     }
-    // spot the difference between removeComponent and setComponent
+
     removeComponent(entity: u32, componentId: u32): void {
         if (this.entitiesDeleted.has(entity)) throw new Error(`Entity ${entity} is deleted`)
 
-        const archetype = this.entityArchetype[entity]
+        const archetype = this.getEntityArchetype(entity)
         if (!archetype) throw new Error(`Entity ${entity} does not exist`)
 
-        if (archetype.mask.has(componentId) == true) {
+        if (archetype.hasComponent(componentId) == true) {
             this._transformEntity(archetype, entity, componentId)
         }
         return

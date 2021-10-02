@@ -1,16 +1,12 @@
 
 const {
     World,
-    FlagComponentSet
+    __collect
 } = require('../../index')
 
 const {
     and,
-    // @ts-ignore
-    or,
     all,
-    // @ts-ignore
-    any,
     not,
     query
 } = require('../../glue')
@@ -18,34 +14,32 @@ const {
 module.exports = function addRemove(count) {
     const world = new World()
     // @ts-ignore
-    const A = new FlagComponentSet(world)
+    const A = world.getNextComponentId() //new FlagComponentSet(world)
     // @ts-ignore
-    const B = new FlagComponentSet(world)
+    const B = world.getNextComponentId() //new FlagComponentSet(world)
 
-    const addBQuery = query(and(all(A.id), not(B.id)))
+    const addBQuery = query(and(all(A), not(B)))
     const addBSystem = () => {
         const l = addBQuery.length
-        // console.log('addBSystem query length', l)
         for (let a = l - 1; a >= 0; a--) {
             const entities = addBQuery.get(a)
-            // console.log('addBSystem entities length in ', a, entities.length)
             for (let i = entities.length - 1; i >= 0; i--) {
                 const entity = entities[i]
-                B.add(entity)
-                // console.log('added B to entity', entity)
+                // B.add(entity)
+                world.setComponent(entity, B)
             }
         }
     }
 
-    const removeBQuery = query(and(all(B.id)))
+    const removeBQuery = query(and(all(B)))
     const removeBSystem = () => {
         const l = removeBQuery.length
         for (let a = l - 1; a >= 0; a--) {
             const entities = removeBQuery.get(a)
             for (let i = entities.length - 1; i >= 0; i--) {
                 const entity = entities[i]
-                B.remove(entity)
-                // console.log('removed B from entity', entity)
+                // B.remove(entity)
+                world.removeComponent(entity, B)
             }
         }
     }
@@ -58,7 +52,8 @@ module.exports = function addRemove(count) {
 
     for (let i = 0; i < count; i++) {
         const e = world.createEntity()
-        A.add(e)
+        world.setComponent(e, A)
+        // A.add(e)
     }
 
     return () => {

@@ -1,6 +1,6 @@
 const mod32 = 0x0000001f
 
-export class BitmaskSet {
+export class BitSet {
     private _mask: Uint32Array
     private _maxValue: number
     private _size: number
@@ -53,17 +53,17 @@ export class BitmaskSet {
         return this
     }
 
-    not(): BitmaskSet {
-        const newBitMask: BitmaskSet = new BitmaskSet(this._maxValue)
+    not(): BitSet {
+        const newBitMask: BitSet = new BitSet(this._maxValue)
         for (let i = 0; i < this._mask.length; i++) {
             newBitMask._mask[i] = ~this._mask[i]!
         }
         return newBitMask
     }
 
-    union(other: BitmaskSet): BitmaskSet {
+    union(other: BitSet): BitSet {
         const maxValue = Math.max(this._maxValue, other._maxValue)
-        const union: BitmaskSet = new BitmaskSet(maxValue)
+        const union: BitSet = new BitSet(maxValue)
         for (let i = 0; i < other._mask.length; i++) {
             const a = this._mask[i] || 0
             const b = other._mask[i] || 0
@@ -72,9 +72,9 @@ export class BitmaskSet {
         return union
     }
 
-    intersection(other: BitmaskSet): BitmaskSet {
+    intersection(other: BitSet): BitSet {
         const maxValue = Math.min(this._maxValue, other._maxValue)
-        const intersection = new BitmaskSet(maxValue)
+        const intersection = new BitSet(maxValue)
         for (let i = 0; i < intersection._mask.length; i++) {
             const a = this._mask[i]!
             const b = other._mask[i]!
@@ -83,8 +83,8 @@ export class BitmaskSet {
         return intersection
     }
 
-    difference(other: BitmaskSet): BitmaskSet {
-        const diff = new BitmaskSet(this._maxValue)
+    difference(other: BitSet): BitSet {
+        const diff = new BitSet(this._maxValue)
         for (let i = 0; i < diff._mask.length; i++) {
             const a = this._mask[i]!
             const b = other._mask[i] || 0
@@ -93,9 +93,9 @@ export class BitmaskSet {
         return diff
     }
 
-    symmetrictDifference(other: BitmaskSet): BitmaskSet {
+    symmetrictDifference(other: BitSet): BitSet {
         const maxValue = Math.max(this._maxValue, other._maxValue)
-        const symDiff = new BitmaskSet(maxValue)
+        const symDiff = new BitSet(maxValue)
         for (let i = 0; i < symDiff._mask.length; i++) {
             const a = this._mask[i] || 0
             const b = other._mask[i] || 0
@@ -104,7 +104,7 @@ export class BitmaskSet {
         return symDiff
     }
 
-    contains(other: BitmaskSet): boolean {
+    contains(other: BitSet): boolean {
         if (other._size > this._size) return false
         for (let i = 0; i < other._mask.length; i++) {
             const a = this._mask[i]!
@@ -114,7 +114,7 @@ export class BitmaskSet {
         return true
     }
 
-    intersects(other: BitmaskSet): boolean {
+    intersects(other: BitSet): boolean {
         const length = Math.min(this._mask.length, other._mask.length)
         for (let i = 0; i < length; i++) {
             const a = this._mask[i]!
@@ -129,8 +129,8 @@ export class BitmaskSet {
         return this._mask.reduceRight((str, n) => str.concat(n.toString(16)), '')
     }
 
-    copy(): BitmaskSet {
-        const newBitMask: BitmaskSet = new BitmaskSet(this._maxValue)
+    copy(): BitSet {
+        const newBitMask: BitSet = new BitSet(this._maxValue)
         newBitMask._mask.set(this._mask, 0)
         return newBitMask
     }

@@ -1,6 +1,6 @@
 import { Struct, StructVector, StructValueType } from './collections/StructVector'
 import { Vector, VectorValueType } from './collections/Vector'
-import { InternalWorld } from './types'
+import { InsideWorld } from './types'
 
 // type NumberType = Exclude<VectorValueType, 'any'>
 
@@ -41,7 +41,7 @@ export class FlagComponentSet implements ComponentSet<boolean> {
         public readonly name: string,
         public readonly type: 'flag',
         public readonly id: number,
-        private world: InternalWorld
+        private world: InsideWorld
     ) {}
 
     add = (entity: number): this => {
@@ -60,7 +60,7 @@ export class FlagComponentSet implements ComponentSet<boolean> {
     }
 
     has = (entity: number): boolean => {
-        return this.world.hasEntity(entity) && this.world.hasComponent(entity, this.id)
+        return this.world.hasComponent(entity, this.id) // this.world.hasEntity(entity) &&
     }
 
     remove = (entity: number): this => {
@@ -77,7 +77,7 @@ export class StructComponentSet<T extends readonly StructValueType[]> implements
         public readonly type: T,
         public readonly id: number,
         private defaultValue: Struct<T>,
-        private world: InternalWorld
+        private world: InsideWorld
     ) {
         this.values = new StructVector<T>(type, { sparse: true })
     }
@@ -98,7 +98,7 @@ export class StructComponentSet<T extends readonly StructValueType[]> implements
     }
 
     has = (entity: number): boolean => {
-        return this.world.hasEntity(entity) && this.world.hasComponent(entity, this.id)
+        return this.world.hasComponent(entity, this.id) //
     }
 
     remove = (entity: number): this => {
@@ -115,7 +115,7 @@ export class VectorComponentSet<T> {
         public readonly type: VectorValueType,
         public readonly id: number,
         private defaultValue: T,
-        private world: InternalWorld
+        private world: InsideWorld
     ) {
         this.values = new Vector<T>(
             mapType(type) as any,
@@ -148,7 +148,7 @@ export class VectorComponentSet<T> {
     }
 
     has = (entity: number) => {
-        return this.world.hasEntity(entity) && this.world.hasComponent(entity, this.id)
+        return this.world.hasComponent(entity, this.id) //
     }
 
     get = (entity: number): T | undefined => {

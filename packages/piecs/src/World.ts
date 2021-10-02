@@ -1,31 +1,22 @@
-import type { System, InsideWorld, OutsideWorld, InternalWorld } from './types'
-import { Archetype } from './Archetype'
-import { BitmaskSet } from './collections/BitmaskSet'
-import { SparseSet_Array } from './collections/SparseSet'
+import type { System, InsideWorld, OutsideWorld } from './types'
+import { Archetype, createArchetype, traverseArchetypeGraph } from './Archetype'
+import { BitSet } from './collections/BitSet'
 import { Query } from './Query'
 import { VectorComponentSet, ComponentSet, StructComponentSet, FlagComponentSet } from './ComponentSet'
 import type { StructValueType } from './collections/StructVector'
 import type { VectorValueType } from './collections/Vector'
 
-export class World implements OutsideWorld, InsideWorld, InternalWorld {
-    /**
-     * [archetype.toString()]: archetype
-     */
-    private archetypes: Map<string, Archetype> = new Map()//: Record<string, Archetype> = {}
-    /**
-     * [entity: number]: archetype
-     */
+export class World implements OutsideWorld, InsideWorld {
     private entityArchetype: Archetype[] = []
-    private entitiesDeleted = new SparseSet_Array()
-    // private entitiesDeleted = new SparseSet('uint32')
+    private deletedEntities: number[] = []
     private nextEntityId = 0
     private nextComponentId = 0
 
     private systems: System[] = []
     private queries: Query[] = [] // should be 1 to 1 with systems
 
-    private deferredActions: Array<() => void> = []
-    private blankArchetype: Archetype = new Archetype(new BitmaskSet(0))
+    private deferredActions: (() => void)[] = []
+    private blankArchetype: Archetype = createArchetype(new BitSet(0))
     private initialized = false
 
     private _executeDeferredActions = () => {
@@ -37,7 +28,11 @@ export class World implements OutsideWorld, InsideWorld, InternalWorld {
         this.deferredActions.length = 0
     }
 
-    readonly createComponentSet = <T>(
+    getNextComponentId = () => {
+        return this.nextComponentId++
+    }
+
+    createComponentSet = <T>(
         name: string,
         type: VectorValueType | 'flag' | StructValueType[],
         defaultValue: Readonly<T>
@@ -47,31 +42,21 @@ export class World implements OutsideWorld, InsideWorld, InternalWorld {
         return new VectorComponentSet(name, type, this.nextComponentId++, defaultValue, this) as any
     }
 
-    readonly registerSystem = (system: System) => {
-        if (this.systems.some(sys => sys.name === system.name))
-            throw new Error(`System ${system.name} already registered`)
+    registerSystem = (system: System, query: Query) => {
         this.systems.push(system)
-        this.queries.push(system.query)
+        this.queries.push(query)
 
         if (this.initialized) {
-            if (system.init) {
-                system.init(this)
-                // this._executeDeferredActions() // ??
-            }
-            for (const archetype of this.archetypes.values()) {
-                system.query.tryAdd(archetype)
-            }
+            traverseArchetypeGraph(this.blankArchetype, (archetype) => {
+                query.tryAdd(archetype)
+                return true
+            })
         }
 
         return this
     }
 
-    /**
-     * Initialize world, invoking the initializer for each registered system
-     * @param initialEntityComponents optional array of initial entity components
-     * @returns this
-     */
-    readonly init = () => {
+    init = (...expectedComponentIdCombinations: Array<Array<number>>) => {
         if (this.initialized) {
             console.warn('Attempted to rebuild world, this is not allowed')
             return this
@@ -79,20 +64,20 @@ export class World implements OutsideWorld, InsideWorld, InternalWorld {
         this.initialized = true
 
         // create a blank archetype that serves as the base archetype for all entities
-        const blankArchetype = new Archetype(new BitmaskSet(this.nextComponentId))
-        this.archetypes.set(blankArchetype.id, blankArchetype)
+        const blankArchetype = createArchetype(new BitSet(this.nextComponentId))
         this.blankArchetype = blankArchetype
-
-        this.systems.forEach(system => {
-            if (system.init) {
-                system.init(this)
-            }
-        })
 
         this.queries.forEach(query => {
             query.tryAdd(blankArchetype)
         })
-        this._executeDeferredActions()
+
+        expectedComponentIdCombinations.forEach(combinations => {
+            let archetype = blankArchetype
+            combinations.forEach(componentId => {
+                archetype = archetype.transform(componentId, this.queries)
+            })
+        })
+
         return this
     }
 
@@ -101,18 +86,19 @@ export class World implements OutsideWorld, InsideWorld, InternalWorld {
      * Typically you want to update each animation frame (@see window.requestAnimationFrame)
      * @returns number of milliseconds that the update took
      */
-    readonly update = (): this => {
+    update = (): this => {
         const systems = this.systems
         const queries = this.queries
         for (let s = 0, sl = systems.length; s < sl; s++) {
             const system = systems[s]!
             const query = queries[s]!
             const archetypes = query.archetypes
-            for (let a = 0, al = archetypes.length; a < al; a++) {
-                const entities = archetypes[a]!.entities.values
-                if (entities.length > 0)
-                    system.execute(entities, this)
-            }
+            system(archetypes, this)
+            // for (let a = 0, al = archetypes.length; a < al; a++) {
+            //     const entities = archetypes[a]!.entitySet.values
+            //     if (entities.length > 0)
+            //         system.execute(entities, this)
+            // }
         }
 
         this._executeDeferredActions()
@@ -124,70 +110,71 @@ export class World implements OutsideWorld, InsideWorld, InternalWorld {
      * @param action The action to defer
      * @returns this
      */
-    readonly defer = (action: () => void): this => {
+    defer = (action: () => void): this => {
         this.deferredActions.push(action)
         return this
     }
-
-    readonly hasEntity = (entity: number): boolean => {
-        return !this.entitiesDeleted.has(entity) && !!this.entityArchetype[entity]
+    hasEntity = (entity: number): boolean => {
+        return this.entityArchetype[entity] !== undefined
     }
 
-    readonly createEntity = (): number => {
+    createEntity = (): number => {
         if (!this.initialized) throw new Error('Not initialized')
 
-        const entity = this.entitiesDeleted.values.length > 0
-            ? this.entitiesDeleted.values.pop()!
-            : this.nextEntityId++
+        // for some reason, this is slightly faster (micro-optimizations yo)
+        const deleted = this.deletedEntities
+        let entity = -1
+        if (deleted.length) {
+            entity = deleted.pop()!
+        } else {
+            entity = this.nextEntityId++
+        }
+        // const entity = this.deletedEntities.length > 0
+        //     ? this.deletedEntities.pop()!
+        //     : this.nextEntityId++
 
         const archetype = this.blankArchetype
-        archetype.entities.add(entity)
+        archetype.entitySet.add(entity)
         this.entityArchetype[entity] = archetype
         return entity
     }
 
-    readonly deleteEntity = (entity: number): this => {
-        if (this.entitiesDeleted.has(entity)) return this
-
+    deleteEntity = (entity: number): this => {
         const archetype = this.entityArchetype[entity]
         if (!archetype) throw new Error(`Entity ${entity} does not exist`)
 
-        archetype.entities.delete(entity)
-        // delete this.entityArchetype[entity]
-        this.entitiesDeleted.add(entity)
+        archetype.entitySet.remove(entity)
+        this.entityArchetype[entity] = undefined as any // much faster than delete operator, but achieves the same (ish)
+        this.deletedEntities.push(entity)
         return this
     }
 
-    readonly hasComponent = (entity: number, componentId: number): boolean => {
+    hasComponent = (entity: number, componentId: number): boolean => {
         const archetype = this.entityArchetype[entity]
         return !!archetype && archetype.mask.has(componentId)
     }
 
-    readonly setComponent = (entity: number, componentId: number): this => {
-        if (this.entitiesDeleted.has(entity)) throw new Error(`Entity ${entity} is deleted`)
-
+    setComponent = (entity: number, componentId: number): this => {
         let archetype = this.entityArchetype[entity]
         if (!archetype) throw new Error(`Entity ${entity} does not exist`)
 
         if (!archetype.mask.has(componentId)) {
-            archetype.entities.delete(entity)
-            archetype = archetype._transform(componentId, this.archetypes, this.queries)
-            archetype.entities.add(entity)
+            archetype.entitySet.remove(entity)
+            archetype = archetype.transform(componentId, this.queries)
+            archetype.entitySet.add(entity)
             this.entityArchetype[entity] = archetype
         }
         return this
     }
-    // spot the difference between removeComponent and setComponent
-    readonly removeComponent = (entity: number, componentId: number): this => {
-        if (this.entitiesDeleted.has(entity)) throw new Error(`Entity ${entity} is deleted`)
 
+    removeComponent = (entity: number, componentId: number): this => {
         let archetype = this.entityArchetype[entity]
         if (!archetype) throw new Error(`Entity ${entity} does not exist`)
 
         if (archetype.mask.has(componentId)) {
-            archetype.entities.delete(entity)
-            archetype = archetype._transform(componentId, this.archetypes, this.queries)
-            archetype.entities.add(entity)
+            archetype.entitySet.remove(entity)
+            archetype = archetype.transform(componentId, this.queries)
+            archetype.entitySet.add(entity)
             this.entityArchetype[entity] = archetype
         }
         return this
