@@ -4,59 +4,64 @@ import { all, query } from '../lib/Query.js'
 export default function createPacked5(count) {
     const world = new World()
 
-    const A = world.createComponentSet('A', 'uint8', 0)
-    const B = world.createComponentSet('B', 'uint8', 0)
-    const C = world.createComponentSet('C', 'uint8', 0)
-    const D = world.createComponentSet('D', 'uint8', 0)
-    const E = world.createComponentSet('E', 'uint8', 0)
+    const A = world.createComponentSet('uint8', 0)
+    const B = world.createComponentSet('uint8', 0)
+    const C = world.createComponentSet('uint8', 0)
+    const D = world.createComponentSet('uint8', 0)
+    const E = world.createComponentSet('uint8', 0)
     world
         .registerSystem((queryResults, _) => {
+            const lA = A
             for (let i = 0; i < queryResults.length; i++) {
                 const entities = queryResults[i].entities
                 for (let j = entities.length - 1; j >= 0; j--) {
                     const entity = entities[i]
-                    const a = A.get(entity)
-                    A.set(entity, a * 2)
+                    const a = lA.get(entity)
+                    lA.set(entity, a * 2)
                 }
             }
         }, query(all(A.id)))
         .registerSystem((queryResults, _) => {
+            const lB = B
             for (let i = 0; i < queryResults.length; i++) {
                 const entities = queryResults[i].entities
                 for (let j = entities.length - 1; j >= 0; j--) {
                     const entity = entities[i]
-                    const b = B.get(entity)
-                    B.set(entity, b * 2)
+                    const b = lB.get(entity)
+                    lB.set(entity, b * 2)
                 }
             }
         }, query(all(B.id)))
         .registerSystem((queryResults, _) => {
+            const lC = C
             for (let i = 0; i < queryResults.length; i++) {
                 const entities = queryResults[i].entities
                 for (let j = entities.length - 1; j >= 0; j--) {
                     const entity = entities[i]
-                    const c = C.get(entity)
-                    C.set(entity, c * 2)
+                    const c = lC.get(entity)
+                    lC.set(entity, c * 2)
                 }
             }
         }, query(all(C.id)))
         .registerSystem((queryResults, _) => {
+            const lD = D
             for (let i = 0; i < queryResults.length; i++) {
                 const entities = queryResults[i].entities
                 for (let j = entities.length - 1; j >= 0; j--) {
                     const entity = entities[i]
-                    const d = D.get(entity)
-                    D.set(entity, d * 2)
+                    const d = lD.get(entity)
+                    lD.set(entity, d * 2)
                 }
             }
         }, query(all(D.id)))
         .registerSystem((queryResults, _) => {
+            const lE = E
             for (let i = 0; i < queryResults.length; i++) {
                 const entities = queryResults[i].entities
                 for (let j = entities.length - 1; j >= 0; j--) {
                     const entity = entities[i]
-                    const e = E.get(entity)
-                    E.set(entity, e * 2)
+                    const e = lE.get(entity)
+                    lE.set(entity, e * 2)
                 }
             }
         }, query(all(E.id)))
@@ -71,5 +76,7 @@ export default function createPacked5(count) {
         E.add(entity)
     }
 
-    return world.update
+    return function packed5() {
+        world.update()
+    }
 }

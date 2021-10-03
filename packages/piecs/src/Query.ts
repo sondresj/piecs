@@ -96,7 +96,7 @@ export const query = (...matchers: Array<QueryMatcher>): Query => {
             : first!
     }
 
-    const tryAdd = (archetype: Archetype): boolean => {
+    function tryAdd(archetype: Archetype): boolean {
         if (!matcher(archetype.mask)) return false
         archetypes.push(archetype)
         return true

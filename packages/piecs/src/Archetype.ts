@@ -24,28 +24,31 @@ export function createArchetype(bitmask: BitSet): Archetype {
     return {
         id,
         mask,
-        entitySet: entitySet,
+        entitySet,
         entities: entitySet.values,
         adjacent,
         transform: function(
             componentId: number,
             queries: Query[]
         ): Archetype {
-            let archetype = adjacent[componentId]
-            if (archetype) {
-                return archetype
+            if (adjacent[componentId]) {
+                return adjacent[componentId]!
             }
 
+            // Relying on the fact that most likely, there won't be more than one path to an archetype
+            // If there is, there will be duplicate archetypes that contains a different set of entities that arrived at the archetype in different ways.
+            // That's ok tho, i think?
+
             const nextMask = mask.copy().xor(componentId)
-            archetype = createArchetype(nextMask)
+            const archetype = createArchetype(nextMask)
             const ql = queries.length
             for (let i = 0; i < ql; i++) {
                 const query = queries[i]!
                 query.tryAdd(archetype)
             }
 
-            // connect archetypes in graph
-            archetype.adjacent[componentId] = this
+            // connect archetype in graph
+            archetype.adjacent[componentId] = this // archetype has the componentId, so the only direction a transform can go with that componentId, is back here.
             adjacent[componentId] = archetype
 
             return archetype

@@ -3,46 +3,52 @@ import { all, query } from '../lib/Query.js'
 
 export default function createSimpleIter(count) {
     const world = new World()
-    const A = world.createComponentSet('a', 'uint8', 0)
-    const B = world.createComponentSet('b', 'uint8', 0)
-    const C = world.createComponentSet('c', 'uint8', 0)
-    const D = world.createComponentSet('d', 'uint8', 0)
-    const E = world.createComponentSet('e', 'uint8', 0)
+    const A = world.createComponentSet('uint8', 0)
+    const B = world.createComponentSet('uint8', 0)
+    const C = world.createComponentSet('uint8', 0)
+    const D = world.createComponentSet('uint8', 0)
+    const E = world.createComponentSet('uint8', 0)
 
     world
         .registerSystem((queryResults, _) => {
-            for (let i = 0; i < queryResults.length; i++) {
+            const lA = A
+            const lB = B
+            for (let i = 0, l = queryResults.length; i < l; i++) {
                 const entities = queryResults[i].entities
                 for (let j = entities.length - 1; j >= 0; j--) {
                     const entity = entities[i]
-                    const a = A.get(entity)
-                    const b = B.get(entity)
-                    A.set(entity, b)
-                    B.set(entity, a)
+                    const a = lA.get(entity)
+                    const b = lB.get(entity)
+                    lA.set(entity, b)
+                    lB.set(entity, a)
                 }
             }
         }, query(all(A.id, B.id)))
         .registerSystem((queryResults, _) => {
-            for (let i = 0; i < queryResults.length; i++) {
+            const lC = C
+            const lD = D
+            for (let i = 0, l = queryResults.length; i < l; i++) {
                 const entities = queryResults[i].entities
                 for (let j = entities.length - 1; j >= 0; j--) {
                     const entity = entities[i]
-                    const c = C.get(entity)
-                    const d = D.get(entity)
-                    C.set(entity, d)
-                    D.set(entity, c)
+                    const c = lC.get(entity)
+                    const d = lD.get(entity)
+                    lC.set(entity, d)
+                    lD.set(entity, c)
                 }
             }
         }, query(all(C.id, D.id)))
         .registerSystem((queryResults, _) => {
-            for (let i = 0; i < queryResults.length; i++) {
+            const lC = C
+            const lE = E
+            for (let i = 0, l = queryResults.length; i < l; i++) {
                 const entities = queryResults[i].entities
                 for (let j = entities.length - 1; j >= 0; j--) {
                     const entity = entities[i]
-                    const c = C.get(entity)
-                    const e = E.get(entity)
-                    C.set(entity, e)
-                    E.set(entity, c)
+                    const c = lC.get(entity)
+                    const e = lE.get(entity)
+                    lC.set(entity, e)
+                    lE.set(entity, c)
                 }
             }
         }, query(all(C.id, E.id)))
@@ -68,5 +74,7 @@ export default function createSimpleIter(count) {
         E.add(e4, 4)
     }
 
-    return world.update
+    return function simpleIter() {
+        world.update()
+    }
 }

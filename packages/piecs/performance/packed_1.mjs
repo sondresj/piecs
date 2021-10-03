@@ -3,7 +3,7 @@ import { all, query } from '../lib/Query.js'
 
 export default function createPacked1(count) {
     const world = new World()
-    const A = world.createComponentSet('A', 'uint8', 0)
+    const A = world.createComponentSet('uint8', 0)
     const B = world.getNextComponentId() //world.createComponentSet('B', 'flag', true)
     const C = world.getNextComponentId() //world.createComponentSet('C', 'flag', true)
     const D = world.getNextComponentId() //world.createComponentSet('D', 'flag', true)
@@ -11,12 +11,13 @@ export default function createPacked1(count) {
 
     world
         .registerSystem((queryResults, _) => {
+            const lA = A
             for (let i = 0; i < queryResults.length; i++) {
                 const entities = queryResults[i].entities
                 for (let j = entities.length - 1; j >= 0; j--) {
                     const entity = entities[i]
-                    const a = A.get(entity)
-                    A.set(entity, a * 2)
+                    const a = lA.get(entity)
+                    lA.set(entity, a * 2)
                 }
             }
         }, query(all(A.id)))
@@ -31,5 +32,7 @@ export default function createPacked1(count) {
         world.setComponent(entity, E)
     }
 
-    return world.update
+    return function packed1() {
+        world.update()
+    }
 }

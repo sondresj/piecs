@@ -42,32 +42,28 @@ export const createSparseSet = (): SparseSet => {
     const values: number[] = []
     const indices: number[] = []
 
-    const has = (value: number): boolean => {
-        const index = indices[value]!
-        return index < values.length
-            && values[index] === value
+    function has(value: number): boolean {
+        return indices[value]! < values.length
+            && values[indices[value]!] === value
     }
 
-    const add = (value: number) => {
-        const index = indices[value]
+    function add(value: number) {
         const l = values.length
-        if (index === undefined || index >= l || values[index] !== value) {
+        if (indices[value]! >= l || values[indices[value]!] !== value) {
             indices[value] = l
             values.push(value)
         }
     }
 
-    const remove = (value: number) => {
-        const index = indices[value]
-        if (index === undefined || index >= values.length || values[index] !== value) {
+    function SSremove(value: number) {
+        if (indices[value]! >= values.length || values[indices[value]!] !== value) {
             return
         }
 
         const swap = values.pop()!
         if (swap !== value) {
-            const index = indices[value]!
-            values[index] = swap
-            indices[swap] = index
+            values[indices[value]!] = swap
+            indices[swap] = indices[value]!
         }
     }
 
@@ -75,6 +71,6 @@ export const createSparseSet = (): SparseSet => {
         values,
         has,
         add,
-        remove
+        remove: SSremove
     }
 }

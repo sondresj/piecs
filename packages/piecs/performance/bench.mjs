@@ -8,12 +8,12 @@ import simple_iter from './simple_iter.mjs'
 
 // Same tests as ecs-benchmark
 const tests = [
-    ['add_remove', add_remove(1000)],
-    ['entity_cycle', entity_cycle(1000)],
+    ['add_remove', add_remove(1_000)],
+    ['entity_cycle', entity_cycle(1_000)],
     ['frag_iter', frag_iter(100)],
-    ['packed_1', packed_1(5000)],
-    ['packed_5', packed_5(1000)],
-    ['simple_iter', simple_iter(1000)]
+    ['packed_1', packed_1(5_000)],
+    ['packed_5', packed_5(1_000)],
+    ['simple_iter', simple_iter(1_000)]
 ]
 
 function bench_iter(fn, count) {
@@ -26,9 +26,9 @@ function bench_iter(fn, count) {
 }
 
 const run = (fn) => {
-    let cycle_n = 1
-    let cycle_ms = 0
-    let cycle_total_ms = 0
+    let cycle_n = 1.0
+    let cycle_ms = 0.0
+    let cycle_total_ms = 0.0
 
     // Run multiple cycles to get an estimate
     while (cycle_total_ms < 500) {

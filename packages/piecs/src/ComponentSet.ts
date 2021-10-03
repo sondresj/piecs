@@ -22,7 +22,6 @@ const mapType = (type: string): VectorValueType => arrayTypes.includes(type as a
 
 export interface ComponentSet<T> {
     readonly id: number
-    readonly name: string
     readonly add: (entity: number, value?: T) => this
     readonly set: (entity: number, value?: T) => this
     readonly get: (entity: number) => T | undefined
@@ -38,32 +37,31 @@ export interface ComponentSet<T> {
 
 export class FlagComponentSet implements ComponentSet<boolean> {
     constructor(
-        public readonly name: string,
         public readonly type: 'flag',
         public readonly id: number,
         private world: InsideWorld
     ) {}
 
-    add = (entity: number): this => {
+    add(entity: number): this {
         this.world.setComponent(entity, this.id)
         return this
     }
 
     // not really needed..
-    set = (entity: number): this => {
+    set(entity: number): this {
         this.world.setComponent(entity, this.id)
         return this
     }
 
-    get = (entity: number): boolean => {
+    get(entity: number): boolean {
         return this.has(entity)
     }
 
-    has = (entity: number): boolean => {
+    has(entity: number): boolean {
         return this.world.hasComponent(entity, this.id) // this.world.hasEntity(entity) &&
     }
 
-    remove = (entity: number): this => {
+    remove(entity: number): this {
         this.world.removeComponent(entity, this.id)
         return this
     }
@@ -73,7 +71,6 @@ export class StructComponentSet<T extends readonly StructValueType[]> implements
     private values: StructVector<T>
 
     constructor(
-        public readonly name: string,
         public readonly type: T,
         public readonly id: number,
         private defaultValue: Struct<T>,
@@ -82,26 +79,26 @@ export class StructComponentSet<T extends readonly StructValueType[]> implements
         this.values = new StructVector<T>(type, { sparse: true })
     }
 
-    add = (entity: number, value: Struct<T> = this.defaultValue): this => {
+    add(entity: number, value: Struct<T> = this.defaultValue): this {
         this.world.setComponent(entity, this.id)
         this.values.set(entity, value)
 
         return this
     }
-    set = (entity: number, value: Struct<T> = this.defaultValue): this => {
+    set(entity: number, value: Struct<T> = this.defaultValue): this {
         this.values.set(entity, value)
         return this
     }
 
-    get = (entity: number): Struct<T> | undefined => {
+    get(entity: number): Struct<T> | undefined {
         return this.get(entity)
     }
 
-    has = (entity: number): boolean => {
+    has(entity: number): boolean {
         return this.world.hasComponent(entity, this.id) //
     }
 
-    remove = (entity: number): this => {
+    remove(entity: number): this {
         this.world.removeComponent(entity, this.id)
         return this
     }
@@ -111,7 +108,6 @@ export class VectorComponentSet<T> {
     private values: Vector<T>
 
     constructor(
-        public readonly name: string,
         public readonly type: VectorValueType,
         public readonly id: number,
         private defaultValue: T,
@@ -130,7 +126,7 @@ export class VectorComponentSet<T> {
      * @param value
      * @returns*
      */
-    add = (entity: number, value: T = this.defaultValue) => {
+    add(entity: number, value: T = this.defaultValue) {
         this.world.setComponent(entity, this.id)
         this.values.set(entity, value)
         return this
@@ -142,23 +138,23 @@ export class VectorComponentSet<T> {
      * @param value
      * @returns
      */
-    set = (entity: number, value: T) => {
+    set(entity: number, value: T) {
         this.values.set(entity, value)
         return this
     }
 
-    has = (entity: number) => {
+    has(entity: number) {
         return this.world.hasComponent(entity, this.id) //
     }
 
-    get = (entity: number): T | undefined => {
+    get(entity: number): T | undefined {
         // TODO: this check could be done only in development to reduce performance hit of these checks in production
         // if (!this.world.hasEntity(entity) || !this.world.hasComponent(entity, this.id))
         //     return undefined
         return this.values.get(entity)
     }
 
-    remove = (entity: number) => {
+    remove(entity: number) {
         this.world.removeComponent(entity, this.id)
         return this
     }

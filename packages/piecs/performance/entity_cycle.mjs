@@ -8,13 +8,14 @@ export default function createEntityCycle(count) {
 
     world
         .registerSystem((queryResults, world) => {
+            const lB = B
             for (let i = 0; i < queryResults.length; i++) {
                 const entities = queryResults[i].entities
                 for (let j = entities.length - 1; j >= 0; j--) {
                     const e1 = world.createEntity()
-                    world.setComponent(e1, B)
+                    world.setComponent(e1, lB)
                     const e2 = world.createEntity()
-                    world.setComponent(e2, B)
+                    world.setComponent(e2, lB)
                 }
             }
         }, query(all(A)))
@@ -34,5 +35,7 @@ export default function createEntityCycle(count) {
         world.setComponent(e, A)
     }
 
-    return world.update
+    return function entityCycle() {
+        world.update()
+    }
 }

@@ -206,7 +206,7 @@ export class StructVector<S extends ReadonlyArray<StructValueType>> {
         return this._sparse
     }
 
-    private grow = (indexToAccomodate: number) => {
+    private grow(indexToAccomodate: number) {
         if (indexToAccomodate < this._capacity)
             return
 
@@ -218,7 +218,7 @@ export class StructVector<S extends ReadonlyArray<StructValueType>> {
         this._buffer = newBuffer
     }
 
-    push = (value: Struct<S>) => {
+    push(value: Struct<S>) {
         this.grow(this._length)
         const offset = this._length * this._bytesPerElement
         const view = new DataView(this._buffer, offset)
@@ -226,7 +226,7 @@ export class StructVector<S extends ReadonlyArray<StructValueType>> {
         return ++this._length
     }
 
-    pop = (): Struct<S> | undefined => {
+    pop(): Struct<S> | undefined {
         if (this._length === 0) return undefined
 
         const offset = (--this._length) * this._bytesPerElement
@@ -234,7 +234,7 @@ export class StructVector<S extends ReadonlyArray<StructValueType>> {
         return this._reader(view)
     }
 
-    get = (index: number): Struct<S> | undefined => {
+    get(index: number): Struct<S> | undefined {
         if (!this.sparse && index >= this._length) return undefined
 
         const offset = index * this._bytesPerElement
@@ -242,7 +242,7 @@ export class StructVector<S extends ReadonlyArray<StructValueType>> {
         return this._reader(view)
     }
 
-    set = (index: number, value: Struct<S>) => {
+    set(index: number, value: Struct<S>) {
         if (!this._sparse && index >= this._length) {
             throw new Error(`Index ${index} is out of bounds`)
         }

@@ -27,7 +27,7 @@ export interface InsideWorld {
 }
 export interface OutsideWorld extends InsideWorld {
     getNextComponentId: () => number
-    createComponentSet: <T>(name: string, type: VectorValueType | 'flag' | StructValueType[], defaultValue: T) => ComponentSet<T>
+    createComponentSet: <T>(type: VectorValueType | 'flag' | StructValueType[], defaultValue: T) => ComponentSet<T>
     registerSystem: (system: System, query: Query) => OutsideWorld
     /**
      * Provide known combinations of componentId's to preinitialize

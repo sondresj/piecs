@@ -8,20 +8,22 @@ export default function createAddRemove(count) {
 
     world
         .registerSystem((queryResults, world) => {
+            const lB = B
             for (let i = 0; i < queryResults.length; i++) {
                 const entities = queryResults[i].entities
                 for (let j = entities.length - 1; j >= 0; j--) {
                     const entity = entities[i]
-                    world.setComponent(entity, B)
+                    world.setComponent(entity, lB)
                 }
             }
         }, query(and(all(A), not(B))))
         .registerSystem((queryResults, world) => {
+            const lB = B
             for (let i = 0; i < queryResults.length; i++) {
                 const entities = queryResults[i].entities
                 for (let j = entities.length - 1; j >= 0; j--) {
                     const entity = entities[i]
-                    world.removeComponent(entity, B)
+                    world.removeComponent(entity, lB)
                 }
             }
         }, query(all(B)))
@@ -32,5 +34,7 @@ export default function createAddRemove(count) {
         world.setComponent(e, A)
     }
 
-    return world.update
+    return function addRemove() {
+        world.update()
+    }
 }

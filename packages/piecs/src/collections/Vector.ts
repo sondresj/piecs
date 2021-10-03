@@ -45,7 +45,7 @@ export class Vector<T = number> {
         this._growFactor = Math.max(1.01, growFactor)
     }
 
-    private grow = (indexToAccomodate: number) => {
+    private grow(indexToAccomodate: number) {
         if (indexToAccomodate < this._capacity)
             return
         while (indexToAccomodate >= this._capacity) {
@@ -64,27 +64,27 @@ export class Vector<T = number> {
         return this._sparse
     }
 
-    push = (value: T) => {
+    push(value: T) {
         this.grow(this._length)
         this._array[this._length++] = value
         return this._length
     }
 
-    pop = (): T | undefined => {
+    pop(): T | undefined {
         if (this._length === 0) {
             return undefined
         }
         return this._array[--this._length]
     }
 
-    get = (index: number): T | undefined => {
+    get(index: number): T | undefined {
         if (!this._sparse && index >= this._length) {
             return undefined
         }
         return this._array[index]
     }
 
-    set = (index: number, value: T) => {
+    set(index: number, value: T) {
         if (!this._sparse && index >= this._length) {
             throw new Error(`Index ${index} is out of bounds`)
         }
@@ -96,13 +96,13 @@ export class Vector<T = number> {
         return this
     }
 
-    subArray = () => {
+    subArray() {
         if (this.sparse) return this._array
         if (isTypedArray(this._array)) return this._array.subarray(0, this._length)
         return this._array.slice(0, this._length)
     }
 
-    forEach = (callback: (value: T, index: number) => void): void => {
+    forEach(callback: (value: T, index: number) => void): void {
         if (this.sparse) {
             this._array.forEach(callback as any)
             return

@@ -9,7 +9,7 @@ export default function createFragIter(count) {
     Array.from('ABCDEFGHIJKLMNOPQRSTUVWXYZ').forEach(name => {
         components[name] = world.getNextComponentId() //world.createComponentSet(name, 'flag', true)
     })
-    const Data = world.createComponentSet('Data', 'uint8', 0)
+    const Data = world.createComponentSet('uint8', 0)
 
     world
         .registerSystem((queryResults, world) => {
@@ -32,5 +32,7 @@ export default function createFragIter(count) {
         }
     }
 
-    return world.update
+    return function fragIter() {
+        world.update()
+    }
 }
