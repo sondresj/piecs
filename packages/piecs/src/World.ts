@@ -13,7 +13,7 @@ export class World implements OutsideWorld, InsideWorld {
     private queries: Query[] = [] // should be 1 to 1 with systems
 
     private deferredActions: (() => void)[] = []
-    private blankArchetype: Archetype = createArchetype(new BitSet(0))
+    private rootArchetype: Archetype = createArchetype(new BitSet(0))
     private initialized = false
 
     private _executeDeferredActions() {
@@ -34,7 +34,7 @@ export class World implements OutsideWorld, InsideWorld {
         this.queries.push(query)
 
         if (this.initialized) {
-            traverseArchetypeGraph(this.blankArchetype, (archetype) => {
+            traverseArchetypeGraph(this.rootArchetype, (archetype) => {
                 query.tryAdd(archetype)
                 return true
             })
@@ -51,16 +51,16 @@ export class World implements OutsideWorld, InsideWorld {
         this.initialized = true
 
         // create a blank archetype that serves as the base archetype for all entities
-        const blankArchetype = createArchetype(new BitSet(this.nextComponentId))
-        this.blankArchetype = blankArchetype
+        const rootArchetype = createArchetype(new BitSet(this.nextComponentId))
+        this.rootArchetype = rootArchetype
 
         this.queries.forEach(query => {
-            query.tryAdd(blankArchetype)
+            query.tryAdd(rootArchetype)
         })
 
         // this doesn't really seem to do much, but I think it could be usefull in some scenarios
         expectedComponentIdCombinations.forEach(combinations => {
-            let archetype = blankArchetype
+            let archetype = rootArchetype
             combinations.forEach(componentId => {
                 archetype = archetype.transform(componentId, this.queries)
             })
@@ -80,7 +80,12 @@ export class World implements OutsideWorld, InsideWorld {
         for (let s = 0, sl = systems.length; s < sl; s++) {
             const system = systems[s]!
             const query = queries[s]!
-            system(query.archetypes, this)
+            for (let a = 0, al = query.archetypes.length; a < al; a++) {
+                const entities = query.archetypes[a]!.entitySet.values
+                if (entities.length > 0) {
+                    system(entities, this)
+                }
+            }
         }
 
         this._executeDeferredActions()
@@ -105,19 +110,36 @@ export class World implements OutsideWorld, InsideWorld {
         if (!this.initialized) throw new Error('Not initialized')
 
         const entity = this.deletedEntities.length > 0
-            ? this.deletedEntities.pop()! | 0
+            ? this.deletedEntities.pop()!
             : this.nextEntityId++
 
-        const archetype = this.blankArchetype
+        const archetype = this.rootArchetype
         archetype.entitySet.add(entity)
         this.entityArchetype[entity] = archetype
         return entity
     }
 
     deleteEntity(entity: number): this {
-        const archetype = this.entityArchetype[entity]
-        if (!archetype) throw new Error(`Entity ${entity} does not exist`)
+        if (this.entityArchetype[entity] === undefined) {
+            if (entity === undefined) {
+                console.warn(`
+Seems like you\'re iterating entities from 0..N and deleting entities.
+This may remove the entity from the query results passed to your system.
+Try one of the following options:
+A: while (entities.length) {...}
+B: for (let i = entities.length -1; i >= 0; i--) {...}
+C: for (let i = 0, l = entities.length; i < l; i++) {
+    world.defer(() => { // Defer the deletion of entity until after all systems has been executed
+        world.deleteEntity(entities[i], X)
+    })
+},`)
+            } else if (this.deletedEntities.includes(entity)) {
+                throw new Error(`Entity ${entity} is deleted`)
+            }
+            throw new Error(`Entity ${entity} does not exist`)
+        }
 
+        const archetype = this.entityArchetype[entity]!
         archetype.entitySet.remove(entity)
         // much faster than delete operator, but achieves the same (ish)
         // an alternative is to leave it be, and use archetype.entitySet.has(entity) as a check for entity being deleted, but that too is a little slower.
@@ -131,8 +153,25 @@ export class World implements OutsideWorld, InsideWorld {
             && this.entityArchetype[entity]!.mask.has(componentId)
     }
 
-    setComponent(entity: number, componentId: number): this {
-        if (!this.entityArchetype[entity]) throw new Error(`Entity ${entity} does not exist`)
+    addComponent(entity: number, componentId: number): this {
+        if (this.entityArchetype[entity] === undefined) {
+            if (entity === undefined) {
+                console.warn(`
+Seems like you\'re iterating entities from 0..N and setting components on the entities.
+This may remove the entity from the query results passed to your system.
+Try one of the following options:
+A: while (entities.length) {...}
+B: for (let i = entities.length -1; i >= 0; i--) {...}
+C: for (let i = 0, l = entities.length; i < l; i++) {
+    world.defer(() => { // Defer the change of entity until after all systems has been executed
+        world.setComponent(entities[i], X)
+    })
+},`)
+            } else if (this.deletedEntities.includes(entity)) {
+                throw new Error(`Entity ${entity} is deleted`)
+            }
+            throw new Error(`Entity ${entity} does not exist`)
+        }
         let archetype = this.entityArchetype[entity]!
 
         if (!archetype.mask.has(componentId)) {
@@ -145,7 +184,24 @@ export class World implements OutsideWorld, InsideWorld {
     }
 
     removeComponent(entity: number, componentId: number): this {
-        if (!this.entityArchetype[entity]) throw new Error(`Entity ${entity} does not exist`)
+        if (this.entityArchetype[entity] === undefined) {
+            if (entity === undefined) {
+                console.warn(`
+Seems like you\'re iterating entities from 0..N and removing components from the entities.
+This may remove the entity from the query results passed to your system.
+Try one of the following options:
+A: while (entities.length) {...}
+B: for (let i = entities.length -1; i >= 0; i--) {...}
+C: for (let i = 0, l = entities.length; i < l; i++) {
+    world.defer(() => { // Defer the change of entity until after all systems has been executed
+        world.removeComponent(entities[i], X)
+    })
+},`)
+            } else if (this.deletedEntities.includes(entity)) {
+                throw new Error(`Entity ${entity} is deleted`)
+            }
+            throw new Error(`Entity ${entity} does not exist`)
+        }
         let archetype = this.entityArchetype[entity]!
 
         if (archetype.mask.has(componentId)) {

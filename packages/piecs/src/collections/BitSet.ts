@@ -13,7 +13,7 @@ export class BitSet {
     has(value: number): boolean {
         const index = value >> 5
         if (index >= this._size) return false
-        return Boolean((this._mask[index]! >> (value & mod32) & 1))
+        return Boolean(this._mask[index]! & (1 << (value & mod32)))
     }
 
     _grow(valueToAccomodate: number): void {

@@ -6,7 +6,6 @@ export type Archetype = {
     readonly id: string
     readonly mask: BitSet
     readonly entitySet: SparseSet
-    readonly entities: ReadonlyArray<number>
     readonly adjacent: Archetype[]
 
     transform (
@@ -16,7 +15,7 @@ export type Archetype = {
 }
 
 export function createArchetype(bitmask: BitSet): Archetype {
-    const mask = bitmask.copy()
+    const mask = bitmask
     const id = mask.toString()
     const entitySet = createSparseSet()
     const adjacent: Archetype[] = []
@@ -25,7 +24,6 @@ export function createArchetype(bitmask: BitSet): Archetype {
         id,
         mask,
         entitySet,
-        entities: entitySet.values,
         adjacent,
         transform: function(
             componentId: number,

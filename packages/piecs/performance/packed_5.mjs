@@ -6,90 +6,65 @@ export default function createPacked5(count) {
 
     const A = {
         id: world.getNextComponentId(),
-        arr: new Uint32Array(count).fill(0)
+        arr: new Uint32Array(count).fill(1)
     }
     const B = {
         id: world.getNextComponentId(),
-        arr: new Uint32Array(count).fill(0)
+        arr: new Uint32Array(count).fill(1)
     }
     const C = {
         id: world.getNextComponentId(),
-        arr: new Uint32Array(count).fill(0)
+        arr: new Uint32Array(count).fill(1)
     }
     const D = {
         id: world.getNextComponentId(),
-        arr: new Uint32Array(count).fill(0)
+        arr: new Uint32Array(count).fill(1)
     }
     const E = {
         id: world.getNextComponentId(),
-        arr: new Uint32Array(count).fill(0)
+        arr: new Uint32Array(count).fill(1)
     }
 
     world
-        .registerSystem((queryResults, _) => {
-            const AArray = A.arr
-            for (let i = 0; i < queryResults.length; i++) {
-                const entities = queryResults[i].entities
-                for (let j = entities.length - 1; j >= 0; j--) {
-                    const entity = entities[i]
-                    const a = AArray[entity]
-                    AArray[entity] = a * 2
-                }
+        .registerSystem((entities, _) => {
+            const arr = A.arr
+            for (let i = 0, l = entities.length; i < l; i++) {
+                arr[entities[i]] *= 2
             }
         }, query(all(A.id)))
-        .registerSystem((queryResults, _) => {
-            const BArray = B.arr
-            for (let i = 0; i < queryResults.length; i++) {
-                const entities = queryResults[i].entities
-                for (let j = entities.length - 1; j >= 0; j--) {
-                    const entity = entities[i]
-                    const b = BArray[entity]
-                    BArray[entity] = b * 2
-                }
+        .registerSystem((entities, _) => {
+            const arr = B.arr
+            for (let i = 0, l = entities.length; i < l; i++) {
+                arr[entities[i]] *= 2
             }
         }, query(all(B.id)))
-        .registerSystem((queryResults, _) => {
-            const CArray = C.arr
-            for (let i = 0; i < queryResults.length; i++) {
-                const entities = queryResults[i].entities
-                for (let j = entities.length - 1; j >= 0; j--) {
-                    const entity = entities[i]
-                    const c = CArray[entity]
-                    CArray[entity] = c * 2
-                }
+        .registerSystem((entities, _) => {
+            const arr = C.arr
+            for (let i = 0, l = entities.length; i < l; i++) {
+                arr[entities[i]] *= 2
             }
         }, query(all(C.id)))
-        .registerSystem((queryResults, _) => {
-            const DArray = D.arr
-            for (let i = 0; i < queryResults.length; i++) {
-                const entities = queryResults[i].entities
-                for (let j = entities.length - 1; j >= 0; j--) {
-                    const entity = entities[i]
-                    const d = DArray[entity]
-                    DArray[entity] = d * 2
-                }
+        .registerSystem((entities, _) => {
+            const arr = D.arr
+            for (let i = 0, l = entities.length; i < l; i++) {
+                arr[entities[i]] *= 2
             }
         }, query(all(D.id)))
-        .registerSystem((queryResults, _) => {
+        .registerSystem((entities, _) => {
             const arr = E.arr
-            for (let i = 0; i < queryResults.length; i++) {
-                const entities = queryResults[i].entities
-                for (let j = entities.length - 1; j >= 0; j--) {
-                    const entity = entities[i]
-                    const e = arr[entity]
-                    arr[entity] = e * 2
-                }
+            for (let i = 0, l = entities.length; i < l; i++) {
+                arr[entities[i]] *= 2
             }
         }, query(all(E.id)))
         .init([A.id], [A.id, B.id], [A.id, B.id, C.id], [A.id, B.id, C.id, D.id], [A.id, B.id, C.id, D.id, E.id])
 
     for (let i = 0; i < count; i++) {
         const entity = world.createEntity()
-        world.setComponent(entity, A.id)
-        world.setComponent(entity, B.id)
-        world.setComponent(entity, C.id)
-        world.setComponent(entity, D.id)
-        world.setComponent(entity, E.id)
+        world.addComponent(entity, A.id)
+        world.addComponent(entity, B.id)
+        world.addComponent(entity, C.id)
+        world.addComponent(entity, D.id)
+        world.addComponent(entity, E.id)
     }
 
     return function packed5() {

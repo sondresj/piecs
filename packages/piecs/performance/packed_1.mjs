@@ -13,26 +13,21 @@ export default function createPacked1(count) {
     const E = world.getNextComponentId()
 
     world
-        .registerSystem((queryResults, _) => {
+        .registerSystem((entities, _) => {
             const AArray = A.arr
-            for (let i = 0; i < queryResults.length; i++) {
-                const entities = queryResults[i].entities
-                for (let j = entities.length - 1; j >= 0; j--) {
-                    const entity = entities[i]
-                    const a = AArray[entity]
-                    AArray[entity] = a * 2
-                }
+            for (let i = 0, l = entities.length; i < l; i++) {
+                AArray[entities[i]] *= 2
             }
         }, query(all(A.id)))
         .init([A.id], [A.id, B], [A.id, B, C], [A.id, B, C, D], [A.id, B, C, D, E])
 
     for (let i = 0; i < count; i++) {
         const entity = world.createEntity()
-        world.setComponent(entity, A.id)
-        world.setComponent(entity, B)
-        world.setComponent(entity, C)
-        world.setComponent(entity, D)
-        world.setComponent(entity, E)
+        world.addComponent(entity, A.id)
+        world.addComponent(entity, B)
+        world.addComponent(entity, C)
+        world.addComponent(entity, D)
+        world.addComponent(entity, E)
     }
 
     return function packed1() {

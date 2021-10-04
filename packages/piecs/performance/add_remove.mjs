@@ -7,31 +7,23 @@ export default function createAddRemove(count) {
     const B = world.getNextComponentId()
 
     world
-        .registerSystem((queryResults, world) => {
+        .registerSystem((entities, world) => {
             const lB = B
-            for (let i = 0; i < queryResults.length; i++) {
-                const entities = queryResults[i].entities
-                for (let j = entities.length - 1; j >= 0; j--) {
-                    const entity = entities[i]
-                    world.setComponent(entity, lB)
-                }
+            while (entities.length) {
+                world.addComponent(entities[0], lB)
             }
         }, query(and(all(A), not(B))))
-        .registerSystem((queryResults, world) => {
+        .registerSystem((entities, world) => {
             const lB = B
-            for (let i = 0; i < queryResults.length; i++) {
-                const entities = queryResults[i].entities
-                for (let j = entities.length - 1; j >= 0; j--) {
-                    const entity = entities[i]
-                    world.removeComponent(entity, lB)
-                }
+            for (let i = entities.length - 1; i >= 0; i--) {
+                world.removeComponent(entities[i], lB)
             }
         }, query(all(B)))
         .init([A], [A, B])
 
     for (let i = 0; i < count; i++) {
         const e = world.createEntity()
-        world.setComponent(e, A)
+        world.addComponent(e, A)
     }
 
     return function addRemove() {

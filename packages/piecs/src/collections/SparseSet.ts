@@ -1,38 +1,6 @@
-// export class SparseSet {
-//     readonly values: number[] = []
-//     private _indices: number[] = []
-
-//     has = (value: number): boolean => {
-//         const index = this._indices[value]!
-//         return index < this.values.length
-//             && this.values[index] === value
-//     }
-
-//     add = (value: number) => {
-//         const index = this._indices[value]!
-//         if (index < this.values.length && this.values[index] === value) {
-//             return
-//         }
-//         this._indices[value] = this.values.push(value) - 1
-//     }
-
-//     delete = (value: number) => {
-//         const index = this._indices[value]!
-//         if (index >= this.values.length || this.values[index] !== value) {
-//             return
-//         }
-
-//         const swap = this.values.pop()!
-//         if (swap !== value) {
-//             const index = this._indices[value]!
-//             this.values[index] = swap
-//             this._indices[swap] = index
-//         }
-//     }
-// }
 
 export type SparseSet = {
-    readonly values: ReadonlyArray<number>
+    readonly values: ArrayLike<number>
     has: (value: number) => boolean
     add: (value: number) => void
     remove: (value: number) => void
@@ -43,31 +11,25 @@ export const createSparseSet = (): SparseSet => {
     const indices: number[] = []
 
     function has(value: number): boolean {
-        const index = indices[value]
-        return index !== undefined
-            && index < values.length
-            && values[index] === value
+        return indices[value] !== undefined
+            && indices[value]! < values.length
+            && values[indices[value]!] === value
     }
 
     function add(value: number) {
-        const index = indices[value]
-        const l = values.length
-        if (index === undefined || index >= l || values[index] !== value) {
-            indices[value] = l
+        if (indices[value] === undefined || indices[value]! >= values.length || values[indices[value]!] !== value) {
+            indices[value] = values.length
             values.push(value)
         }
     }
 
     function remove(value: number) {
-        const index = indices[value]
-        if (index === undefined || index >= values.length || values[index] !== value) {
-            return
-        }
-
-        const swap = values.pop()!
-        if (swap !== value) {
-            values[index] = swap
-            indices[swap] = index
+        if (indices[value] !== undefined && indices[value]! < values.length && values[indices[value]!] === value) {
+            const swap = values.pop()!
+            if (swap !== value) {
+                values[indices[value]!] = swap
+                indices[swap] = indices[value]!
+            }
         }
     }
 
@@ -78,46 +40,3 @@ export const createSparseSet = (): SparseSet => {
         remove
     }
 }
-// export type SparseSet = {
-//     readonly values: ReadonlyArray<number>
-//     has: (value: number) => boolean
-//     add: (value: number) => void
-//     remove: (value: number) => void
-// }
-
-// export const createSparseSet = (): SparseSet => {
-//     const values: number[] = []
-//     const indices: number[] = []
-
-//     function has(value: number): boolean {
-//         return indices[value]! < values.length
-//             && values[indices[value]!] === value
-//     }
-
-//     function add(value: number) {
-//         const l = values.length
-//         if (indices[value]! >= l || values[indices[value]!] !== value) {
-//             indices[value] = l
-//             values.push(value)
-//         }
-//     }
-
-//     function SSremove(value: number) {
-//         if (indices[value]! >= values.length || values[indices[value]!] !== value) {
-//             return
-//         }
-
-//         const swap = values.pop()!
-//         if (swap !== value) {
-//             values[indices[value]!] = swap
-//             indices[swap] = indices[value]!
-//         }
-//     }
-
-//     return {
-//         values,
-//         has,
-//         add,
-//         remove: SSremove
-//     }
-// }
