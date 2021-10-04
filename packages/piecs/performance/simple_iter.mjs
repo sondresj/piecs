@@ -25,7 +25,7 @@ export default function createSimpleIter(count) {
     }
 
     world
-        .registerSystem((entities, _) => {
+        .registerSystem(function systemAB(entities, _) {
             const lA = A.arr
             const lB = B.arr
             for (let i = 0, l = entities.length; i < l; i++) {
@@ -36,7 +36,7 @@ export default function createSimpleIter(count) {
                 lB[entity] = a
             }
         }, query(all(A.id, B.id)))
-        .registerSystem((entities, _) => {
+        .registerSystem(function systemCD(entities, _) {
             const lC = C.arr
             const lD = D.arr
             for (let i = 0, l = entities.length; i < l; i++) {
@@ -47,7 +47,7 @@ export default function createSimpleIter(count) {
                 lD[entity] = c
             }
         }, query(all(C.id, D.id)))
-        .registerSystem((entities, _) => {
+        .registerSystem(function systemCE(entities, _) {
             const lC = C.arr
             const lE = E.arr
             for (let i = 0, l = entities.length; i < l; i++) {

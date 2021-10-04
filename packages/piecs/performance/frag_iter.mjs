@@ -15,7 +15,7 @@ export default function createFragIter(count) {
     }
 
     world
-        .registerSystem((entities, _) => {
+        .registerSystem(function dataSystem(entities, _) {
             const DataArray = Data.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 DataArray[entities[i]] *= 2

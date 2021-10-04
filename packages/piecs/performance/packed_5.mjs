@@ -26,31 +26,31 @@ export default function createPacked5(count) {
     }
 
     world
-        .registerSystem((entities, _) => {
+        .registerSystem(function systemAp5(entities, _) {
             const arr = A.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2
             }
         }, query(all(A.id)))
-        .registerSystem((entities, _) => {
+        .registerSystem(function systemBp5(entities, _) {
             const arr = B.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2
             }
         }, query(all(B.id)))
-        .registerSystem((entities, _) => {
+        .registerSystem(function systemCp5(entities, _) {
             const arr = C.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2
             }
         }, query(all(C.id)))
-        .registerSystem((entities, _) => {
+        .registerSystem(function systemDp5(entities, _) {
             const arr = D.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2
             }
         }, query(all(D.id)))
-        .registerSystem((entities, _) => {
+        .registerSystem(function systemEp5(entities, _) {
             const arr = E.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2

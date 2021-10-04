@@ -123,7 +123,7 @@ export class World implements OutsideWorld, InsideWorld {
         if (this.entityArchetype[entity] === undefined) {
             if (entity === undefined) {
                 console.warn(`
-Seems like you\'re iterating entities from 0..N and deleting entities.
+Seems like you're iterating entities from 0..N and deleting entities.
 This may remove the entity from the query results passed to your system.
 Try one of the following options:
 A: while (entities.length) {...}
@@ -157,7 +157,7 @@ C: for (let i = 0, l = entities.length; i < l; i++) {
         if (this.entityArchetype[entity] === undefined) {
             if (entity === undefined) {
                 console.warn(`
-Seems like you\'re iterating entities from 0..N and setting components on the entities.
+Seems like you're iterating entities from 0..N and setting components on the entities.
 This may remove the entity from the query results passed to your system.
 Try one of the following options:
 A: while (entities.length) {...}
@@ -176,7 +176,7 @@ C: for (let i = 0, l = entities.length; i < l; i++) {
 
         if (!archetype.mask.has(componentId)) {
             archetype.entitySet.remove(entity)
-            archetype = archetype.transform(componentId, this.queries)
+            archetype = archetype.adjacent[componentId] || archetype.transform(componentId, this.queries)
             archetype.entitySet.add(entity)
             this.entityArchetype[entity] = archetype
         }
@@ -187,7 +187,7 @@ C: for (let i = 0, l = entities.length; i < l; i++) {
         if (this.entityArchetype[entity] === undefined) {
             if (entity === undefined) {
                 console.warn(`
-Seems like you\'re iterating entities from 0..N and removing components from the entities.
+Seems like you're iterating entities from 0..N and removing components from the entities.
 This may remove the entity from the query results passed to your system.
 Try one of the following options:
 A: while (entities.length) {...}
@@ -206,7 +206,7 @@ C: for (let i = 0, l = entities.length; i < l; i++) {
 
         if (archetype.mask.has(componentId)) {
             archetype.entitySet.remove(entity)
-            archetype = archetype.transform(componentId, this.queries)
+            archetype = archetype.adjacent[componentId] || archetype.transform(componentId, this.queries)
             archetype.entitySet.add(entity)
             this.entityArchetype[entity] = archetype
         }

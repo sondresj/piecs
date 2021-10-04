@@ -7,14 +7,14 @@ export default function createEntityCycle(count) {
     const B = world.getNextComponentId()
 
     world
-        .registerSystem((entities, world) => {
+        .registerSystem(function spawnBs(entities, world) {
             const lB = B
             for (let i = 0, l = entities.length; i < l; i++) {
                 world.addComponent(world.createEntity(), lB)
                 world.addComponent(world.createEntity(), lB)
             }
         }, query(all(A)))
-        .registerSystem((entities, world) => {
+        .registerSystem(function deleteBs(entities, world) {
             for (let i = entities.length - 1; i >= 0; i--) {
                 world.deleteEntity(entities[i])
             }

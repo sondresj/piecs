@@ -7,13 +7,13 @@ export default function createAddRemove(count) {
     const B = world.getNextComponentId()
 
     world
-        .registerSystem((entities, world) => {
+        .registerSystem(function addB(entities, world) {
             const lB = B
             while (entities.length) {
                 world.addComponent(entities[0], lB)
             }
         }, query(and(all(A), not(B))))
-        .registerSystem((entities, world) => {
+        .registerSystem(function removeB(entities, world) {
             const lB = B
             for (let i = entities.length - 1; i >= 0; i--) {
                 world.removeComponent(entities[i], lB)

@@ -13,7 +13,7 @@ export default function createPacked1(count) {
     const E = world.getNextComponentId()
 
     world
-        .registerSystem((entities, _) => {
+        .registerSystem(function systemAp1(entities, _) {
             const AArray = A.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 AArray[entities[i]] *= 2
