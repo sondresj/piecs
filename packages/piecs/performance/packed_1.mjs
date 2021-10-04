@@ -3,21 +3,24 @@ import { all, query } from '../lib/Query.js'
 
 export default function createPacked1(count) {
     const world = new World()
-    const A = world.createComponentSet('uint8', 0)
-    const B = world.getNextComponentId() //world.createComponentSet('B', 'flag', true)
-    const C = world.getNextComponentId() //world.createComponentSet('C', 'flag', true)
-    const D = world.getNextComponentId() //world.createComponentSet('D', 'flag', true)
-    const E = world.getNextComponentId() //world.createComponentSet('E', 'flag', true)
+    const A = {
+        id: world.getNextComponentId(),
+        arr: new Uint32Array(count).fill(0)
+    }
+    const B = world.getNextComponentId()
+    const C = world.getNextComponentId()
+    const D = world.getNextComponentId()
+    const E = world.getNextComponentId()
 
     world
         .registerSystem((queryResults, _) => {
-            const lA = A
+            const AArray = A.arr
             for (let i = 0; i < queryResults.length; i++) {
                 const entities = queryResults[i].entities
                 for (let j = entities.length - 1; j >= 0; j--) {
                     const entity = entities[i]
-                    const a = lA.get(entity)
-                    lA.set(entity, a * 2)
+                    const a = AArray[entity]
+                    AArray[entity] = a * 2
                 }
             }
         }, query(all(A.id)))
@@ -25,7 +28,7 @@ export default function createPacked1(count) {
 
     for (let i = 0; i < count; i++) {
         const entity = world.createEntity()
-        A.add(entity)
+        world.setComponent(entity, A.id)
         world.setComponent(entity, B)
         world.setComponent(entity, C)
         world.setComponent(entity, D)

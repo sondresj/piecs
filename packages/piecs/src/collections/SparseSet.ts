@@ -43,27 +43,31 @@ export const createSparseSet = (): SparseSet => {
     const indices: number[] = []
 
     function has(value: number): boolean {
-        return indices[value]! < values.length
-            && values[indices[value]!] === value
+        const index = indices[value]
+        return index !== undefined
+            && index < values.length
+            && values[index] === value
     }
 
     function add(value: number) {
+        const index = indices[value]
         const l = values.length
-        if (indices[value]! >= l || values[indices[value]!] !== value) {
+        if (index === undefined || index >= l || values[index] !== value) {
             indices[value] = l
             values.push(value)
         }
     }
 
-    function SSremove(value: number) {
-        if (indices[value]! >= values.length || values[indices[value]!] !== value) {
+    function remove(value: number) {
+        const index = indices[value]
+        if (index === undefined || index >= values.length || values[index] !== value) {
             return
         }
 
         const swap = values.pop()!
         if (swap !== value) {
-            values[indices[value]!] = swap
-            indices[swap] = indices[value]!
+            values[index] = swap
+            indices[swap] = index
         }
     }
 
@@ -71,6 +75,49 @@ export const createSparseSet = (): SparseSet => {
         values,
         has,
         add,
-        remove: SSremove
+        remove
     }
 }
+// export type SparseSet = {
+//     readonly values: ReadonlyArray<number>
+//     has: (value: number) => boolean
+//     add: (value: number) => void
+//     remove: (value: number) => void
+// }
+
+// export const createSparseSet = (): SparseSet => {
+//     const values: number[] = []
+//     const indices: number[] = []
+
+//     function has(value: number): boolean {
+//         return indices[value]! < values.length
+//             && values[indices[value]!] === value
+//     }
+
+//     function add(value: number) {
+//         const l = values.length
+//         if (indices[value]! >= l || values[indices[value]!] !== value) {
+//             indices[value] = l
+//             values.push(value)
+//         }
+//     }
+
+//     function SSremove(value: number) {
+//         if (indices[value]! >= values.length || values[indices[value]!] !== value) {
+//             return
+//         }
+
+//         const swap = values.pop()!
+//         if (swap !== value) {
+//             values[indices[value]!] = swap
+//             indices[swap] = indices[value]!
+//         }
+//     }
+
+//     return {
+//         values,
+//         has,
+//         add,
+//         remove: SSremove
+//     }
+// }

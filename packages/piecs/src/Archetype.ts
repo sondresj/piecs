@@ -1,6 +1,6 @@
-import { BitSet } from './collections/BitSet'
+import type { BitSet } from './collections/BitSet'
+import type { Query } from './Query'
 import { createSparseSet, SparseSet } from './collections/SparseSet'
-import { Query } from './Query'
 
 export type Archetype = {
     readonly id: string

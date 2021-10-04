@@ -1,10 +1,7 @@
 import type { System, InsideWorld, OutsideWorld } from './types'
+import type { Query } from './Query'
 import { Archetype, createArchetype, traverseArchetypeGraph } from './Archetype'
 import { BitSet } from './collections/BitSet'
-import { Query } from './Query'
-import { VectorComponentSet, ComponentSet, StructComponentSet, FlagComponentSet } from './ComponentSet'
-import type { StructValueType } from './collections/StructVector'
-import type { VectorValueType } from './collections/Vector'
 
 export class World implements OutsideWorld, InsideWorld {
     private entityArchetype: Archetype[] = []
@@ -30,15 +27,6 @@ export class World implements OutsideWorld, InsideWorld {
 
     getNextComponentId() {
         return this.nextComponentId++
-    }
-
-    createComponentSet<T>(
-        type: VectorValueType | 'flag' | StructValueType[],
-        defaultValue: Readonly<T>
-    ): ComponentSet<T> {
-        if (type === 'flag') return new FlagComponentSet(type, this.nextComponentId++, this) as any
-        if (Array.isArray(type)) return new StructComponentSet(type, this.nextComponentId++, defaultValue as never, this) as any
-        return new VectorComponentSet(type, this.nextComponentId++, defaultValue, this) as any
     }
 
     registerSystem(system: System, query: Query) {
@@ -70,7 +58,7 @@ export class World implements OutsideWorld, InsideWorld {
             query.tryAdd(blankArchetype)
         })
 
-        // this doesn't really seem to do much
+        // this doesn't really seem to do much, but I think it could be usefull in some scenarios
         expectedComponentIdCombinations.forEach(combinations => {
             let archetype = blankArchetype
             combinations.forEach(componentId => {
@@ -93,11 +81,6 @@ export class World implements OutsideWorld, InsideWorld {
             const system = systems[s]!
             const query = queries[s]!
             system(query.archetypes, this)
-            // for (let a = 0, al = archetypes.length; a < al; a++) {
-            //     const entities = archetypes[a]!.entitySet.values
-            //     if (entities.length > 0)
-            //         system.execute(entities, this)
-            // }
         }
 
         this._executeDeferredActions()
@@ -136,23 +119,25 @@ export class World implements OutsideWorld, InsideWorld {
         if (!archetype) throw new Error(`Entity ${entity} does not exist`)
 
         archetype.entitySet.remove(entity)
-        this.entityArchetype[entity] = undefined as any // much faster than delete operator, but achieves the same (ish)
+        // much faster than delete operator, but achieves the same (ish)
+        // an alternative is to leave it be, and use archetype.entitySet.has(entity) as a check for entity being deleted, but that too is a little slower.
+        this.entityArchetype[entity] = undefined as any
         this.deletedEntities.push(entity)
         return this
     }
 
     hasComponent(entity: number, componentId: number): boolean {
-        const archetype = this.entityArchetype[entity]
-        return !!archetype && archetype.mask.has(componentId)
+        return this.entityArchetype[entity] !== undefined
+            && this.entityArchetype[entity]!.mask.has(componentId)
     }
 
     setComponent(entity: number, componentId: number): this {
+        if (!this.entityArchetype[entity]) throw new Error(`Entity ${entity} does not exist`)
         let archetype = this.entityArchetype[entity]!
-        if (!archetype) throw new Error(`Entity ${entity} does not exist`)
 
         if (!archetype.mask.has(componentId)) {
             archetype.entitySet.remove(entity)
-            archetype = this.entityArchetype[entity]!.transform(componentId, this.queries)
+            archetype = archetype.transform(componentId, this.queries)
             archetype.entitySet.add(entity)
             this.entityArchetype[entity] = archetype
         }
@@ -160,8 +145,8 @@ export class World implements OutsideWorld, InsideWorld {
     }
 
     removeComponent(entity: number, componentId: number): this {
+        if (!this.entityArchetype[entity]) throw new Error(`Entity ${entity} does not exist`)
         let archetype = this.entityArchetype[entity]!
-        if (!archetype) throw new Error(`Entity ${entity} does not exist`)
 
         if (archetype.mask.has(componentId)) {
             archetype.entitySet.remove(entity)

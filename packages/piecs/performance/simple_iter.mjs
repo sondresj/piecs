@@ -3,11 +3,26 @@ import { all, query } from '../lib/Query.js'
 
 export default function createSimpleIter(count) {
     const world = new World()
-    const A = world.createComponentSet('uint8', 0)
-    const B = world.createComponentSet('uint8', 0)
-    const C = world.createComponentSet('uint8', 0)
-    const D = world.createComponentSet('uint8', 0)
-    const E = world.createComponentSet('uint8', 0)
+    const A = {
+        id: world.getNextComponentId(),
+        arr: new Uint32Array(count).fill(0)
+    }
+    const B = {
+        id: world.getNextComponentId(),
+        arr: new Uint32Array(count).fill(0)
+    }
+    const C = {
+        id: world.getNextComponentId(),
+        arr: new Uint32Array(count).fill(0)
+    }
+    const D = {
+        id: world.getNextComponentId(),
+        arr: new Uint32Array(count).fill(0)
+    }
+    const E = {
+        id: world.getNextComponentId(),
+        arr: new Uint32Array(count).fill(0)
+    }
 
     world
         .registerSystem((queryResults, _) => {
@@ -17,10 +32,10 @@ export default function createSimpleIter(count) {
                 const entities = queryResults[i].entities
                 for (let j = entities.length - 1; j >= 0; j--) {
                     const entity = entities[i]
-                    const a = lA.get(entity)
-                    const b = lB.get(entity)
-                    lA.set(entity, b)
-                    lB.set(entity, a)
+                    const a = lA.arr[entity]
+                    const b = lB.arr[entity]
+                    lA.arr[entity] = b
+                    lB.arr[entity] = a
                 }
             }
         }, query(all(A.id, B.id)))
@@ -31,10 +46,10 @@ export default function createSimpleIter(count) {
                 const entities = queryResults[i].entities
                 for (let j = entities.length - 1; j >= 0; j--) {
                     const entity = entities[i]
-                    const c = lC.get(entity)
-                    const d = lD.get(entity)
-                    lC.set(entity, d)
-                    lD.set(entity, c)
+                    const c = lC.arr[entity]
+                    const d = lD.arr[entity]
+                    lC.arr[entity] = d
+                    lD.arr[entity] = c
                 }
             }
         }, query(all(C.id, D.id)))
@@ -45,10 +60,10 @@ export default function createSimpleIter(count) {
                 const entities = queryResults[i].entities
                 for (let j = entities.length - 1; j >= 0; j--) {
                     const entity = entities[i]
-                    const c = lC.get(entity)
-                    const e = lE.get(entity)
-                    lC.set(entity, e)
-                    lE.set(entity, c)
+                    const c = lC.arr[entity]
+                    const e = lE.arr[entity]
+                    lC.arr[entity] = e
+                    lE.arr[entity] = c
                 }
             }
         }, query(all(C.id, E.id)))
@@ -56,22 +71,22 @@ export default function createSimpleIter(count) {
 
     for (let i = 0; i < count; i++) {
         const e1 = world.createEntity()
-        A.add(e1, 0)
-        B.add(e1, 1)
+        world.setComponent[e1, A.id]
+        world.setComponent[e1, B.id]
         const e2 = world.createEntity()
-        A.add(e2, 0)
-        B.add(e2, 1)
-        C.add(e2, 2)
+        world.setComponent(e2, A.id)
+        world.setComponent(e2, B.id)
+        world.setComponent(e2, C.id)
         const e3 = world.createEntity()
-        A.add(e3, 0)
-        B.add(e3, 1)
-        C.add(e3, 2)
-        D.add(e3, 3)
+        world.setComponent(e3, A.id)
+        world.setComponent(e3, B.id)
+        world.setComponent(e3, C.id)
+        world.setComponent(e3, D.id)
         const e4 = world.createEntity()
-        A.add(e4, 0)
-        B.add(e4, 1)
-        C.add(e4, 2)
-        E.add(e4, 4)
+        world.setComponent(e4, A.id)
+        world.setComponent(e4, B.id)
+        world.setComponent(e4, C.id)
+        world.setComponent(e4, E.id)
     }
 
     return function simpleIter() {

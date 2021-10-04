@@ -1,7 +1,7 @@
-import { Archetype } from './Archetype'
+import type { Archetype } from './Archetype'
 import { BitSet } from './collections/BitSet'
 
-export type QueryMatcher = (target: BitSet) => boolean
+type QueryMatcher = (target: BitSet) => boolean
 const alwaysTrue: QueryMatcher = (_: BitSet) => true
 const alwaysFalse: QueryMatcher = (_: BitSet) => false
 
@@ -42,41 +42,6 @@ export function or(matcher: QueryMatcher, ...matchers: QueryMatcher[]): QueryMat
     return (target) => matcher(target)
         || matchers.some(m => m(target))
 }
-
-// export const query = (...matchers: Array<QueryMatcher>) => {
-//     return Query.from(matchers)
-// }
-
-// export class Query {
-//     public readonly archetypes: Array<Archetype> = []
-//     private _matcher: QueryMatcher
-//     constructor(matcher: QueryMatcher) {
-//         this._matcher = matcher
-//     }
-
-//     static from(matchers: Array<QueryMatcher>): Query {
-//         if (!matchers.length) return new Query(alwaysTrue)
-//         const [first, ...rest] = matchers
-//         return new Query(rest.length
-//             ? and(first!, ...rest)
-//             : first!
-//         )
-//     }
-
-//     tryAdd(archetype: Archetype): boolean {
-//         if (!this._matcher(archetype.mask)) return false
-//         this.archetypes.push(archetype)
-//         return true
-//     }
-
-//     get length(): number {
-//         return this.archetypes.length
-//     }
-
-//     get(i: number): Archetype | undefined {
-//         return this.archetypes[i]
-//     }
-// }
 
 export type Query = {
     readonly archetypes: Archetype[]
