@@ -11,7 +11,7 @@ export class BitSet {
     }
 
     has(value: number): boolean {
-        const index = value >> 5
+        const index = value >>> 5
         if (index >= this._size) return false
         return Boolean(this._mask[index]! & (1 << (value & mod32)))
     }
@@ -34,21 +34,21 @@ export class BitSet {
 
     xor(value: number): this {
         this._grow(value)
-        const index = value >> 5
+        const index = value >>> 5
         this._mask[index] ^= 1 << (value & mod32)
         return this
     }
 
     or(value: number): this {
         this._grow(value)
-        const index = value >> 5
+        const index = value >>> 5
         this._mask[index] |= 1 << (value & mod32)
         return this
     }
 
     and(value: number): this {
         this._grow(value)
-        const index = value >> 5
+        const index = value >>> 5
         this._mask[index] &= 1 << (value & mod32)
         return this
     }

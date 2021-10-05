@@ -80,7 +80,8 @@ export class World implements OutsideWorld, InsideWorld {
         for (let s = 0, sl = systems.length; s < sl; s++) {
             const system = systems[s]!
             const query = queries[s]!
-            for (let a = 0, al = query.archetypes.length; a < al; a++) {
+            // reverse iterating in case a system adds/removes component resulting in new archetype that matches query for the system
+            for (let a = query.archetypes.length - 1; a >= 0; a--) {
                 const entities = query.archetypes[a]!.entitySet.values
                 if (entities.length > 0) {
                     system(entities, this)

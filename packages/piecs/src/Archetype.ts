@@ -3,7 +3,6 @@ import type { Query } from './Query'
 import { createSparseSet, SparseSet } from './collections/SparseSet'
 
 export type Archetype = {
-    readonly id: string
     readonly mask: BitSet
     readonly entitySet: SparseSet
     readonly adjacent: Archetype[]
@@ -16,12 +15,10 @@ export type Archetype = {
 
 export function createArchetype(bitmask: BitSet): Archetype {
     const mask = bitmask
-    const id = mask.toString()
     const entitySet = createSparseSet()
     const adjacent: Archetype[] = []
 
     return {
-        id,
         mask,
         entitySet,
         adjacent,
