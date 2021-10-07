@@ -63,6 +63,7 @@ export default function createSimpleIter(count) {
                 lE[entity] = c
             }
         }, query(prefab(prefab4)))
+        .initialize()
 
     for (let i = 0; i < count; i++) {
         const e1 = world.createEntity()

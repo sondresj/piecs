@@ -1,7 +1,8 @@
 import type { System, InsideWorld, OutsideWorld, WorldEventType, WorldEventHandler } from './types'
 import type { InternalQuery, Query } from './Query'
-import { Archetype, createArchetype, InternalArchetype, traverseArchetypeGraph } from './Archetype'
+import { Archetype, createArchetype, InternalArchetype, transformArchetype, traverseArchetypeGraph } from './Archetype'
 import { BitSet } from './collections/BitSet'
+
 export class World implements OutsideWorld, InsideWorld {
     private entityArchetype: InternalArchetype[] = []
     private deletedEntities: number[] = []
@@ -12,7 +13,8 @@ export class World implements OutsideWorld, InsideWorld {
     private queries: InternalQuery[] = [] // should be 1 to 1 with systems
 
     private deferredActions: (() => void)[] = []
-    private rootArchetype: InternalArchetype = createArchetype('root', new BitSet(31), null)
+    private rootArchetype: InternalArchetype = createArchetype('root', new BitSet(255), null)
+    private initialized = false
 
     private _executeDeferredActions() {
         if (!this.deferredActions.length) return
@@ -23,6 +25,14 @@ export class World implements OutsideWorld, InsideWorld {
         this.deferredActions.length = 0
     }
 
+    private _tryAddArchetypeToQueries(archetype: InternalArchetype) {
+        const queries = this.queries
+
+        for (let i = 0, l = queries.length; i < l; i++) {
+            queries[i]!.tryAdd(archetype)
+        }
+    }
+
     getNextComponentId() {
         return this.nextComponentId++
     }
@@ -31,12 +41,24 @@ export class World implements OutsideWorld, InsideWorld {
         this.systems.push(system)
         this.queries.push(<InternalQuery>query)
 
-        traverseArchetypeGraph(this.rootArchetype, (archetype) => {
-            (<InternalQuery>query).tryAdd(archetype)
-            return true
-        })
+        if (this.initialized) {
+            traverseArchetypeGraph(this.rootArchetype, (archetype) => {
+                (<InternalQuery>query).tryAdd(archetype)
+                return true
+            })
+        }
 
         return this
+    }
+
+    initialize() {
+        if (this.initialized) return
+        this.initialized = true
+
+        traverseArchetypeGraph(this.rootArchetype, (archetype) => {
+            this._tryAddArchetypeToQueries(archetype)
+            return true
+        })
     }
 
     /**
@@ -45,6 +67,9 @@ export class World implements OutsideWorld, InsideWorld {
      * @returns number of milliseconds that the update took
      */
     update(): this {
+        if (!this.initialized)
+            throw new Error('World not initialized. Did you forget to call world.initialize()?')
+
         const systems = this.systems
         const queries = this.queries
         for (let s = 0, sl = systems.length; s < sl; s++) {
@@ -79,10 +104,19 @@ export class World implements OutsideWorld, InsideWorld {
 
     prefabricate(componentIds: number[]): Archetype {
         this.nextComponentId = Math.max(this.nextComponentId - 1, ...componentIds) + 1 >>> 0
-
         let archetype = this.rootArchetype
+
         for (let i = 0, l = componentIds.length; i < l; i++) {
-            archetype = archetype.transform(componentIds[i]!, this.queries)
+            const componentId = componentIds[i]!
+
+            if (archetype.adjacent[componentId]) {
+                archetype = archetype.adjacent[componentId]!
+            } else {
+                archetype = transformArchetype(archetype, componentId)
+                if (this.initialized) {
+                    this._tryAddArchetypeToQueries(archetype)
+                }
+            }
         }
 
         return archetype
@@ -197,18 +231,28 @@ C: for (let i = 0, l = entities.length; i < l; i++) {
             }
             throw new Error(`Entity ${entity} does not exist`)
         }
+
         let archetype = this.entityArchetype[entity]!
 
         if (!archetype.mask.has(componentId)) {
             archetype.entitySet.remove(entity)
-            archetype = archetype.adjacent[componentId] || archetype.transform(componentId, this.queries)
+
+            if (archetype.adjacent[componentId]) {
+                archetype = archetype.adjacent[componentId]!
+            } else {
+                archetype = transformArchetype(archetype, componentId)
+                if (this.initialized) {
+                    this._tryAddArchetypeToQueries(archetype)
+                }
+            }
+
             archetype.entitySet.add(entity)
             this.entityArchetype[entity] = archetype
         }
         return this
     }
 
-    subtractComponentId(entity: number, componentId: number): this {
+    removeComponentId(entity: number, componentId: number): this {
         if (this.entityArchetype[entity] === undefined) {
             if (entity === undefined) {
                 console.warn(`
@@ -228,11 +272,21 @@ C: for (let i = 0, l = entities.length; i < l; i++) {
             }
             throw new Error(`Entity ${entity} does not exist`)
         }
+
         let archetype = this.entityArchetype[entity]!
 
         if (archetype.mask.has(componentId)) {
             archetype.entitySet.remove(entity)
-            archetype = archetype.adjacent[componentId] || archetype.transform(componentId, this.queries)
+
+            if (archetype.adjacent[componentId]) {
+                archetype = archetype.adjacent[componentId]!
+            } else {
+                archetype = transformArchetype(archetype, componentId)
+                if (this.initialized) {
+                    this._tryAddArchetypeToQueries(archetype)
+                }
+            }
+
             archetype.entitySet.add(entity)
             this.entityArchetype[entity] = archetype
         }

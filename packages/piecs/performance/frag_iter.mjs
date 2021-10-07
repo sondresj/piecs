@@ -22,6 +22,7 @@ export default function createFragIter(count) {
                 DataArray[entities[i]] *= 2
             }
         }, query(all(Data.id)))
+        .initialize()
 
     for (let i = 0; i < count; i++) {
         for (const prefab of prefabs) {

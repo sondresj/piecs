@@ -18,7 +18,7 @@ export type EntityEvent = {
     archetype: Archetype
 }
 
-export type WorldEventType = 
+export type WorldEventType =
     | ComponentEventType
     | EntityEventType
 
@@ -33,7 +33,7 @@ export interface InsideWorld {
     defer(action: () => void): InsideWorld
     addComponentId(entity: number, componentId: number): InsideWorld
     hasComponentId(entity: number, componentId: number): boolean
-    subtractComponentId(entity: number, componentId: number): InsideWorld
+    removeComponentId(entity: number, componentId: number): InsideWorld
     transformEntity(entity: number, prefabricate: Archetype): InsideWorld
 }
 

@@ -21,6 +21,7 @@ export default function createPacked1(count) {
                 AArray[entities[i]] *= 2
             }
         }, query(prefab(p)))
+        .initialize()
 
     for (let i = 0; i < count; i++) {
         const entity = world.createEntity()

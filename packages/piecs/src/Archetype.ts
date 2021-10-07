@@ -1,25 +1,24 @@
 import type { ReadonlyBitSet } from './collections/BitSet'
-import type { InternalQuery } from './Query'
 import { createSparseSet, SparseSet } from './collections/SparseSet'
 
 export type InternalArchetype = {
+    readonly id: string
     readonly mask: ReadonlyBitSet
     readonly entitySet: SparseSet
     readonly adjacent: InternalArchetype[]
     readonly parent: InternalArchetype | null
-    readonly transform: (
-        componentId: number,
-        queries: InternalQuery[]
-    ) => InternalArchetype
-} & Archetype
+    readonly componentIds: number[]
+}
 
 export type Archetype = {
     readonly id: string
+    readonly componentIds: ReadonlyArray<number>
 }
 
 export function createArchetype(id: string, mask: ReadonlyBitSet, parent: InternalArchetype | null): InternalArchetype {
     const entitySet = createSparseSet()
     const adjacent: InternalArchetype[] = []
+    const componentIds: number[] = []
 
     return {
         id,
@@ -27,46 +26,36 @@ export function createArchetype(id: string, mask: ReadonlyBitSet, parent: Intern
         entitySet,
         adjacent,
         parent,
-        transform: function(
-            componentId: number,
-            queries: InternalQuery[]
-        ): InternalArchetype {
-            if (adjacent[componentId]) {
-                return adjacent[componentId]!
-            }
-
-            const nextMask = mask.copy().xor(componentId)
-            const nextMaskString = nextMask.toString()
-            let existingArchetype: InternalArchetype | null = null
-            if (parent !== null) {
-                // find existing archetype in graph
-                traverseArchetypeGraph(parent, (archetype) => {
-                    if (archetype === this) return false
-                    if (archetype.id === nextMaskString) {
-                        existingArchetype = archetype
-                        return false
-                    }
-                    return existingArchetype === null
-                })
-            }
-            const archetype = existingArchetype
-                || createArchetype(nextMaskString, nextMask, this)
-
-            if (!existingArchetype) {
-                // Could not find existing, try adding the new archetype to all queries
-                for (let i = 0, ql = queries.length; i < ql; i++) {
-                    const query = queries[i]!
-                    query.tryAdd(archetype)
-                }
-            }
-
-            // connect archetype in graph
-            archetype.adjacent[componentId] = this // archetype has the componentId, so the only direction a transform can go with that componentId, is back here.
-            adjacent[componentId] = archetype
-
-            return archetype
-        },
+        componentIds
     }
+}
+
+export function transformArchetype(archetype: InternalArchetype, componentId: number): InternalArchetype {
+    if (archetype.adjacent[componentId]) {
+        return archetype.adjacent[componentId]!
+    }
+
+    // TODO: Not sure if it's worth it or needed to traverse the graph to find existing.
+    // const nextMaskString = nextMask.toString()
+    // let existingArchetype: InternalArchetype | null = null
+    // if (parent !== null) {
+    //     // find existing archetype in graph
+    //     traverseArchetypeGraph(parent, (archetype) => {
+    //         if (archetype === this) return false
+    //         if (archetype.id === nextMaskString) {
+    //             existingArchetype = archetype
+    //             return false
+    //         }
+    //         return existingArchetype === null
+    //     })
+    // }
+
+    const nextMask = archetype.mask.copy().xor(componentId)
+    const transformed = createArchetype(nextMask.toString(), nextMask, archetype)
+    transformed.adjacent[componentId] = archetype
+    archetype.adjacent[componentId] = transformed
+    transformed.componentIds.push(componentId)
+    return transformed
 }
 
 export function traverseArchetypeGraph(archetype: InternalArchetype, callback: (archetype: InternalArchetype) => boolean | void, traversed = new Set<string>()): boolean {
@@ -78,6 +67,7 @@ export function traverseArchetypeGraph(archetype: InternalArchetype, callback: (
         const arch = adjacent[i]
         // adjacent is sparse, so there can be empty slots
         if (!arch) continue
+        // graph is doubly linked, so need to prevent infinite recursion
         if (traversed.has(arch!.id)) continue
         if (traverseArchetypeGraph(arch, callback, traversed) === false) break
     }

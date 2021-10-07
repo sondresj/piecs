@@ -22,6 +22,7 @@ export default function createEntityCycle(count) {
                 world.deleteEntity(entities[i])
             }
         }, query(prefab(prefabB)))
+        .initialize()
 
     for (let i = 0; i < count; i++) {
         const e = world.createEntity()

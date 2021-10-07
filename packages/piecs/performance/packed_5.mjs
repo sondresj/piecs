@@ -58,6 +58,7 @@ export default function createPacked5(count) {
                 arr[entities[i]] *= 2
             }
         }, query(all(E.id)))
+        .initialize()
 
     for (let i = 0; i < count; i++) {
         const entity = world.createEntity()
