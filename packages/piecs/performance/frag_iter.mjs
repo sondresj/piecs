@@ -1,7 +1,6 @@
 import { World } from '../lib/World.js'
 import { all, query } from '../lib/Query.js'
 
-
 export default function createFragIter(count) {
     const world = new World()
 
@@ -21,13 +20,13 @@ export default function createFragIter(count) {
                 DataArray[entities[i]] *= 2
             }
         }, query(all(Data.id)))
-        .init(...components.map(c => [c, Data.id]))
+
+    const prefabs = components.map(c => world.prefabricate([c, Data.id]))
 
     for (let i = 0; i < count; i++) {
-        for (const c of components) {
+        for (const prefab of prefabs) {
             const e = world.createEntity()
-            world.addComponent(e, c)
-            world.addComponent(e, Data.id)
+            world.transformEntity(e, prefab)
         }
     }
 

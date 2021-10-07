@@ -18,16 +18,13 @@ export default function createPacked1(count) {
             for (let i = 0, l = entities.length; i < l; i++) {
                 AArray[entities[i]] *= 2
             }
-        }, query(all(A.id)))
-        .init([A.id], [A.id, B], [A.id, B, C], [A.id, B, C, D], [A.id, B, C, D, E])
+        }, query(all(A.id, E)))
+
+    const prefab = world.prefabricate([A.id, B, C, D, E])
 
     for (let i = 0; i < count; i++) {
         const entity = world.createEntity()
-        world.addComponent(entity, A.id)
-        world.addComponent(entity, B)
-        world.addComponent(entity, C)
-        world.addComponent(entity, D)
-        world.addComponent(entity, E)
+        world.transformEntity(entity, prefab)
     }
 
     return function packed1() {

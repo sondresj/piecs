@@ -1,13 +1,8 @@
 import { World } from './World'
-import { and, or, not, any, all, query } from './Query'
-export type { System } from './types'
-export {
-    World,
-    query,
-    and,
-    or,
-    not,
-    all,
-    any
-}
+
+export { and, or, not, any, all, query } from './Query'
+export type { Query } from './Query'
+export type { Archetype } from './Archetype'
+export type { System, WorldEventHandler, WorldEventType } from './types'
+export { World }
 export default World

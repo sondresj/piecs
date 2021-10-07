@@ -1,20 +1,19 @@
-import type { System, InsideWorld, OutsideWorld } from './types'
-import type { Query } from './Query'
-import { Archetype, createArchetype, traverseArchetypeGraph } from './Archetype'
+import type { System, InsideWorld, OutsideWorld, WorldEventType, WorldEventHandler } from './types'
+import { InternalQuery, Query, queryTryAdd } from './Query'
+import { Archetype, createArchetype, InternalArchetype, traverseArchetypeGraph, archetypeTransform, archetypeMask, archetypeEntitySet, archetypeAdjacent } from './Archetype'
 import { BitSet } from './collections/BitSet'
 
 export class World implements OutsideWorld, InsideWorld {
-    private entityArchetype: Archetype[] = []
+    private entityArchetype: InternalArchetype[] = []
     private deletedEntities: number[] = []
-    private nextEntityId = 0
-    private nextComponentId = 0
+    private nextEntityId = 0 >>> 0
+    private nextComponentId = 0 >>> 0
 
     private systems: System[] = []
-    private queries: Query[] = [] // should be 1 to 1 with systems
+    private queries: InternalQuery[] = [] // should be 1 to 1 with systems
 
     private deferredActions: (() => void)[] = []
-    private rootArchetype: Archetype = createArchetype(new BitSet(0))
-    private initialized = false
+    private rootArchetype: InternalArchetype = createArchetype('root', new BitSet(31), null) // will grow if a componentId > 255 is used
 
     private _executeDeferredActions() {
         if (!this.deferredActions.length) return
@@ -31,39 +30,11 @@ export class World implements OutsideWorld, InsideWorld {
 
     registerSystem(system: System, query: Query) {
         this.systems.push(system)
-        this.queries.push(query)
+        this.queries.push(<InternalQuery>query)
 
-        if (this.initialized) {
-            traverseArchetypeGraph(this.rootArchetype, (archetype) => {
-                query.tryAdd(archetype)
-                return true
-            })
-        }
-
-        return this
-    }
-
-    init(...expectedComponentIdCombinations: Array<Array<number>>) {
-        if (this.initialized) {
-            console.warn('Attempted to rebuild world, this is not allowed')
-            return this
-        }
-        this.initialized = true
-
-        // create a blank archetype that serves as the base archetype for all entities
-        const rootArchetype = createArchetype(new BitSet(this.nextComponentId))
-        this.rootArchetype = rootArchetype
-
-        this.queries.forEach(query => {
-            query.tryAdd(rootArchetype)
-        })
-
-        // this doesn't really seem to do much, but I think it could be usefull in some scenarios
-        expectedComponentIdCombinations.forEach(combinations => {
-            let archetype = rootArchetype
-            combinations.forEach(componentId => {
-                archetype = archetype.transform(componentId, this.queries)
-            })
+        traverseArchetypeGraph(this.rootArchetype, (archetype) => {
+            (<InternalQuery>query)[queryTryAdd](archetype)
+            return true
         })
 
         return this
@@ -82,7 +53,7 @@ export class World implements OutsideWorld, InsideWorld {
             const query = queries[s]!
             // reverse iterating in case a system adds/removes component resulting in new archetype that matches query for the system
             for (let a = query.archetypes.length - 1; a >= 0; a--) {
-                const entities = query.archetypes[a]!.entitySet.values
+                const entities = (<InternalArchetype[]>query.archetypes)[a]![archetypeEntitySet].values
                 if (entities.length > 0) {
                     system(entities, this)
                 }
@@ -102,20 +73,33 @@ export class World implements OutsideWorld, InsideWorld {
         this.deferredActions.push(action)
         return this
     }
+    
+    subscribe<T extends WorldEventType>(event: T, handler: WorldEventHandler<T>): (() => void) {
+        throw new Error('')
+    }
+
+    prefabricate(componentIds: number[]): Archetype {
+        this.nextComponentId = Math.max(this.nextComponentId - 1, ...componentIds) + 1 >>> 0
+
+        let archetype = this.rootArchetype
+        for (let i = 0, l = componentIds.length; i < l; i++) {
+            archetype = archetype[archetypeTransform](componentIds[i]!, this.queries)
+        }
+
+        return archetype
+    }
 
     hasEntity(entity: number): boolean {
         return this.entityArchetype[entity] !== undefined
     }
 
     createEntity(): number {
-        if (!this.initialized) throw new Error('Not initialized')
-
         const entity = this.deletedEntities.length > 0
             ? this.deletedEntities.pop()!
             : this.nextEntityId++
 
         const archetype = this.rootArchetype
-        archetype.entitySet.add(entity)
+        archetype[archetypeEntitySet].add(entity)
         this.entityArchetype[entity] = archetype
         return entity
     }
@@ -134,6 +118,7 @@ C: for (let i = 0, l = entities.length; i < l; i++) {
         world.deleteEntity(entities[i], X)
     })
 },`)
+                throw new Error('Undefined entity')
             } else if (this.deletedEntities.includes(entity)) {
                 throw new Error(`Entity ${entity} is deleted`)
             }
@@ -141,7 +126,7 @@ C: for (let i = 0, l = entities.length; i < l; i++) {
         }
 
         const archetype = this.entityArchetype[entity]!
-        archetype.entitySet.remove(entity)
+        archetype[archetypeEntitySet].remove(entity)
         // much faster than delete operator, but achieves the same (ish)
         // an alternative is to leave it be, and use archetype.entitySet.has(entity) as a check for entity being deleted, but that too is a little slower.
         this.entityArchetype[entity] = undefined as any
@@ -149,12 +134,40 @@ C: for (let i = 0, l = entities.length; i < l; i++) {
         return this
     }
 
-    hasComponent(entity: number, componentId: number): boolean {
-        return this.entityArchetype[entity] !== undefined
-            && this.entityArchetype[entity]!.mask.has(componentId)
+    transformEntity(entity: number, prefab: Archetype): this {
+        if (this.entityArchetype[entity] === undefined) {
+            if (entity === undefined) {
+                console.warn(`
+Seems like you're iterating entities from 0..N and transforming entities.
+This may remove the entity from the query results passed to your system.
+Try one of the following options:
+A: while (entities.length) {...}
+B: for (let i = entities.length -1; i >= 0; i--) {...}
+C: for (let i = 0, l = entities.length; i < l; i++) {
+    world.defer(() => { // Defer the change of entity until after all systems has been executed
+        world.transformEntity(entities[i], prefabX)
+    })
+},`)
+                throw new Error('Undefined entity')
+            } else if (this.deletedEntities.includes(entity)) {
+                throw new Error(`Entity ${entity} is deleted`)
+            }
+            throw new Error(`Entity ${entity} does not exist`)
+        }
+        
+        this.entityArchetype[entity]![archetypeEntitySet].remove(entity)
+        const archetype = <InternalArchetype>prefab
+        archetype[archetypeEntitySet].add(entity)
+        this.entityArchetype[entity] = archetype
+        return this
     }
 
-    addComponent(entity: number, componentId: number): this {
+    hasComponentId(entity: number, componentId: number): boolean {
+        return this.entityArchetype[entity] !== undefined
+            && this.entityArchetype[entity]![archetypeMask].has(componentId)
+    }
+
+    addComponentId(entity: number, componentId: number): this {
         if (this.entityArchetype[entity] === undefined) {
             if (entity === undefined) {
                 console.warn(`
@@ -168,6 +181,7 @@ C: for (let i = 0, l = entities.length; i < l; i++) {
         world.setComponent(entities[i], X)
     })
 },`)
+                throw new Error('Undefined entity')
             } else if (this.deletedEntities.includes(entity)) {
                 throw new Error(`Entity ${entity} is deleted`)
             }
@@ -175,16 +189,16 @@ C: for (let i = 0, l = entities.length; i < l; i++) {
         }
         let archetype = this.entityArchetype[entity]!
 
-        if (!archetype.mask.has(componentId)) {
-            archetype.entitySet.remove(entity)
-            archetype = archetype.adjacent[componentId] || archetype.transform(componentId, this.queries)
-            archetype.entitySet.add(entity)
+        if (!archetype[archetypeMask].has(componentId)) {
+            archetype[archetypeEntitySet].remove(entity)
+            archetype = archetype[archetypeAdjacent][componentId] || archetype[archetypeTransform](componentId, this.queries)
+            archetype[archetypeEntitySet].add(entity)
             this.entityArchetype[entity] = archetype
         }
         return this
     }
 
-    removeComponent(entity: number, componentId: number): this {
+    subtractComponentId(entity: number, componentId: number): this {
         if (this.entityArchetype[entity] === undefined) {
             if (entity === undefined) {
                 console.warn(`
@@ -198,6 +212,7 @@ C: for (let i = 0, l = entities.length; i < l; i++) {
         world.removeComponent(entities[i], X)
     })
 },`)
+                throw new Error('Undefined entity')
             } else if (this.deletedEntities.includes(entity)) {
                 throw new Error(`Entity ${entity} is deleted`)
             }
@@ -205,10 +220,10 @@ C: for (let i = 0, l = entities.length; i < l; i++) {
         }
         let archetype = this.entityArchetype[entity]!
 
-        if (archetype.mask.has(componentId)) {
-            archetype.entitySet.remove(entity)
-            archetype = archetype.adjacent[componentId] || archetype.transform(componentId, this.queries)
-            archetype.entitySet.add(entity)
+        if (archetype[archetypeMask].has(componentId)) {
+            archetype[archetypeEntitySet].remove(entity)
+            archetype = archetype[archetypeAdjacent][componentId] || archetype[archetypeTransform](componentId, this.queries)
+            archetype[archetypeEntitySet].add(entity)
             this.entityArchetype[entity] = archetype
         }
         return this

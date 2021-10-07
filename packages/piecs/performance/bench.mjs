@@ -39,8 +39,10 @@ const run = (fn) => {
     }
 
     // Try to estimate the iteration count for 500ms
-    const target_n = 500 / cycle_ms
+    const target_n = Math.floor(500 / cycle_ms) >>> 0
+    console.group(`${fn.name}: n ${target_n}`)
     const total_ms = bench_iter(fn, target_n)
+    console.groupEnd()
 
     const result = {
         op_s: `${Math.floor((target_n / total_ms) * 1000).toLocaleString()} op/s`,

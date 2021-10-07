@@ -58,26 +58,21 @@ export default function createSimpleIter(count) {
                 lE[entity] = c
             }
         }, query(all(C.id, E.id)))
-        .init([A.id], [A.id, B.id], [A.id, B.id, C.id], [A.id, B.id, C.id, D.id], [A.id, B.id, C.id, E.id])
+
+    const prefab1 = world.prefabricate([A.id, B.id])
+    const prefab2 = world.prefabricate([A.id, B.id, C.id])
+    const prefab3 = world.prefabricate([A.id, B.id, C.id, D.id])
+    const prefab4 = world.prefabricate([A.id, B.id, C.id, E.id])
 
     for (let i = 0; i < count; i++) {
         const e1 = world.createEntity()
-        world.addComponent[e1, A.id]
-        world.addComponent[e1, B.id]
+        world.transformEntity(e1, prefab1)
         const e2 = world.createEntity()
-        world.addComponent(e2, A.id)
-        world.addComponent(e2, B.id)
-        world.addComponent(e2, C.id)
+        world.transformEntity(e2, prefab2)
         const e3 = world.createEntity()
-        world.addComponent(e3, A.id)
-        world.addComponent(e3, B.id)
-        world.addComponent(e3, C.id)
-        world.addComponent(e3, D.id)
+        world.transformEntity(e3, prefab3)
         const e4 = world.createEntity()
-        world.addComponent(e4, A.id)
-        world.addComponent(e4, B.id)
-        world.addComponent(e4, C.id)
-        world.addComponent(e4, E.id)
+        world.transformEntity(e4, prefab4)
     }
 
     return function simpleIter() {

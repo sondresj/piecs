@@ -1,12 +1,26 @@
 const mod32 = 0x0000001f
 
-export class BitSet {
+export type ReadonlyBitSet = {
+    has(value: number): boolean
+    not(): BitSet
+    union(other: BitSet): BitSet
+    intersection(other: BitSet): BitSet
+    difference(other: BitSet): BitSet
+    symmetrictDifference(other: BitSet): BitSet
+    contains(other: BitSet): boolean
+    intersects(other: BitSet): boolean
+    toString(radix?: number): string
+    copy(): BitSet
+}
+
+export class BitSet implements ReadonlyBitSet {
     private _mask: Uint32Array
     private _maxValue: number
     private _size: number
+
     constructor(maxValue: number) {
-        this._maxValue = Math.max(maxValue, 1)
-        this._size = Math.ceil(this._maxValue / 32)
+        this._maxValue = Math.max(maxValue, 1) >>> 0
+        this._size = Math.ceil(this._maxValue / 32) >>> 0
         this._mask = new Uint32Array(this._size)
     }
 
@@ -22,7 +36,7 @@ export class BitSet {
         } else {
             return
         }
-        const index = valueToAccomodate >> 5
+        const index = valueToAccomodate >>> 5
         if (index >= this._size) {
             this._maxValue = valueToAccomodate
             const oldMask = this._mask
@@ -109,7 +123,7 @@ export class BitSet {
         for (let i = 0; i < other._mask.length; i++) {
             const a = this._mask[i]!
             const b = other._mask[i]!
-            if ((a & b) != b) return false
+            if ((a & b) !== b) return false
         }
         return true
     }
@@ -119,19 +133,19 @@ export class BitSet {
         for (let i = 0; i < length; i++) {
             const a = this._mask[i]!
             const b = other._mask[i]!
-            if ((a & b) != 0) return true
+            if ((a & b) !== 0) return true
         }
         return false
     }
 
-    toString(): string {
-        if (this._mask.length == 0) return '-0'
-        return this._mask.reduceRight((str, n) => str.concat(n.toString(16)), '')
+    toString(radix = 16): string {
+        if (this._mask.length == 0) return '0'
+        return this._mask.reduceRight((str, n) => str.concat(n.toString(radix)), '')
     }
 
     copy(): BitSet {
-        const newBitMask: BitSet = new BitSet(this._maxValue)
-        newBitMask._mask.set(this._mask, 0)
-        return newBitMask
+        const set: BitSet = new BitSet(this._maxValue)
+        set._mask.set(this._mask, 0)
+        return set
     }
 }
