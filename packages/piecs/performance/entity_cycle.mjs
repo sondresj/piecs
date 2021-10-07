@@ -1,11 +1,11 @@
 import { World } from '../lib/World.js'
-import { all, query } from '../lib/Query.js'
+import { prefab, query } from '../lib/Query.js'
 
 export default function createEntityCycle(count) {
     const world = new World()
     const A = world.getNextComponentId()
     const B = world.getNextComponentId()
-        
+
     const prefabA = world.prefabricate([A])
     const prefabB = world.prefabricate([B])
 
@@ -16,12 +16,12 @@ export default function createEntityCycle(count) {
                 world.transformEntity(world.createEntity(), lpb)
                 world.transformEntity(world.createEntity(), lpb)
             }
-        }, query(all(A)))
+        }, query(prefab(prefabA)))
         .registerSystem(function deleteBs(entities, world) {
             for (let i = entities.length - 1; i >= 0; i--) {
                 world.deleteEntity(entities[i])
             }
-        }, query(all(B)))
+        }, query(prefab(prefabB)))
 
     for (let i = 0; i < count; i++) {
         const e = world.createEntity()

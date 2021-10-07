@@ -1,5 +1,5 @@
 import { World } from '../lib/World.js'
-import { all, query } from '../lib/Query.js'
+import { prefab, query } from '../lib/Query.js'
 
 export default function createSimpleIter(count) {
     const world = new World()
@@ -24,6 +24,11 @@ export default function createSimpleIter(count) {
         arr: new Uint32Array(count*4).fill(0)
     }
 
+    const prefab1 = world.prefabricate([A.id, B.id])
+    const prefab2 = world.prefabricate([A.id, B.id, C.id])
+    const prefab3 = world.prefabricate([A.id, B.id, C.id, D.id])
+    const prefab4 = world.prefabricate([A.id, B.id, C.id, E.id])
+
     world
         .registerSystem(function systemAB(entities, _) {
             const lA = A.arr
@@ -35,7 +40,7 @@ export default function createSimpleIter(count) {
                 lA[entity] = b
                 lB[entity] = a
             }
-        }, query(all(A.id, B.id)))
+        }, query(prefab(prefab1)))
         .registerSystem(function systemCD(entities, _) {
             const lC = C.arr
             const lD = D.arr
@@ -46,7 +51,7 @@ export default function createSimpleIter(count) {
                 lC[entity] = d
                 lD[entity] = c
             }
-        }, query(all(C.id, D.id)))
+        }, query(prefab(prefab3)))
         .registerSystem(function systemCE(entities, _) {
             const lC = C.arr
             const lE = E.arr
@@ -57,12 +62,7 @@ export default function createSimpleIter(count) {
                 lC[entity] = e
                 lE[entity] = c
             }
-        }, query(all(C.id, E.id)))
-
-    const prefab1 = world.prefabricate([A.id, B.id])
-    const prefab2 = world.prefabricate([A.id, B.id, C.id])
-    const prefab3 = world.prefabricate([A.id, B.id, C.id, D.id])
-    const prefab4 = world.prefabricate([A.id, B.id, C.id, E.id])
+        }, query(prefab(prefab4)))
 
     for (let i = 0; i < count; i++) {
         const e1 = world.createEntity()

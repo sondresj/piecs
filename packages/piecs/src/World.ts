@@ -1,8 +1,7 @@
 import type { System, InsideWorld, OutsideWorld, WorldEventType, WorldEventHandler } from './types'
-import { InternalQuery, Query, queryTryAdd } from './Query'
-import { Archetype, createArchetype, InternalArchetype, traverseArchetypeGraph, archetypeTransform, archetypeMask, archetypeEntitySet, archetypeAdjacent } from './Archetype'
+import type { InternalQuery, Query } from './Query'
+import { Archetype, createArchetype, InternalArchetype, traverseArchetypeGraph } from './Archetype'
 import { BitSet } from './collections/BitSet'
-
 export class World implements OutsideWorld, InsideWorld {
     private entityArchetype: InternalArchetype[] = []
     private deletedEntities: number[] = []
@@ -13,7 +12,7 @@ export class World implements OutsideWorld, InsideWorld {
     private queries: InternalQuery[] = [] // should be 1 to 1 with systems
 
     private deferredActions: (() => void)[] = []
-    private rootArchetype: InternalArchetype = createArchetype('root', new BitSet(31), null) // will grow if a componentId > 255 is used
+    private rootArchetype: InternalArchetype = createArchetype('root', new BitSet(31), null)
 
     private _executeDeferredActions() {
         if (!this.deferredActions.length) return
@@ -33,7 +32,7 @@ export class World implements OutsideWorld, InsideWorld {
         this.queries.push(<InternalQuery>query)
 
         traverseArchetypeGraph(this.rootArchetype, (archetype) => {
-            (<InternalQuery>query)[queryTryAdd](archetype)
+            (<InternalQuery>query).tryAdd(archetype)
             return true
         })
 
@@ -53,7 +52,7 @@ export class World implements OutsideWorld, InsideWorld {
             const query = queries[s]!
             // reverse iterating in case a system adds/removes component resulting in new archetype that matches query for the system
             for (let a = query.archetypes.length - 1; a >= 0; a--) {
-                const entities = (<InternalArchetype[]>query.archetypes)[a]![archetypeEntitySet].values
+                const entities = (<InternalArchetype[]>query.archetypes)[a]!.entitySet.values
                 if (entities.length > 0) {
                     system(entities, this)
                 }
@@ -73,7 +72,7 @@ export class World implements OutsideWorld, InsideWorld {
         this.deferredActions.push(action)
         return this
     }
-    
+
     subscribe<T extends WorldEventType>(event: T, handler: WorldEventHandler<T>): (() => void) {
         throw new Error('')
     }
@@ -83,7 +82,7 @@ export class World implements OutsideWorld, InsideWorld {
 
         let archetype = this.rootArchetype
         for (let i = 0, l = componentIds.length; i < l; i++) {
-            archetype = archetype[archetypeTransform](componentIds[i]!, this.queries)
+            archetype = archetype.transform(componentIds[i]!, this.queries)
         }
 
         return archetype
@@ -99,7 +98,7 @@ export class World implements OutsideWorld, InsideWorld {
             : this.nextEntityId++
 
         const archetype = this.rootArchetype
-        archetype[archetypeEntitySet].add(entity)
+        archetype.entitySet.add(entity)
         this.entityArchetype[entity] = archetype
         return entity
     }
@@ -126,7 +125,7 @@ C: for (let i = 0, l = entities.length; i < l; i++) {
         }
 
         const archetype = this.entityArchetype[entity]!
-        archetype[archetypeEntitySet].remove(entity)
+        archetype.entitySet.remove(entity)
         // much faster than delete operator, but achieves the same (ish)
         // an alternative is to leave it be, and use archetype.entitySet.has(entity) as a check for entity being deleted, but that too is a little slower.
         this.entityArchetype[entity] = undefined as any
@@ -134,6 +133,14 @@ C: for (let i = 0, l = entities.length; i < l; i++) {
         return this
     }
 
+    /**
+     * Transform the entity to that of a prefabricated archetype.
+     * Any components added to the entity that does not exist in the prefabricate will be removed.
+     * This is a sligthly faster operation than adding/subtracting components
+     * @param entity Entity to transform
+     * @param prefab Archetype to apply on entity
+     * @returns
+     */
     transformEntity(entity: number, prefab: Archetype): this {
         if (this.entityArchetype[entity] === undefined) {
             if (entity === undefined) {
@@ -154,17 +161,20 @@ C: for (let i = 0, l = entities.length; i < l; i++) {
             }
             throw new Error(`Entity ${entity} does not exist`)
         }
-        
-        this.entityArchetype[entity]![archetypeEntitySet].remove(entity)
+
+        if (this.entityArchetype[entity] === prefab) return this
+
+        // Transform resets all components on the entity that of the prefab..
+        this.entityArchetype[entity]!.entitySet.remove(entity)
         const archetype = <InternalArchetype>prefab
-        archetype[archetypeEntitySet].add(entity)
+        archetype.entitySet.add(entity)
         this.entityArchetype[entity] = archetype
         return this
     }
 
     hasComponentId(entity: number, componentId: number): boolean {
         return this.entityArchetype[entity] !== undefined
-            && this.entityArchetype[entity]![archetypeMask].has(componentId)
+            && this.entityArchetype[entity]!.mask.has(componentId)
     }
 
     addComponentId(entity: number, componentId: number): this {
@@ -189,10 +199,10 @@ C: for (let i = 0, l = entities.length; i < l; i++) {
         }
         let archetype = this.entityArchetype[entity]!
 
-        if (!archetype[archetypeMask].has(componentId)) {
-            archetype[archetypeEntitySet].remove(entity)
-            archetype = archetype[archetypeAdjacent][componentId] || archetype[archetypeTransform](componentId, this.queries)
-            archetype[archetypeEntitySet].add(entity)
+        if (!archetype.mask.has(componentId)) {
+            archetype.entitySet.remove(entity)
+            archetype = archetype.adjacent[componentId] || archetype.transform(componentId, this.queries)
+            archetype.entitySet.add(entity)
             this.entityArchetype[entity] = archetype
         }
         return this
@@ -220,10 +230,10 @@ C: for (let i = 0, l = entities.length; i < l; i++) {
         }
         let archetype = this.entityArchetype[entity]!
 
-        if (archetype[archetypeMask].has(componentId)) {
-            archetype[archetypeEntitySet].remove(entity)
-            archetype = archetype[archetypeAdjacent][componentId] || archetype[archetypeTransform](componentId, this.queries)
-            archetype[archetypeEntitySet].add(entity)
+        if (archetype.mask.has(componentId)) {
+            archetype.entitySet.remove(entity)
+            archetype = archetype.adjacent[componentId] || archetype.transform(componentId, this.queries)
+            archetype.entitySet.add(entity)
             this.entityArchetype[entity] = archetype
         }
         return this

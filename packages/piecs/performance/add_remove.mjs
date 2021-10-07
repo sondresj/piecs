@@ -1,32 +1,30 @@
 import { World } from '../lib/World.js'
-import { all, not, and, query } from '../lib/Query.js'
+import { prefab, query } from '../lib/Query.js'
 
 export default function createAddRemove(count) {
     const world = new World()
     const A = world.getNextComponentId()
     const B = world.getNextComponentId()
 
+    const prefabA = world.prefabricate([A])
+    const prefabAB = world.prefabricate([A, B])
+
     world
         .registerSystem(function addB(entities, world) {
-            const lB = B
-            // while (entities.length) {
+            const lpab = prefabAB
             for (let i = entities.length - 1; i >= 0; i--) {
-                world.addComponentId(entities[i], lB)
+                world.transformEntity(entities[i], lpab)
             }
-        }, query(and(all(A), not(B))))
+        }, query(prefab(prefabA)))
         .registerSystem(function removeB(entities, world) {
-            const lB = B
+            const lpa = prefabA
             for (let i = entities.length - 1; i >= 0; i--) {
-                world.subtractComponentId(entities[i], lB)
+                world.transformEntity(entities[i], lpa)
             }
-        }, query(all(B)))
-
-    const prefabA = world.prefabricate([A])
-    world.prefabricate([B])
+        }, query(prefab(prefabAB)))
 
     for (let i = 0; i < count; i++) {
         const e = world.createEntity()
-        // world.addComponent(e, A)
         world.transformEntity(e, prefabA)
     }
 

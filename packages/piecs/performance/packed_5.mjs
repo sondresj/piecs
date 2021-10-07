@@ -25,6 +25,8 @@ export default function createPacked5(count) {
         arr: new Uint32Array(count).fill(1)
     }
 
+    const prefab = world.prefabricate([A.id, B.id, C.id, D.id, E.id])
+
     world
         .registerSystem(function systemAp5(entities, _) {
             const arr = A.arr
@@ -56,8 +58,6 @@ export default function createPacked5(count) {
                 arr[entities[i]] *= 2
             }
         }, query(all(E.id)))
-        
-    const prefab = world.prefabricate([A.id, B.id, C.id, D.id, E.id])
 
     for (let i = 0; i < count; i++) {
         const entity = world.createEntity()

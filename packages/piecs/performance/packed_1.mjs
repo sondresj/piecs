@@ -1,5 +1,5 @@
 import { World } from '../lib/World.js'
-import { all, query } from '../lib/Query.js'
+import { prefab, query } from '../lib/Query.js'
 
 export default function createPacked1(count) {
     const world = new World()
@@ -12,19 +12,19 @@ export default function createPacked1(count) {
     const D = world.getNextComponentId()
     const E = world.getNextComponentId()
 
+    const p = world.prefabricate([A.id, B, C, D, E])
+
     world
         .registerSystem(function systemAp1(entities, _) {
             const AArray = A.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 AArray[entities[i]] *= 2
             }
-        }, query(all(A.id, E)))
-
-    const prefab = world.prefabricate([A.id, B, C, D, E])
+        }, query(prefab(p)))
 
     for (let i = 0; i < count; i++) {
         const entity = world.createEntity()
-        world.transformEntity(entity, prefab)
+        world.transformEntity(entity, p)
     }
 
     return function packed1() {

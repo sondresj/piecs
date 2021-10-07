@@ -3,12 +3,12 @@ const mod32 = 0x0000001f
 export type ReadonlyBitSet = {
     has(value: number): boolean
     not(): BitSet
-    union(other: BitSet): BitSet
-    intersection(other: BitSet): BitSet
-    difference(other: BitSet): BitSet
-    symmetrictDifference(other: BitSet): BitSet
-    contains(other: BitSet): boolean
-    intersects(other: BitSet): boolean
+    union(other: ReadonlyBitSet): BitSet
+    intersection(other: ReadonlyBitSet): BitSet
+    difference(other: ReadonlyBitSet): BitSet
+    symmetrictDifference(other: ReadonlyBitSet): BitSet
+    contains(other: ReadonlyBitSet): boolean
+    intersects(other: ReadonlyBitSet): boolean
     toString(radix?: number): string
     copy(): BitSet
 }
@@ -19,8 +19,8 @@ export class BitSet implements ReadonlyBitSet {
     private _size: number
 
     constructor(maxValue: number) {
-        this._maxValue = Math.max(maxValue, 1) >>> 0
-        this._size = Math.ceil(this._maxValue / 32) >>> 0
+        this._maxValue = Math.max(maxValue, 1)
+        this._size = Math.ceil(this._maxValue / 32)
         this._mask = new Uint32Array(this._size)
     }
 

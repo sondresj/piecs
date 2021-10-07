@@ -13,6 +13,8 @@ export default function createFragIter(count) {
         arr: new Uint32Array(count*26).fill(1)
     }
 
+    const prefabs = components.map(c => world.prefabricate([Data.id, c]))
+
     world
         .registerSystem(function dataSystem(entities, _) {
             const DataArray = Data.arr
@@ -21,12 +23,9 @@ export default function createFragIter(count) {
             }
         }, query(all(Data.id)))
 
-    const prefabs = components.map(c => world.prefabricate([c, Data.id]))
-
     for (let i = 0; i < count; i++) {
         for (const prefab of prefabs) {
-            const e = world.createEntity()
-            world.transformEntity(e, prefab)
+            world.transformEntity(world.createEntity(), prefab)
         }
     }
 
