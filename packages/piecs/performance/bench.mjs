@@ -33,7 +33,7 @@ const run = (fn) => {
 
     // Run multiple cycles to get an estimate
     while (cycle_total_ms < 500) {
-        const elapsed = bench_iter(fn, Math.ceil(cycle_n))
+        const elapsed = bench_iter(fn, cycle_n)
         cycle_ms = elapsed / cycle_n
         cycle_n *= 2
         cycle_total_ms += elapsed
@@ -41,7 +41,7 @@ const run = (fn) => {
 
     // Try to estimate the iteration count for 500ms
     const target_n = 500 / cycle_ms
-    const total_ms = bench_iter(fn, Math.ceil(target_n))
+    const total_ms = bench_iter(fn, target_n)
 
     const result = {
         op_s: `${Math.floor((target_n / total_ms) * 1000).toLocaleString()} op/s`,
