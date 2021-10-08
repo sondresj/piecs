@@ -20,14 +20,14 @@ export function createArchetype(id: string, mask: ReadonlyBitSet, parent: Intern
     const adjacent: InternalArchetype[] = []
     const componentIds: number[] = []
 
-    return {
+    return Object.freeze({
         id,
         mask,
         entitySet,
         adjacent,
         parent,
         componentIds
-    }
+    })
 }
 
 export function transformArchetype(archetype: InternalArchetype, componentId: number): InternalArchetype {

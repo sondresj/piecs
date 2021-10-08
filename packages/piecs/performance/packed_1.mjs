@@ -15,7 +15,7 @@ export default function createPacked1(count) {
     const p = world.prefabricate([A.id, B, C, D, E])
 
     world
-        .registerSystem(function systemAp1(entities, _) {
+        .registerSystem(function systemAp1(entities) {
             const AArray = A.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 AArray[entities[i]] *= 2

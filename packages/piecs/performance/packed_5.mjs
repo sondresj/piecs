@@ -28,31 +28,31 @@ export default function createPacked5(count) {
     const prefab = world.prefabricate([A.id, B.id, C.id, D.id, E.id])
 
     world
-        .registerSystem(function systemAp5(entities, _) {
+        .registerSystem(function systemAp5(entities) {
             const arr = A.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2
             }
         }, query(all(A.id, E.id)))
-        .registerSystem(function systemBp5(entities, _) {
+        .registerSystem(function systemBp5(entities) {
             const arr = B.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2
             }
         }, query(all(B.id, E.id)))
-        .registerSystem(function systemCp5(entities, _) {
+        .registerSystem(function systemCp5(entities) {
             const arr = C.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2
             }
         }, query(all(C.id, E.id)))
-        .registerSystem(function systemDp5(entities, _) {
+        .registerSystem(function systemDp5(entities) {
             const arr = D.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2
             }
         }, query(all(D.id, E.id)))
-        .registerSystem(function systemEp5(entities, _) {
+        .registerSystem(function systemEp5(entities) {
             const arr = E.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2

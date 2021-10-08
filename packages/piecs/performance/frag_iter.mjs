@@ -16,7 +16,7 @@ export default function createFragIter(count) {
     const prefabs = components.map(c => world.prefabricate([Data.id, c]))
 
     world
-        .registerSystem(function dataSystem(entities, _) {
+        .registerSystem(function dataSystem(entities) {
             const DataArray = Data.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 DataArray[entities[i]] *= 2

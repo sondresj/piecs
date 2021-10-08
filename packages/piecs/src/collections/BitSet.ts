@@ -40,10 +40,16 @@ export function createBitSet(maxValue: number): BitSet {
         }
     }
 
-    return {
-        max,
-        size,
-        mask,
+    return Object.freeze({
+        get max() {
+            return max
+        },
+        get size() {
+            return size
+        },
+        get mask() {
+            return mask
+        },
         has(value: number): boolean {
             const index = value >>> 5
             if (index >= size) return false
@@ -140,7 +146,7 @@ export function createBitSet(maxValue: number): BitSet {
             set.mask.set(mask, 0)
             return set
         }
-    }
+    })
 }
 
 // export class BitSet implements ReadonlyBitSet {

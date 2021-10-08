@@ -30,7 +30,7 @@ export default function createSimpleIter(count) {
     const prefab4 = world.prefabricate([A.id, B.id, C.id, E.id])
 
     world
-        .registerSystem(function systemAB(entities, _) {
+        .registerSystem(function systemAB(entities) {
             const lA = A.arr
             const lB = B.arr
             for (let i = 0, l = entities.length; i < l; i++) {
@@ -41,7 +41,7 @@ export default function createSimpleIter(count) {
                 lB[entity] = a
             }
         }, query(prefab(prefab1)))
-        .registerSystem(function systemCD(entities, _) {
+        .registerSystem(function systemCD(entities) {
             const lC = C.arr
             const lD = D.arr
             for (let i = 0, l = entities.length; i < l; i++) {
@@ -52,7 +52,7 @@ export default function createSimpleIter(count) {
                 lD[entity] = c
             }
         }, query(prefab(prefab3)))
-        .registerSystem(function systemCE(entities, _) {
+        .registerSystem(function systemCE(entities) {
             const lC = C.arr
             const lE = E.arr
             for (let i = 0, l = entities.length; i < l; i++) {

@@ -45,10 +45,10 @@ export const createSparseSet = (): SparseSet => {
         }
     }
 
-    return {
+    return Object.freeze({
         values,
         has,
         add,
         remove
-    }
+    })
 }

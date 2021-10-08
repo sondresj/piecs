@@ -1,29 +1,29 @@
-import type { System, InsideWorld, OutsideWorld, WorldEventType, WorldEventHandler } from './types'
+import type { System, InsideWorld, OutsideWorld } from './types'
 import type { InternalQuery, Query } from './Query'
 import { createArchetype, InternalArchetype, transformArchetype, traverseArchetypeGraph, Archetype } from './Archetype'
 import { createBitSet } from './collections/BitSet'
 import { EntityDeletedError, EntityNotExistError, EntityUndefinedError, WorldNotInitializedError } from './Errors'
 
 export class World implements OutsideWorld, InsideWorld {
+    private rootArchetype: InternalArchetype = createArchetype('root', createBitSet(255), null)
     private entityArchetype: InternalArchetype[] = []
     private deletedEntities: number[] = []
     private nextEntityId = 0 >>> 0
     private nextComponentId = 0 >>> 0
 
     private systems: System[] = []
-    private queries: InternalQuery[] = [] // should be 1 to 1 with systems
+    private queries: InternalQuery[] = [] // 1 to 1 with systems
 
-    private deferredActions: (() => void)[] = []
-    private rootArchetype: InternalArchetype = createArchetype('root', createBitSet(255), null)
+    private deferred: (() => void)[] = []
     private initialized = false
 
-    private _executeDeferredActions() {
-        if (!this.deferredActions.length) return
+    private _executeDeferred() {
+        if (!this.deferred.length) return
 
-        for (const action of this.deferredActions) {
+        for (const action of this.deferred) {
             action()
         }
-        this.deferredActions.length = 0
+        this.deferred.length = 0
     }
 
     private _tryAddArchetypeToQueries(archetype: InternalArchetype) {
@@ -32,18 +32,6 @@ export class World implements OutsideWorld, InsideWorld {
         for (let i = 0, l = queries.length; i < l; i++) {
             queries[i]!.tryAdd(archetype)
         }
-    }
-
-    get entityCount() {
-        return this.nextEntityId
-    }
-
-    get componentCount() {
-        return this.nextComponentId
-    }
-
-    get systemCount() {
-        return this.systems.length
     }
 
     getNextComponentId() {
@@ -97,7 +85,7 @@ export class World implements OutsideWorld, InsideWorld {
             }
         }
 
-        this._executeDeferredActions()
+        this._executeDeferred()
     }
 
     /**
@@ -106,11 +94,7 @@ export class World implements OutsideWorld, InsideWorld {
      * @returns this
      */
     defer(action: () => void) {
-        this.deferredActions.push(action)
-    }
-
-    subscribe<T extends WorldEventType>(event: T, handler: WorldEventHandler<T>): (() => void) {
-        throw new Error('Not implemented')
+        this.deferred.push(action)
     }
 
     prefabricate(componentIds: number[]): Archetype {

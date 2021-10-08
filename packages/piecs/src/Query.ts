@@ -73,8 +73,8 @@ export const query = (...matchers: Array<QueryMatcher>): Query => {
         return true
     }
 
-    return {
+    return Object.freeze({
         archetypes,
         tryAdd
-    } as any
+    }) as any
 }
