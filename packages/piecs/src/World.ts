@@ -2,54 +2,7 @@ import type { System, InsideWorld, OutsideWorld, WorldEventType, WorldEventHandl
 import type { InternalQuery, Query } from './Query'
 import { createArchetype, InternalArchetype, transformArchetype, traverseArchetypeGraph, Archetype } from './Archetype'
 import { BitSet } from './collections/BitSet'
-
-// const WARN_UNDEFINED_ENTITY_TRANSFORM = `
-// Seems like you're iterating entities from 0..N and transforming entities.
-// This may remove the entity from the query results passed to your system.
-// Try one of the following options:
-// A: while (entities.length) {...}
-// B: for (let i = entities.length -1; i >= 0; i--) {...}
-// C: for (let i = 0, l = entities.length; i < l; i++) {
-//     world.defer(() => { // Defer the change of entity until after all systems has been executed
-//         world.transformEntity(entities[i], prefabX)
-//     })
-// },` as const
-
-// const WARN_UNDEFINED_ENTITY_DELETE = `
-// Seems like you're iterating entities from 0..N and deleting entities.
-// This may remove the entity from the query results passed to your system.
-// Try one of the following options:
-// A: while (entities.length) {...}
-// B: for (let i = entities.length -1; i >= 0; i--) {...}
-// C: for (let i = 0, l = entities.length; i < l; i++) {
-//     world.defer(() => { // Defer the deletion of entity until after all systems has been executed
-//         world.deleteEntity(entities[i], X)
-//     })
-// },` as const
-
-// const WARN_UNDEFINED_ENTITY_ADD_COMPONENT = `
-// Seems like you're iterating entities from 0..N and setting components on the entities.
-// This may remove the entity from the query results passed to your system.
-// Try one of the following options:
-// A: while (entities.length) {...}
-// B: for (let i = entities.length -1; i >= 0; i--) {...}
-// C: for (let i = 0, l = entities.length; i < l; i++) {
-//     world.defer(() => { // Defer the change of entity until after all systems has been executed
-//         world.setComponent(entities[i], X)
-//     })
-// },` as const
-
-// const WARN_UNDEFINED_ENTITY_REMOVE_COMPONENT = `
-// Seems like you're iterating entities from 0..N and removing components from the entities.
-// This may remove the entity from the query results passed to your system.
-// Try one of the following options:
-// A: while (entities.length) {...}
-// B: for (let i = entities.length -1; i >= 0; i--) {...}
-// C: for (let i = 0, l = entities.length; i < l; i++) {
-//     world.defer(() => { // Defer the change of entity until after all systems has been executed
-//         world.removeComponent(entities[i], X)
-//     })
-// },` as const
+import { EntityDeletedError, EntityNotExistError, EntityUndefinedError, WorldNotInitializedError } from './Errors'
 
 export class World implements OutsideWorld, InsideWorld {
     private entityArchetype: InternalArchetype[] = []
@@ -116,7 +69,7 @@ export class World implements OutsideWorld, InsideWorld {
      */
     update() {
         if (!this.initialized)
-            throw new Error('Not initialized')
+            throw new WorldNotInitializedError()
 
         const systems = this.systems
         const queries = this.queries
@@ -145,7 +98,7 @@ export class World implements OutsideWorld, InsideWorld {
     }
 
     subscribe<T extends WorldEventType>(event: T, handler: WorldEventHandler<T>): (() => void) {
-        throw new Error('')
+        throw new Error('Not implemented')
     }
 
     prefabricate(componentIds: number[]): Archetype {
@@ -185,12 +138,11 @@ export class World implements OutsideWorld, InsideWorld {
     deleteEntity(entity: number) {
         if (this.entityArchetype[entity] === undefined) {
             if (entity === undefined) {
-                // console.warn(WARN_UNDEFINED_ENTITY_DELETE)
-                throw new Error('Undefined entity')
+                throw new EntityUndefinedError()
             } else if (this.deletedEntities.includes(entity)) {
-                throw new Error(`Entity ${entity} is deleted`)
+                throw new EntityDeletedError(entity)
             }
-            throw new Error(`Entity ${entity} does not exist`)
+            throw new EntityNotExistError(entity)
         }
 
         const archetype = this.entityArchetype[entity]!
@@ -212,12 +164,11 @@ export class World implements OutsideWorld, InsideWorld {
     transformEntity(entity: number, prefab: Archetype) {
         if (this.entityArchetype[entity] === undefined) {
             if (entity === undefined) {
-                // console.warn(WARN_UNDEFINED_ENTITY_TRANSFORM)
-                throw new Error('Undefined entity')
+                throw new EntityUndefinedError()
             } else if (this.deletedEntities.includes(entity)) {
-                throw new Error(`Entity ${entity} is deleted`)
+                throw new EntityDeletedError(entity)
             }
-            throw new Error(`Entity ${entity} does not exist`)
+            throw new EntityNotExistError(entity)
         }
 
         if (this.entityArchetype[entity] === prefab) return
@@ -237,12 +188,11 @@ export class World implements OutsideWorld, InsideWorld {
     addComponentId(entity: number, componentId: number) {
         if (this.entityArchetype[entity] === undefined) {
             if (entity === undefined) {
-                // console.warn(WARN_UNDEFINED_ENTITY_ADD_COMPONENT)
-                throw new Error('Undefined entity')
+                throw new EntityUndefinedError()
             } else if (this.deletedEntities.includes(entity)) {
-                throw new Error(`Entity ${entity} is deleted`)
+                throw new EntityDeletedError(entity)
             }
-            throw new Error(`Entity ${entity} does not exist`)
+            throw new EntityNotExistError(entity)
         }
 
         let archetype = this.entityArchetype[entity]!
@@ -267,12 +217,11 @@ export class World implements OutsideWorld, InsideWorld {
     removeComponentId(entity: number, componentId: number) {
         if (this.entityArchetype[entity] === undefined) {
             if (entity === undefined) {
-                // console.warn(WARN_UNDEFINED_ENTITY_REMOVE_COMPONENT)
-                throw new Error('Undefined entity')
+                throw new EntityUndefinedError()
             } else if (this.deletedEntities.includes(entity)) {
-                throw new Error(`Entity ${entity} is deleted`)
+                throw new EntityDeletedError(entity)
             }
-            throw new Error(`Entity ${entity} does not exist`)
+            throw new EntityNotExistError(entity)
         }
 
         let archetype = this.entityArchetype[entity]!
