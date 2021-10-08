@@ -38,6 +38,9 @@ export interface InsideWorld {
 }
 
 export interface OutsideWorld extends InsideWorld {
+    readonly entityCount: number
+    readonly componentCount: number
+    readonly systemCount: number
     getNextComponentId(): number
     registerSystem(system: System, query: Query): OutsideWorld
     prefabricate(componentIds: number[]): Archetype

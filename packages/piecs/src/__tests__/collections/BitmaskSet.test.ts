@@ -1,14 +1,14 @@
-import { BitSet } from '../../collections/BitSet'
+import { createBitSet } from '../../collections/BitSet'
 
 describe('BitSet', () => {
     describe('toString', () => {
         it('is 0 when mask is blank', () => {
-            const mask = new BitSet(0)
+            const mask = createBitSet(0)
             expect(mask.toString()).toBe('0')
         })
 
         it('matches the binary representation of flags set', () => {
-            const mask = new BitSet(32)
+            const mask = createBitSet(32)
             mask.or(10)
             mask.or(2)
             mask.or(7)
@@ -18,13 +18,13 @@ describe('BitSet', () => {
 
     describe('has', () => {
         it('returns true for present value', () => {
-            const mask = new BitSet(2)
+            const mask = createBitSet(2)
             mask.or(0)
             expect(mask.has(0)).toBeTruthy()
         })
 
         it('works', () => {
-            const mask = new BitSet(53)
+            const mask = createBitSet(53)
             for (let i = 0; i < 53; i++) {
                 mask.xor(i)
             }
@@ -36,7 +36,7 @@ describe('BitSet', () => {
 
     describe('xor', () => {
         it('toggles the presence of value', () => {
-            const mask = new BitSet(10)
+            const mask = createBitSet(10)
             expect(mask.xor(2).has(2)).toBeTruthy()
             expect(mask.xor(2).has(2)).toBeFalsy()
         })
@@ -44,7 +44,7 @@ describe('BitSet', () => {
 
     describe('copy', () => {
         it('returns a new bitmask with the same values but different Uint32Array', () => {
-            const mask = new BitSet(12)
+            const mask = createBitSet(12)
             mask.or(10)
                 .or(2)
             const copy = mask.copy().xor(2)
@@ -54,14 +54,14 @@ describe('BitSet', () => {
     })
 
     test('not returns new bitmask with all bytes flipped', () => {
-        let mask = new BitSet(50)
+        let mask = createBitSet(50)
         mask = mask.or(0).or(4).not()
         expect(mask.toString()).toBe('ffffffffffffffee')
     })
 
     test('is superset', () => {
-        const supr = new BitSet(10)
-        const sub = new BitSet(10)
+        const supr = createBitSet(10)
+        const sub = createBitSet(10)
         supr.or(1)
             .or(2)
             .or(3)
@@ -70,8 +70,8 @@ describe('BitSet', () => {
     })
 
     test('is not superset', () => {
-        const supr = new BitSet(10)
-        const sub = new BitSet(10)
+        const supr = createBitSet(10)
+        const sub = createBitSet(10)
         supr.or(1)
             .or(2)
             .or(3)
@@ -81,9 +81,9 @@ describe('BitSet', () => {
     })
 
     test('get intersection', () => {
-        const a = new BitSet(50) // 2xu32
+        const a = createBitSet(50) // 2xu32
         a.or(36).or(18).or(4)
-        const b = new BitSet(50)
+        const b = createBitSet(50)
         b.or(37).or(18).or(5)
 
         const intersection = a.intersection(b)
@@ -94,9 +94,9 @@ describe('BitSet', () => {
         expect(!intersection.has(4)).toBeTruthy()
     })
     test('get union', () => {
-        const a = new BitSet(50) // 2xu32
+        const a = createBitSet(50) // 2xu32
         a.or(36).or(18).or(4)
-        const b = new BitSet(50)
+        const b = createBitSet(50)
         b.or(37).or(18).or(5)
 
         const union = a.union(b)
@@ -108,9 +108,9 @@ describe('BitSet', () => {
     })
 
     test('get symmetricDifference', () => {
-        const a = new BitSet(50) // 2xu32
+        const a = createBitSet(50) // 2xu32
         a.or(36).or(18).or(4)
-        const b = new BitSet(50)
+        const b = createBitSet(50)
         b.or(37).or(18).or(5)
 
         const symdiff = a.symmetrictDifference(b)

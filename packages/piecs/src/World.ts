@@ -1,7 +1,7 @@
 import type { System, InsideWorld, OutsideWorld, WorldEventType, WorldEventHandler } from './types'
 import type { InternalQuery, Query } from './Query'
 import { createArchetype, InternalArchetype, transformArchetype, traverseArchetypeGraph, Archetype } from './Archetype'
-import { BitSet } from './collections/BitSet'
+import { createBitSet } from './collections/BitSet'
 import { EntityDeletedError, EntityNotExistError, EntityUndefinedError, WorldNotInitializedError } from './Errors'
 
 export class World implements OutsideWorld, InsideWorld {
@@ -14,7 +14,7 @@ export class World implements OutsideWorld, InsideWorld {
     private queries: InternalQuery[] = [] // should be 1 to 1 with systems
 
     private deferredActions: (() => void)[] = []
-    private rootArchetype: InternalArchetype = createArchetype('root', new BitSet(255), null)
+    private rootArchetype: InternalArchetype = createArchetype('root', createBitSet(255), null)
     private initialized = false
 
     private _executeDeferredActions() {
@@ -32,6 +32,18 @@ export class World implements OutsideWorld, InsideWorld {
         for (let i = 0, l = queries.length; i < l; i++) {
             queries[i]!.tryAdd(archetype)
         }
+    }
+
+    get entityCount() {
+        return this.nextEntityId
+    }
+
+    get componentCount() {
+        return this.nextComponentId
+    }
+
+    get systemCount() {
+        return this.systems.length
     }
 
     getNextComponentId() {

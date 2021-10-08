@@ -1,5 +1,5 @@
 import type { Archetype, InternalArchetype } from './Archetype'
-import { BitSet, ReadonlyBitSet } from './collections/BitSet'
+import { createBitSet, BitSet, ReadonlyBitSet } from './collections/BitSet'
 
 type QueryMatcher = (target: ReadonlyBitSet) => boolean
 const alwaysTrue: QueryMatcher = (_: ReadonlyBitSet) => true
@@ -7,7 +7,7 @@ const alwaysFalse: QueryMatcher = (_: ReadonlyBitSet) => false
 
 function makeMask(componentIds: Array<number>): BitSet {
     const max = Math.max(...componentIds)
-    const mask = new BitSet(max)
+    const mask = createBitSet(max)
     for (let i = 0; i < componentIds.length; i++) {
         mask.or(componentIds[i]!)
     }
