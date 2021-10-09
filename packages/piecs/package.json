@@ -9,7 +9,10 @@
   "files": [
     "dist"
   ],
-  "repository": "git@github.com:sondresj/piecs.git",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sondresj/piecs.git"
+  },
   "author": "Sondre <sondre.skaardal.jensen@gmail.com>",
   "license": "MIT",
   "private": false,
