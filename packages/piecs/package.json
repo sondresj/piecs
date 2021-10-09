@@ -23,7 +23,8 @@
     "bench": "yarn build && cross-env NODE_ENV=production node performance/bench.mjs >> result.log",
     "profile": "yarn build && cross-env NODE_ENV=production node --cpu-prof --trace-deopt performance/bench.mjs >> result.log",
     "prepare": "yarn clean && yarn build",
-    "prepublishOnly": "yarn test --no-color"
+    "prepublishOnly": "yarn test --no-color",
+    "release": "yarn publish && gh release create $(git describe --tags) dist/*.* package.json README.md"
   },
   "jest": {
     "preset": "ts-jest",
