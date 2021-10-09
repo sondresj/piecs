@@ -1,5 +1,4 @@
-import { World } from '../lib/World.js'
-import { all, query } from '../lib/Query.js'
+import { World, all, query } from '../dist/index.mjs'
 
 export default function createFragIter(count) {
     const world = new World()

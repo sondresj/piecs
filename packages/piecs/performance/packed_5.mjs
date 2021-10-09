@@ -1,5 +1,4 @@
-import { World } from '../lib/World.js'
-import { all, query } from '../lib/Query.js'
+import { World, prefab, query } from '../dist/index.mjs'
 
 export default function createPacked5(count) {
     const world = new World()
@@ -25,7 +24,7 @@ export default function createPacked5(count) {
         arr: new Uint32Array(count).fill(1)
     }
 
-    const prefab = world.prefabricate([A.id, B.id, C.id, D.id, E.id])
+    const p = world.prefabricate([A.id, B.id, C.id, D.id, E.id])
 
     world
         .registerSystem(function systemAp5(entities) {
@@ -33,36 +32,36 @@ export default function createPacked5(count) {
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2
             }
-        }, query(all(A.id, E.id)))
+        }, query(prefab(p)))
         .registerSystem(function systemBp5(entities) {
             const arr = B.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2
             }
-        }, query(all(B.id, E.id)))
+        }, query(prefab(p)))
         .registerSystem(function systemCp5(entities) {
             const arr = C.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2
             }
-        }, query(all(C.id, E.id)))
+        }, query(prefab(p)))
         .registerSystem(function systemDp5(entities) {
             const arr = D.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2
             }
-        }, query(all(D.id, E.id)))
+        }, query(prefab(p)))
         .registerSystem(function systemEp5(entities) {
             const arr = E.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2
             }
-        }, query(all(E.id)))
+        }, query(prefab(p)))
         .initialize()
 
     for (let i = 0; i < count; i++) {
         const entity = world.createEntity()
-        world.transformEntity(entity, prefab)
+        world.transformEntity(entity, p)
     }
 
     return function packed5() {

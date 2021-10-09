@@ -1,5 +1,4 @@
-import { World } from '../lib/World.js'
-import { prefab, query } from '../lib/Query.js'
+import { World, prefab, query } from '../dist/index.mjs'
 
 export default function createEntityCycle(count) {
     const world = new World()

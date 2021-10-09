@@ -31,10 +31,3 @@ TODO
 Initialize must be done once before the first update. Safe to call multiple times, but does nothing if the world is already initialized.
 Initialize serves only one purpose: to ensure unique archetypes in each query by only testing each archetype vs each query once.
 This enables a less complex and faster query system.
-
-
-## WASM
-
-There's an even more WIP implementation of PIECES in AssemblyScript here.
-Currently the overhead of js-wasm is too big for this to make sense to use in JS.
-Hopefully this improves in the future.

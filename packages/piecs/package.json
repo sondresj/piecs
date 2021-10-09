@@ -2,23 +2,25 @@
   "name": "piecs",
   "version": "0.1.0",
   "description": "PIECS is an entity component system with some batteries included",
-  "main": "./lib/index.js",
-  "types": "./lib/index.d.ts",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
   "files": [
-    "lib"
+    "dist"
   ],
   "repository": "git@github.com:sondresj/piecs.git",
   "author": "Sondre <sondre.skaardal.jensen@gmail.com>",
   "license": "MIT",
-  "private": true,
+  "private": false,
   "keywords": [
     "ecs"
   ],
   "scripts": {
-    "clean": "rm -rf lib",
+    "clean": "rm -rf dist build .reports",
     "test": "jest",
-    "build": "tsc",
-    "bench":  "yarn build && cross-env NODE_ENV=production node performance/bench.mjs >> result.log",
+    "build": "tsc -p tsconfig.build.json && tsc -p tsconfig.declaration.json && rollup -c",
+    "bench": "yarn build && cross-env NODE_ENV=production node performance/bench.mjs >> result.log",
     "profile": "yarn build && cross-env NODE_ENV=production node --cpu-prof --trace-deopt performance/bench.mjs >> result.log",
     "prepare": "yarn clean && yarn build",
     "prepublishOnly": "yarn test --no-color"
@@ -27,9 +29,6 @@
     "preset": "ts-jest",
     "testEnvironment": "node",
     "coverageDirectory": ".reports",
-    "transformIgnorePatterns": [
-      "/node_modules/(?!asm-piecs)"
-    ],
     "testMatch": [
       "**/__tests__/**/*.ts"
     ],
@@ -52,8 +51,12 @@
     "eslint-plugin-import": "^2.24.2",
     "jest": "^27.1.0",
     "jest-junit": "^12.2.0",
+    "rollup": "^2.58.0",
+    "rollup-plugin-dts": "^4.0.0",
+    "rollup-plugin-terser": "^7.0.2",
     "ts-jest": "^27.0.5",
     "ts-node": "^10.2.1",
+    "tslib": "^2.3.1",
     "typescript": "^4.4.2"
   }
 }
