@@ -31,8 +31,8 @@ jobs:
 
       # Runs a set of commands using the runners shell
       - name: Build
-        run: yarn build
+        run: yarn --cwd packages/piecs build
 
       - name: Test
-        run: yarn test
+        run: yarn --cwd packages/piecs test
 
