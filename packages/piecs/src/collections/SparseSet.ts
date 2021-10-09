@@ -1,4 +1,3 @@
-
 export type SparseSet = {
     readonly values: ArrayLike<number>
     has: (value: number) => boolean
@@ -12,10 +11,6 @@ export const createSparseSet = (): SparseSet => {
 
     const has = (value: number): boolean => {
         return values[indices[value]!] === value
-        // value < indices.length
-        //     && indices[value] !== undefined
-        //     && indices[value]! < values.length
-        //     && values[indices[value]!] === value
     }
 
     const add = (value: number) => {
@@ -30,12 +25,6 @@ export const createSparseSet = (): SparseSet => {
     }
 
     const remove = (value: number) => {
-        /**
-         * value < indices.length
-            && indices[value] !== undefined
-            && indices[value]! < values.length
-            &&
-         */
         if (values[indices[value]!] === value) {
             const swap = values.pop()!
             if (swap !== value) {
