@@ -2,7 +2,7 @@ import type { System, InsideWorld, OutsideWorld } from './types'
 import type { InternalQuery, Query } from './Query'
 import { createArchetype, InternalArchetype, transformArchetype, traverseArchetypeGraph, Archetype } from './Archetype'
 import { createBitSet } from './collections/BitSet'
-import { EntityDeletedError, EntityNotExistError, EntityUndefinedError, WorldNotInitializedError } from './Errors'
+import { EntityDeletedError, EntityNotExistError, EntityUndefinedError, PrefabricationError, WorldNotInitializedError } from './Errors'
 
 export class World implements OutsideWorld, InsideWorld {
     private rootArchetype: InternalArchetype = createArchetype('root', createBitSet(255), null)
@@ -98,7 +98,14 @@ export class World implements OutsideWorld, InsideWorld {
     }
 
     prefabricate(componentIds: number[]): Archetype {
-        this.nextComponentId = Math.max(this.nextComponentId - 1, ...componentIds) + 1 >>> 0
+        const max = Math.max(...componentIds)
+        if (max >= this.nextComponentId) {
+            if (Math.min(...componentIds) < this.nextComponentId) {
+                throw new PrefabricationError(componentIds, this.nextComponentId)
+            }
+
+            this.nextComponentId = (max + 1) >>> 0
+        }
         let archetype = this.rootArchetype
 
         for (let i = 0, l = componentIds.length; i < l; i++) {
