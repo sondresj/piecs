@@ -1,25 +1,25 @@
-import { World, prefab, query } from '../dist/index.mjs'
+import { World, prefab, query, createEntitySystem } from '../dist/index.mjs'
 
 export default function createSimpleIter(count) {
     const world = new World()
     const A = {
-        id: world.getNextComponentId(),
+        id: world.createComponentId(),
         arr: new Uint32Array(count*4).fill(0)
     }
     const B = {
-        id: world.getNextComponentId(),
+        id: world.createComponentId(),
         arr: new Uint32Array(count*4).fill(0)
     }
     const C = {
-        id: world.getNextComponentId(),
+        id: world.createComponentId(),
         arr: new Uint32Array(count*4).fill(0)
     }
     const D = {
-        id: world.getNextComponentId(),
+        id: world.createComponentId(),
         arr: new Uint32Array(count*4).fill(0)
     }
     const E = {
-        id: world.getNextComponentId(),
+        id: world.createComponentId(),
         arr: new Uint32Array(count*4).fill(0)
     }
 
@@ -29,7 +29,7 @@ export default function createSimpleIter(count) {
     const prefab4 = world.prefabricate([A.id, B.id, C.id, E.id])
 
     world
-        .registerSystem(function systemAB(entities) {
+        .registerSystem(createEntitySystem(function systemAB(entities) {
             const lA = A.arr
             const lB = B.arr
             for (let i = 0, l = entities.length; i < l; i++) {
@@ -39,8 +39,8 @@ export default function createSimpleIter(count) {
                 lA[entity] = b
                 lB[entity] = a
             }
-        }, query(prefab(prefab1)))
-        .registerSystem(function systemCD(entities) {
+        }, query(prefab(prefab1))))
+        .registerSystem(createEntitySystem(function systemCD(entities) {
             const lC = C.arr
             const lD = D.arr
             for (let i = 0, l = entities.length; i < l; i++) {
@@ -50,8 +50,8 @@ export default function createSimpleIter(count) {
                 lC[entity] = d
                 lD[entity] = c
             }
-        }, query(prefab(prefab3)))
-        .registerSystem(function systemCE(entities) {
+        }, query(prefab(prefab3))))
+        .registerSystem(createEntitySystem(function systemCE(entities) {
             const lC = C.arr
             const lE = E.arr
             for (let i = 0, l = entities.length; i < l; i++) {
@@ -61,7 +61,7 @@ export default function createSimpleIter(count) {
                 lC[entity] = e
                 lE[entity] = c
             }
-        }, query(prefab(prefab4)))
+        }, query(prefab(prefab4))))
         .initialize()
 
     for (let i = 0; i < count; i++) {

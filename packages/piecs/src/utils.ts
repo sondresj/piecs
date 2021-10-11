@@ -1,11 +1,21 @@
 import type { World } from './World'
+import type { InternalQuery } from './Query'
 import { Archetype, InternalArchetype, traverseArchetypeGraph } from './Archetype'
 
 type ArchetypeStatistics = {
+    /**
+     * Count of entities in the archetype
+     */
     entities: number
+    /**
+     * The id of the archetype that was transformed into this archetype
+     */
     parent: string | null
+    /**
+     * The id of archetypes with 1 differing componentId
+     */
     adjacent: string[]
-} & Archetype
+} & Pick<Archetype, 'id' | 'componentIds'>
 
 function getArchetypeStatistics(archetype: InternalArchetype): ArchetypeStatistics {
     return {
@@ -18,12 +28,30 @@ function getArchetypeStatistics(archetype: InternalArchetype): ArchetypeStatisti
 }
 
 export type WorldStatistics = {
+    /**
+     * Count of entities in the world
+     */
     entities: number
+    /**
+     * Count of components in the world
+     */
     components: number
+    /**
+     * Name or index of all systems registered in the world
+     */
     systems: string[]
+    /**
+     * Statistics for all queries in the world
+     */
     queries: {
+        /**
+         * `ArchetypeStatistics` for matching archetypes in this query
+         */
         archetypes: ArchetypeStatistics[]
     }[]
+    /**
+     * `ArchetypeStatistics` for all archetypes in the world
+     */
     archetypes: ArchetypeStatistics[]
 }
 
@@ -39,10 +67,10 @@ export function getStatistics(world: World): WorldStatistics {
         // @ts-ignore
         components: world.nextComponentId,
         // @ts-ignore
-        systems: world.systems.map((system, i) => system.name || i.toString()),
+        systems: world.systems.map((system, i) => system.execute.name || i.toString()),
         // @ts-ignore
-        queries: world.queries.map((query) => ({
-            archetypes: query.archetypes.map(a => getArchetypeStatistics(a as any))
+        queries: world.systems.map((system) => ({
+            archetypes: (<InternalQuery>system.query).archetypes.map(a => getArchetypeStatistics(a as any))
         })),
         archetypes,
     }

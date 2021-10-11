@@ -14,22 +14,35 @@ function makeMask(componentIds: Array<number>): BitSet {
     return mask
 }
 
+/**
+ * Query for a prefabricated `archetype`.
+ * May match descendant archetypes, ie archetypes with all of the component ids in the prefab *and* additional component ids added to entities in the prefabricated archetype or descendant archetypes
+ */
 export function prefab(archetype: Archetype): QueryMatcher {
     return target => target.contains((<InternalArchetype>archetype).mask)
 }
 
+/**
+ * Archetypes that has *all* of the `componentIds` will be included in the result
+ */
 export function all(...componentIds: Array<number>): QueryMatcher {
     if (!componentIds.length) return alwaysFalse
     const mask = makeMask(componentIds)
     return target => target.contains(mask)
 }
 
+/**
+ * Archetypes that has *any* of the `componentIds` will be included in the result
+ */
 export function any(...componentIds: Array<number>): QueryMatcher {
     if (!componentIds.length) return alwaysTrue
     const mask = makeMask(componentIds)
     return target => target.intersects(mask)
 }
 
+/**
+ * Archetypes that *has* the `componentIds` will *not* be included in the result
+ */
 export function not(...componentIds: Array<number>): QueryMatcher {
     if (!componentIds.length) return alwaysTrue
     const mask = makeMask(componentIds)
@@ -47,13 +60,22 @@ export function or(matcher: QueryMatcher, ...matchers: QueryMatcher[]): QueryMat
 }
 
 export type Query = {
+    /**
+     * All archetypes that matches the query
+     */
     readonly archetypes: ReadonlyArray<Archetype>
 }
 
-export type InternalQuery = {
+export type InternalQuery = Query & {
     readonly tryAdd: (archetype: InternalArchetype) => boolean
-} & Query
+    readonly archetypes: ReadonlyArray<InternalArchetype>
+}
 
+/**
+ * Create a query that can be matched against archetypes
+ * @param matchers return value of any combination of `and | or | all | any | not`.
+ * @note Empty argument list returns a query which is always true
+ */
 export const query = (...matchers: Array<QueryMatcher>): Query => {
     const archetypes: Archetype[] = []
     let matcher: QueryMatcher

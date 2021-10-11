@@ -1,23 +1,24 @@
 import { and, all, not, any, query } from '../Query'
 import { World } from '../World'
+import { createEntitySystem } from '../System'
 
 describe('World', () => {
     it('works', () => {
         const world = new World()
         const foo = {
-            id: world.getNextComponentId(),
+            id: world.createComponentId(),
             arr: new Uint8Array(100)
         }
         const bar = {
-            id: world.getNextComponentId(),
+            id: world.createComponentId(),
             arr: new Array<string>()
         }
         const baz = {
-            id: world.getNextComponentId(),
+            id: world.createComponentId(),
         }
 
         world
-            .registerSystem(function addBaz(entities, _) {
+            .registerSystem(createEntitySystem(function addBaz(entities, _) {
                 for (let e = entities.length - 1; e >= 0; e--) {
                     const entity = entities[e]!
                     expect(entity).toBe(0)
@@ -27,15 +28,15 @@ describe('World', () => {
                     })
                     expect(world.hasComponentId(entity, baz.id)).toBeFalsy()
                 }
-            }, query(and(all(foo.id), not(baz.id))))
-            .registerSystem(function deleteBaz(entities, world) {
+            }, query(and(all(foo.id), not(baz.id)))))
+            .registerSystem(createEntitySystem(function deleteBaz(entities, world) {
                 for (let e = entities.length - 1; e >= 0; e--) {
                     const entity = entities[e]!
                     expect(world.hasComponentId(entity, baz.id))
                     world.deleteEntity(entity)
                     expect(world.hasEntity(entity)).toBeFalsy()
                 }
-            }, query(any(baz.id)))
+            }, query(any(baz.id))))
             .initialize()
         const e0 = world.createEntity()
         expect(e0).toBe(0)

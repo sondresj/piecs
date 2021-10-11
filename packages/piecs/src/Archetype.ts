@@ -1,8 +1,31 @@
 import type { ReadonlyBitSet } from './collections/BitSet'
 import { createSparseSet, SparseSet } from './collections/SparseSet'
 
-export type InternalArchetype = {
+export type Archetype = {
+    /**
+     * The id of the archetype is a hexadecimal representation of a set of unique bits for all of the `componentIds`
+     */
     readonly id: string
+    /**
+     * All the `componentIds` constituting this archetype
+     */
+    readonly componentIds: ReadonlyArray<number>
+    /**
+     * Check if an entity is currently included in this archetype
+     */
+    hasEntity: (entity: number) => boolean
+    /**
+     * Check if this archetype has a `componentId`.
+     * This is typically much faster than checking if `componentIds` includes a given componentId
+     */
+    hasComponentId: (componentId: number) => boolean
+    /**
+     * Returns all the entities currently in this archetype
+     */
+    getEntities(): ArrayLike<number>
+}
+
+export type InternalArchetype = Archetype & {
     readonly mask: ReadonlyBitSet
     readonly entitySet: SparseSet
     readonly adjacent: InternalArchetype[]
@@ -10,15 +33,22 @@ export type InternalArchetype = {
     readonly componentIds: number[]
 }
 
-export type Archetype = {
-    readonly id: string
-    readonly componentIds: ReadonlyArray<number>
-}
-
 export function createArchetype(id: string, mask: ReadonlyBitSet, parent: InternalArchetype | null): InternalArchetype {
     const entitySet = createSparseSet()
     const adjacent: InternalArchetype[] = []
     const componentIds: number[] = []
+
+    function hasEntity(entity: number): boolean {
+        return entitySet.has(entity)
+    }
+
+    function hasComponentId(componentId: number): boolean {
+        return mask.has(componentId)
+    }
+
+    function getEntities(): ArrayLike<number> {
+        return entitySet.values
+    }
 
     return Object.freeze({
         id,
@@ -26,7 +56,10 @@ export function createArchetype(id: string, mask: ReadonlyBitSet, parent: Intern
         entitySet,
         adjacent,
         parent,
-        componentIds
+        componentIds,
+        hasEntity,
+        hasComponentId,
+        getEntities
     })
 }
 
@@ -55,7 +88,7 @@ export function transformArchetype(archetype: InternalArchetype, componentId: nu
     transformed.adjacent[componentId] = archetype
     archetype.adjacent[componentId] = transformed
     if (!existingArchetype)
-        transformed.componentIds.push(componentId)
+        transformed.componentIds.push(...archetype.componentIds, componentId)
     return transformed
 }
 

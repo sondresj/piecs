@@ -1,25 +1,25 @@
-import { World, prefab, query } from '../dist/index.mjs'
+import { World, prefab, query, createEntitySystem } from '../dist/index.mjs'
 
 export default function createPacked1(count) {
     const world = new World()
     const A = {
-        id: world.getNextComponentId(),
+        id: world.createComponentId(),
         arr: new Uint32Array(count).fill(0)
     }
-    const B = world.getNextComponentId()
-    const C = world.getNextComponentId()
-    const D = world.getNextComponentId()
-    const E = world.getNextComponentId()
+    const B = world.createComponentId()
+    const C = world.createComponentId()
+    const D = world.createComponentId()
+    const E = world.createComponentId()
 
     const p = world.prefabricate([A.id, B, C, D, E])
 
     world
-        .registerSystem(function systemAp1(entities) {
+        .registerSystem(createEntitySystem(function systemAp1(entities) {
             const AArray = A.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 AArray[entities[i]] *= 2
             }
-        }, query(prefab(p)))
+        }, query(prefab(p))))
         .initialize()
 
     for (let i = 0; i < count; i++) {
