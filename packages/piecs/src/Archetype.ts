@@ -11,6 +11,10 @@ export type Archetype = {
      */
     readonly componentIds: ReadonlyArray<number>
     /**
+     * All the entities currently in this archetype
+     */
+    readonly entities: ArrayLike<number>
+    /**
      * Check if an entity is currently included in this archetype
      */
     hasEntity: (entity: number) => boolean
@@ -19,10 +23,6 @@ export type Archetype = {
      * This is typically much faster than checking if `componentIds` includes a given componentId
      */
     hasComponentId: (componentId: number) => boolean
-    /**
-     * Returns all the entities currently in this archetype
-     */
-    getEntities(): ArrayLike<number>
 }
 
 export type InternalArchetype = Archetype & {
@@ -46,10 +46,6 @@ export function createArchetype(id: string, mask: ReadonlyBitSet, parent: Intern
         return mask.has(componentId)
     }
 
-    function getEntities(): ArrayLike<number> {
-        return entitySet.values
-    }
-
     return Object.freeze({
         id,
         mask,
@@ -59,7 +55,7 @@ export function createArchetype(id: string, mask: ReadonlyBitSet, parent: Intern
         componentIds,
         hasEntity,
         hasComponentId,
-        getEntities
+        entities: entitySet.values
     })
 }
 
