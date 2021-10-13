@@ -1,4 +1,4 @@
-import { World, prefab, query, createEntitySystem } from '../dist/index.mjs'
+import { World, createEntitySystem } from '../dist/index.mjs'
 
 export default function createPacked5(count) {
     const world = new World()
@@ -32,31 +32,31 @@ export default function createPacked5(count) {
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2
             }
-        }, query(prefab(p))))
+        }, q => q.prefabricated(p)))
         .registerSystem(createEntitySystem(function systemBp5(entities) {
             const arr = B.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2
             }
-        }, query(prefab(p))))
+        }, q => q.prefabricated(p)))
         .registerSystem(createEntitySystem(function systemCp5(entities) {
             const arr = C.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2
             }
-        }, query(prefab(p))))
+        }, q => q.prefabricated(p)))
         .registerSystem(createEntitySystem(function systemDp5(entities) {
             const arr = D.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2
             }
-        }, query(prefab(p))))
+        }, q => q.prefabricated(p)))
         .registerSystem(createEntitySystem(function systemEp5(entities) {
             const arr = E.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 arr[entities[i]] *= 2
             }
-        }, query(prefab(p))))
+        }, q => q.prefabricated(p)))
         .initialize()
 
     for (let i = 0; i < count; i++) {

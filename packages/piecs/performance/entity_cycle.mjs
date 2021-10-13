@@ -1,4 +1,4 @@
-import { World, prefab, query, createEntitySystem } from '../dist/index.mjs'
+import { World, createEntitySystem } from '../dist/index.mjs'
 
 export default function createEntityCycle(count) {
     const world = new World()
@@ -15,12 +15,12 @@ export default function createEntityCycle(count) {
                 world.transformEntity(world.createEntity(), lpb)
                 world.transformEntity(world.createEntity(), lpb)
             }
-        }, query(prefab(prefabA))))
+        }, q => q.prefabricated(prefabA)))
         .registerSystem(createEntitySystem(function deleteBs(entities, world) {
             for (let i = entities.length - 1; i >= 0; i--) {
                 world.deleteEntity(entities[i])
             }
-        }, query(prefab(prefabB))))
+        }, q => q.prefabricated(prefabB)))
         .initialize()
 
     for (let i = 0; i < count; i++) {

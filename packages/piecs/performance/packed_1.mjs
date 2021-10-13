@@ -1,4 +1,4 @@
-import { World, prefab, query, createEntitySystem } from '../dist/index.mjs'
+import { World, createEntitySystem } from '../dist/index.mjs'
 
 export default function createPacked1(count) {
     const world = new World()
@@ -19,7 +19,7 @@ export default function createPacked1(count) {
             for (let i = 0, l = entities.length; i < l; i++) {
                 AArray[entities[i]] *= 2
             }
-        }, query(prefab(p))))
+        }, q => q.prefabricated(p)))
         .initialize()
 
     for (let i = 0; i < count; i++) {

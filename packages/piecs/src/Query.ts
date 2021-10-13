@@ -1,9 +1,7 @@
 import type { Archetype, InternalArchetype } from './Archetype'
 import { createBitSet, BitSet, ReadonlyBitSet } from './collections/BitSet'
 
-type QueryMatcher = (target: ReadonlyBitSet) => boolean
-const alwaysTrue: QueryMatcher = (_: ReadonlyBitSet) => true
-const alwaysFalse: QueryMatcher = (_: ReadonlyBitSet) => false
+type QueryMatcher = (target: ReadonlyBitSet, archetype: Archetype) => boolean
 
 function makeMask(componentIds: Array<number>): BitSet {
     const max = Math.max(...componentIds)
@@ -14,49 +12,14 @@ function makeMask(componentIds: Array<number>): BitSet {
     return mask
 }
 
-/**
- * Query for a prefabricated `archetype`.
- * May match descendant archetypes, ie archetypes with all of the component ids in the prefab *and* additional component ids added to entities in the prefabricated archetype or descendant archetypes
- */
-export function prefab(archetype: Archetype): QueryMatcher {
-    return target => target.contains((<InternalArchetype>archetype).mask)
+function makeAndMatcher(matcher: QueryMatcher, ...matchers: QueryMatcher[]): QueryMatcher {
+    return (target, targetArchetype) => matcher(target, targetArchetype)
+        && matchers.every(m => m(target, targetArchetype))
 }
 
-/**
- * Archetypes that has *all* of the `componentIds` will be included in the result
- */
-export function all(...componentIds: Array<number>): QueryMatcher {
-    if (!componentIds.length) return alwaysFalse
-    const mask = makeMask(componentIds)
-    return target => target.contains(mask)
-}
-
-/**
- * Archetypes that has *any* of the `componentIds` will be included in the result
- */
-export function any(...componentIds: Array<number>): QueryMatcher {
-    if (!componentIds.length) return alwaysTrue
-    const mask = makeMask(componentIds)
-    return target => target.intersects(mask)
-}
-
-/**
- * Archetypes that *has* the `componentIds` will *not* be included in the result
- */
-export function not(...componentIds: Array<number>): QueryMatcher {
-    if (!componentIds.length) return alwaysTrue
-    const mask = makeMask(componentIds)
-    return (target) => !target.intersects(mask)
-}
-
-export function and(matcher: QueryMatcher, ...matchers: QueryMatcher[]): QueryMatcher {
-    return (target) => matcher(target)
-        && matchers.every(m => m(target))
-}
-
-export function or(matcher: QueryMatcher, ...matchers: QueryMatcher[]): QueryMatcher {
-    return (target) => matcher(target)
-        || matchers.some(m => m(target))
+function makeOrMatcher(matcher: QueryMatcher, ...matchers: QueryMatcher[]): QueryMatcher {
+    return (target, targetArchetype) => matcher(target, targetArchetype)
+        || matchers.some(m => m(target, targetArchetype))
 }
 
 export type Query = {
@@ -71,26 +34,18 @@ export type InternalQuery = Query & {
     readonly archetypes: ReadonlyArray<InternalArchetype>
 }
 
-/**
- * Create a query that can be matched against archetypes
- * @param matchers return value of any combination of `and | or | all | any | not`.
- * @note Empty argument list returns a query which is always true
- */
-export const query = (...matchers: Array<QueryMatcher>): Query => {
-    const archetypes: Archetype[] = []
-    let matcher: QueryMatcher
+const alwaysTrue: QueryMatcher = (_: ReadonlyBitSet, __: Archetype) => true
 
-    if (!matchers.length) {
-        matcher = alwaysTrue
-    } else {
-        const [first, ...rest] = matchers
-        matcher = rest.length
-            ? and(first!, ...rest)
-            : first!
-    }
+function createQuery(...matchers: Array<QueryMatcher>): Query {
+    const archetypes: Archetype[] = []
+
+    const [first = alwaysTrue, ...rest] = matchers
+    const matcher = rest.length
+        ? makeAndMatcher(first, ...rest)
+        : first
 
     function tryAdd(archetype: InternalArchetype): boolean {
-        if (!matcher(archetype.mask)) return false
+        if (!matcher(archetype.mask, archetype)) return false
         archetypes.push(archetype)
         return true
     }
@@ -98,5 +53,106 @@ export const query = (...matchers: Array<QueryMatcher>): Query => {
     return Object.freeze({
         archetypes,
         tryAdd
-    }) as any
+    })
+}
+
+export type QueryBuilder = {
+    /**
+     * Archetypes that has *every* componentId of `componentIds` will be included in the result
+     */
+    every(...cids: number[]): QueryBuilder
+    /**
+     * Archetypes that has *some* of the `componentIds` will be included in the result
+     */
+    some(...cids: number[]): QueryBuilder
+    /**
+     * Archetypes that has *some* of the `componentIds` will *not* be included in the result
+     */
+    not(...cids: number[]): QueryBuilder
+    /**
+     * Archetypes that has *every* componentId of `componentIds` will *not* be included in the result
+     */
+    none(...cids: number[]): QueryBuilder
+    /**
+     *
+     */
+    or(orBuilder: (q: QueryBuilder) => QueryBuilder): QueryBuilder
+    /**
+     * Add a custom query matcher.
+     * The matcher function receives a `BitSet` that indicates the presence of `componentIds`, and the `Archetype` associated with the BitSet`.
+     */
+    custom(matcher: QueryMatcher): QueryBuilder
+    /**
+     * Query for a prefabricated `archetype`.
+     * May match descendant archetypes, ie archetypes with all of the component ids in the prefab *and* additional component ids added to entities in the prefabricated archetype or descendant archetypes
+     */
+    prefabricated(archetype: Archetype): QueryBuilder
+    toQuery(): Query
+    readonly matchers: ReadonlyArray<QueryMatcher>
+}
+
+const createBuilder = (): QueryBuilder => {
+    let _matchers: QueryMatcher[] = []
+    return {
+        get matchers() {
+            return _matchers
+        },
+        or(q) {
+            const [first = alwaysTrue, ...rest] = _matchers
+            _matchers = [
+                makeOrMatcher(
+                    makeAndMatcher(first, ...rest),
+                    ...q(createBuilder()).matchers
+                )
+            ]
+            return this
+        },
+        every(...componentIds) {
+            if (!componentIds.length) {
+                return this
+            }
+            const mask = makeMask(componentIds)
+            _matchers.push((target, _targetArchetype) => target.contains(mask))
+            return this
+        },
+        some(...componentIds) {
+            if (!componentIds.length) {
+                return this
+            }
+            const mask = makeMask(componentIds)
+            _matchers.push((target, _targetArchetype) => target.intersects(mask))
+            return this
+        },
+        not(...componentIds) {
+            if (!componentIds.length) {
+                return this
+            }
+            const mask = makeMask(componentIds)
+            _matchers.push((target, _targetArchetype) => !target.intersects(mask))
+            return this
+        },
+        none(...componentIds) {
+            if (!componentIds.length) {
+                return this
+            }
+            const mask = makeMask(componentIds)
+            _matchers.push((target, _targetArchetype) => !target.contains(mask))
+            return this
+        },
+        prefabricated(archetype) {
+            _matchers.push((target, _targetArchetype) => target.contains((<InternalArchetype>archetype).mask))
+            return this
+        },
+        custom(matcher) {
+            _matchers.push(matcher)
+            return this
+        },
+        toQuery() {
+            return createQuery(..._matchers)
+        }
+    }
+}
+
+export const buildQuery = (callback: (builder: QueryBuilder) => QueryBuilder): Query => {
+    return callback(createBuilder()).toQuery()
 }

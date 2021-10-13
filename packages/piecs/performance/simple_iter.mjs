@@ -1,4 +1,4 @@
-import { World, prefab, query, createEntitySystem } from '../dist/index.mjs'
+import { World, createEntitySystem } from '../dist/index.mjs'
 
 export default function createSimpleIter(count) {
     const world = new World()
@@ -39,7 +39,7 @@ export default function createSimpleIter(count) {
                 lA[entity] = b
                 lB[entity] = a
             }
-        }, query(prefab(prefab1))))
+        }, q => q.prefabricated(prefab1)))
         .registerSystem(createEntitySystem(function systemCD(entities) {
             const lC = C.arr
             const lD = D.arr
@@ -50,7 +50,7 @@ export default function createSimpleIter(count) {
                 lC[entity] = d
                 lD[entity] = c
             }
-        }, query(prefab(prefab3))))
+        }, q => q.prefabricated(prefab3)))
         .registerSystem(createEntitySystem(function systemCE(entities) {
             const lC = C.arr
             const lE = E.arr
@@ -61,7 +61,7 @@ export default function createSimpleIter(count) {
                 lC[entity] = e
                 lE[entity] = c
             }
-        }, query(prefab(prefab4))))
+        }, q => q.prefabricated(prefab4)))
         .initialize()
 
     for (let i = 0; i < count; i++) {

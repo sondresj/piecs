@@ -81,6 +81,7 @@ export function createBitSet(maxValue: number): BitSet {
             return set
         },
         union(other: BitSet): BitSet {
+            if (other.mask === mask) return other
             const maxValue = Math.max(max, other.max)
             const union: BitSet = createBitSet(maxValue)
             for (let i = 0; i < other.mask.length; i++) {
@@ -91,6 +92,7 @@ export function createBitSet(maxValue: number): BitSet {
             return union
         },
         intersection(other: BitSet): BitSet {
+            if (other.mask === mask) return other
             const maxValue = Math.min(max, other.max)
             const intersection = createBitSet(maxValue)
             for (let i = 0; i < intersection.mask.length; i++) {
@@ -101,6 +103,7 @@ export function createBitSet(maxValue: number): BitSet {
             return intersection
         },
         difference(other: BitSet): BitSet {
+            if (other.mask === mask) return other
             const diff = createBitSet(max)
             for (let i = 0; i < diff.mask.length; i++) {
                 const a = mask[i]!
@@ -110,6 +113,7 @@ export function createBitSet(maxValue: number): BitSet {
             return diff
         },
         symmetrictDifference(other: BitSet): BitSet {
+            if (other.mask === mask) return other
             const maxValue = Math.max(max, other.max)
             const symDiff = createBitSet(maxValue)
             for (let i = 0; i < symDiff.mask.length; i++) {
@@ -120,15 +124,16 @@ export function createBitSet(maxValue: number): BitSet {
             return symDiff
         },
         contains(other: BitSet): boolean {
-            if (other.size > size) return false
+            if (other.mask === mask) return true
             for (let i = 0; i < other.mask.length; i++) {
-                const a = mask[i]!
+                const a = mask[i] || 0
                 const b = other.mask[i]!
                 if ((a & b) !== b) return false
             }
             return true
         },
         intersects(other: BitSet): boolean {
+            if (other.mask === mask) return true
             const length = Math.min(mask.length, other.mask.length)
             for (let i = 0; i < length; i++) {
                 const a = mask[i]!

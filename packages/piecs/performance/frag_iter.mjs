@@ -1,4 +1,4 @@
-import { World, all, query, createEntitySystem } from '../dist/index.mjs'
+import { World, createEntitySystem } from '../dist/index.mjs'
 
 export default function createFragIter(count) {
     const world = new World()
@@ -20,7 +20,7 @@ export default function createFragIter(count) {
             for (let i = 0, l = entities.length; i < l; i++) {
                 DataArray[entities[i]] *= 2
             }
-        }, query(all(Data.id))))
+        }, q => q.every(Data.id)))
         .initialize()
 
     for (let i = 0; i < count; i++) {

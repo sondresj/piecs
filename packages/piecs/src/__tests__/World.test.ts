@@ -1,4 +1,3 @@
-import { and, all, not, any, query } from '../Query'
 import { World } from '../World'
 import { createEntitySystem } from '../System'
 
@@ -28,7 +27,7 @@ describe('World', () => {
                     })
                     expect(world.hasComponentId(entity, baz.id)).toBeFalsy()
                 }
-            }, query(and(all(foo.id), not(baz.id)))))
+            }, (q) => q.every(foo.id).not(baz.id)))
             .registerSystem(createEntitySystem(function deleteBaz(entities, world) {
                 for (let e = entities.length - 1; e >= 0; e--) {
                     const entity = entities[e]!
@@ -36,7 +35,7 @@ describe('World', () => {
                     world.deleteEntity(entity)
                     expect(world.hasEntity(entity)).toBeFalsy()
                 }
-            }, query(any(baz.id))))
+            }, q => q.some(baz.id)))
             .initialize()
         const e0 = world.createEntity()
         expect(e0).toBe(0)

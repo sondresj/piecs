@@ -1,4 +1,6 @@
-import { Archetype, Query, World } from '.'
+import type { Archetype } from './Archetype'
+import type { World } from './World'
+import { QueryBuilder, Query, buildQuery } from './Query'
 
 type BaseSystem = {
     readonly query: Query
@@ -32,10 +34,16 @@ export type System = EntitySystem | ArchetypeSystem
  * @param query
  * @returns
  */
-export function createEntitySystem(execute: (entities: ArrayLike<number>, world: World) => void, query: Query): EntitySystem {
+export function createEntitySystem(
+    execute: (entities: ArrayLike<number>, world: World) => void,
+    query: Query | ((buildQuery: QueryBuilder) => QueryBuilder)
+): EntitySystem {
+    const _query = typeof query === 'function'
+        ? buildQuery(query)
+        : query
     return Object.freeze({
         execute,
-        query,
+        query: _query,
         type: 0
     })
 }
@@ -45,13 +53,19 @@ export function createEntitySystem(execute: (entities: ArrayLike<number>, world:
  * This is usefull when your query potentially matches 2 or more archetypes and you need to check for the presence of a componentId on entities.
  * The differing components can be checked for once for each archetype instead of for each entity.
  * @param execute
- * @param query
+ * @param queryParams
  * @returns
  */
-export function createArchetypeSystem(execute: (archetypes: ArrayLike<Archetype>, world: World) => void, query: Query): ArchetypeSystem {
+export function createArchetypeSystem(
+    execute: (archetypes: ArrayLike<Archetype>, world: World) => void,
+    query: Query | ((buildQuery: QueryBuilder) => QueryBuilder)
+): ArchetypeSystem {
+    const _query = typeof query === 'function'
+        ? buildQuery(query)
+        : query
     return Object.freeze({
         execute,
-        query,
+        query: _query,
         type: 1
     })
 }

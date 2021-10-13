@@ -63,6 +63,9 @@ export function transformArchetype(archetype: InternalArchetype, componentId: nu
     if (archetype.adjacent[componentId]) {
         return archetype.adjacent[componentId]!
     }
+    // TODO: This new mask will be thrown away if an existing archetype is found..
+    // Could cast the archetype.mask to a BitSet (not readonly) and xor componentId before toStringing,
+    // then if no existing could be found, make a copy and afterwards xor componentId out again.
     const nextMask = archetype.mask.copy().xor(componentId)
     const nextId = nextMask.toString()
 
@@ -92,13 +95,12 @@ export function traverseArchetypeGraph(archetype: InternalArchetype, callback: (
     traversed.add(archetype)
     if (callback(archetype) === false) return false
     const adjacent = archetype.adjacent
-    const l = adjacent.length
-    for (let i = 0; i < l; i++) {
+    for (let i = 0, l = adjacent.length; i < l; i++) {
         const arch = adjacent[i]
         // adjacent is sparse, so there can be empty slots
         if (!arch) continue
         // graph is doubly linked, so need to prevent infinite recursion
-        if (traversed.has(arch!)) continue
+        if (traversed.has(arch)) continue
         if (traverseArchetypeGraph(arch, callback, traversed) === false) break
     }
     return true

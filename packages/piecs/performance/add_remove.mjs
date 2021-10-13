@@ -1,4 +1,4 @@
-import { World, prefab, query, createEntitySystem } from '../dist/index.mjs'
+import { World, createEntitySystem } from '../dist/index.mjs'
 
 export default function createAddRemove(count) {
     const world = new World()
@@ -15,14 +15,14 @@ export default function createAddRemove(count) {
                 // world.addComponentId(entities[i], B)
                 world.transformEntity(entities[i], lpab)
             }
-        }, query(prefab(prefabA))))
+        }, q => q.prefabricated(prefabA)))
         .registerSystem(createEntitySystem(function removeB(entities, world) {
             const lpa = prefabA
             for (let i = entities.length - 1; i >= 0; i--) {
                 // world.removeComponentId(entities[i], B)
                 world.transformEntity(entities[i], lpa)
             }
-        }, query(prefab(prefabAB))))
+        }, q => q.prefabricated(prefabAB)))
         .initialize()
 
     for (let i = 0; i < count; i++) {
