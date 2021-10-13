@@ -2,7 +2,7 @@
 
 [![NPM Version](https://img.shields.io/npm/v/piecs.svg?style=flat)](https://www.npmjs.com/package/piecs)
 
-PIECS is an entity component system with some batteries included, some not.
+PIECS (pronounced like *pieces*) is an entity component system with some batteries included, some not.
 
 This project is very much a work in progress, everything is subject to change.
 

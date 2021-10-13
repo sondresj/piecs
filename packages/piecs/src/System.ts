@@ -1,6 +1,6 @@
 import type { Archetype } from './Archetype'
 import type { World } from './World'
-import { QueryBuilder, Query, buildQuery } from './Query'
+import { QueryBuilder, Query, query as buildQuery } from './Query'
 
 type BaseSystem = {
     readonly query: Query
@@ -38,12 +38,12 @@ export function createEntitySystem(
     execute: (entities: ArrayLike<number>, world: World) => void,
     query: Query | ((buildQuery: QueryBuilder) => QueryBuilder)
 ): EntitySystem {
-    const _query = typeof query === 'function'
+    query = typeof query === 'function'
         ? buildQuery(query)
         : query
     return Object.freeze({
         execute,
-        query: _query,
+        query,
         type: 0
     })
 }
@@ -60,12 +60,12 @@ export function createArchetypeSystem(
     execute: (archetypes: ArrayLike<Archetype>, world: World) => void,
     query: Query | ((buildQuery: QueryBuilder) => QueryBuilder)
 ): ArchetypeSystem {
-    const _query = typeof query === 'function'
+    query = typeof query === 'function'
         ? buildQuery(query)
         : query
     return Object.freeze({
         execute,
-        query: _query,
+        query,
         type: 1
     })
 }

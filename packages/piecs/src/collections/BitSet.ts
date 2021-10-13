@@ -1,25 +1,75 @@
 const mod32 = 0x0000001f
 
 export type ReadonlyBitSet = {
+    /**
+     * Check if a value is in the set
+     * @param value unsigned integer
+     */
     has(value: number): boolean
+    /**
+     * Create a BitSet with all the bits flipped
+     */
     not(): BitSet
+    /**
+     * Create a union of two sets.
+     * The union includes all bits from both sets
+     */
     union(other: ReadonlyBitSet): BitSet
+    /**
+     * Create an intersection of two sets.
+     * The intersection includes only the bits common between both sets
+     */
     intersection(other: ReadonlyBitSet): BitSet
+    /**
+     * Create a difference set.
+     * The difference includes only the bits in this set which is not in the `other` set
+     */
     difference(other: ReadonlyBitSet): BitSet
-    symmetrictDifference(other: ReadonlyBitSet): BitSet
+    /**
+     * Create a symmetricDifference set.
+     * The new set includes only the bits in either set, but not both
+     */
+    symmetricDifference(other: ReadonlyBitSet): BitSet
+    /**
+     * Check if this set contains all the bits in the `other` set
+     */
     contains(other: ReadonlyBitSet): boolean
+    /**
+     * Check if this set has some bits in common with the `other` set
+     */
     intersects(other: ReadonlyBitSet): boolean
+    /**
+     * Get a string representation of the set
+     * @param radix default = 16 
+     */
     toString(radix?: number): string
+    /**
+     * Create a copy of this set
+     */
     copy(): BitSet
 }
 
 export type BitSet = ReadonlyBitSet & {
+    /**
+     * Highest value this set can contain
+     */
     readonly max: number
+    /**
+     * Size of the `mask`
+     */
     readonly size: number
+    /**
+     * The array containing all the bits in the set
+     */
     readonly mask: Uint32Array
+    /**
+     * Flip the bit corresponding to the `value`
+     */
     xor(value: number): BitSet
+    /**
+     * Set the bit corresponding to the `value`
+     */
     or(value: number): BitSet
-    and(value: number): BitSet
 }
 
 export function createBitSet(maxValue: number): BitSet {
@@ -67,12 +117,6 @@ export function createBitSet(maxValue: number): BitSet {
             mask[index] |= 1 << (value & mod32)
             return this
         },
-        and(value: number): BitSet {
-            grow(value)
-            const index = value >>> 5
-            mask[index] &= 1 << (value & mod32)
-            return this
-        },
         not(): BitSet {
             const set: BitSet = createBitSet(max)
             for (let i = 0; i < mask.length; i++) {
@@ -112,7 +156,7 @@ export function createBitSet(maxValue: number): BitSet {
             }
             return diff
         },
-        symmetrictDifference(other: BitSet): BitSet {
+        symmetricDifference(other: BitSet): BitSet {
             if (other.mask === mask) return other
             const maxValue = Math.max(max, other.max)
             const symDiff = createBitSet(maxValue)

@@ -24,7 +24,7 @@ function makeOrMatcher(matcher: QueryMatcher, ...matchers: QueryMatcher[]): Quer
 
 export type Query = {
     /**
-     * All archetypes that matches the query
+     * All archetypes matching the query
      */
     readonly archetypes: ReadonlyArray<Archetype>
 }
@@ -35,26 +35,6 @@ export type InternalQuery = Query & {
 }
 
 const alwaysTrue: QueryMatcher = (_: ReadonlyBitSet, __: Archetype) => true
-
-function createQuery(...matchers: Array<QueryMatcher>): Query {
-    const archetypes: Archetype[] = []
-
-    const [first = alwaysTrue, ...rest] = matchers
-    const matcher = rest.length
-        ? makeAndMatcher(first, ...rest)
-        : first
-
-    function tryAdd(archetype: InternalArchetype): boolean {
-        if (!matcher(archetype.mask, archetype)) return false
-        archetypes.push(archetype)
-        return true
-    }
-
-    return Object.freeze({
-        archetypes,
-        tryAdd
-    })
-}
 
 export type QueryBuilder = {
     /**
@@ -76,7 +56,7 @@ export type QueryBuilder = {
     /**
      *
      */
-    or(orBuilder: (q: QueryBuilder) => QueryBuilder): QueryBuilder
+    or(callback: (builder: QueryBuilder) => QueryBuilder): QueryBuilder
     /**
      * Add a custom query matcher.
      * The matcher function receives a `BitSet` that indicates the presence of `componentIds`, and the `Archetype` associated with the BitSet`.
@@ -91,18 +71,18 @@ export type QueryBuilder = {
     readonly matchers: ReadonlyArray<QueryMatcher>
 }
 
-const createBuilder = (): QueryBuilder => {
+function createBuilder(): QueryBuilder {
     let _matchers: QueryMatcher[] = []
     return {
         get matchers() {
             return _matchers
         },
-        or(q) {
+        or(cb) {
             const [first = alwaysTrue, ...rest] = _matchers
             _matchers = [
                 makeOrMatcher(
                     makeAndMatcher(first, ...rest),
-                    ...q(createBuilder()).matchers
+                    ...cb(createBuilder()).matchers
                 )
             ]
             return this
@@ -148,11 +128,24 @@ const createBuilder = (): QueryBuilder => {
             return this
         },
         toQuery() {
-            return createQuery(..._matchers)
+            const [first = alwaysTrue, ...rest] = _matchers
+            const matcher = rest.length
+                ? makeAndMatcher(first, ...rest)
+                : first
+                
+            const archetypes: Archetype[] = []
+            return Object.freeze({
+                archetypes,
+                tryAdd(archetype: InternalArchetype): boolean {
+                    if (!matcher(archetype.mask, archetype)) return false
+                    archetypes.push(archetype)
+                    return true
+                }
+            })
         }
     }
 }
 
-export const buildQuery = (callback: (builder: QueryBuilder) => QueryBuilder): Query => {
+export function query(callback: (builder: QueryBuilder) => QueryBuilder): Query {
     return callback(createBuilder()).toQuery()
 }

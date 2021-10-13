@@ -9,13 +9,18 @@ export default function createAddRemove(count) {
     const prefabAB = world.prefabricate([A, B])
 
     world
-        .registerSystem(createEntitySystem(function addB(entities, world) {
-            const lpab = prefabAB
-            for (let i = entities.length - 1; i >= 0; i--) {
-                // world.addComponentId(entities[i], B)
-                world.transformEntity(entities[i], lpab)
-            }
-        }, q => q.prefabricated(prefabA)))
+        .registerSystem(
+            createEntitySystem(
+                function addB(entities, world) {
+                    const lpab = prefabAB
+                    for (let i = entities.length - 1; i >= 0; i--) {
+                        // world.addComponentId(entities[i], B)
+                        world.transformEntity(entities[i], lpab)
+                    }
+                },
+                q => q.prefabricated(prefabA)
+            )
+        )
         .registerSystem(createEntitySystem(function removeB(entities, world) {
             const lpa = prefabA
             for (let i = entities.length - 1; i >= 0; i--) {

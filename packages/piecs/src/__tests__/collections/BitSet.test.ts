@@ -113,7 +113,7 @@ describe('BitSet', () => {
         const b = createBitSet(50)
         b.or(37).or(18).or(5)
 
-        const symdiff = a.symmetrictDifference(b)
+        const symdiff = a.symmetricDifference(b)
         expect(symdiff.has(36)).toBeTruthy()
         expect(symdiff.has(37)).toBeTruthy()
         expect(!symdiff.has(18)).toBeTruthy()
