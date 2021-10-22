@@ -1,6 +1,6 @@
 {
   "name": "piecs",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "PIECS is an entity component system with some batteries included",
   "type": "module",
   "main": "./dist/index.cjs",
