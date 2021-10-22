@@ -10,10 +10,9 @@ export default function createEntityCycle(count) {
 
     world
         .registerSystem(createEntitySystem(function spawnBs(entities, world) {
-            const lpb = prefabB
             for (let i = 0, l = entities.length; i < l; i++) {
-                world.transformEntity(world.createEntity(), lpb)
-                world.transformEntity(world.createEntity(), lpb)
+                world.createEntity(prefabB)
+                world.createEntity(prefabB)
             }
         }, q => q.prefabricated(prefabA)))
         .registerSystem(createEntitySystem(function deleteBs(entities, world) {
@@ -24,8 +23,7 @@ export default function createEntityCycle(count) {
         .initialize()
 
     for (let i = 0; i < count; i++) {
-        const e = world.createEntity()
-        world.transformEntity(e, prefabA)
+        const e = world.createEntity(prefabA)
     }
 
     return function entityCycle() {

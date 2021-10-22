@@ -15,16 +15,14 @@ export default function createPacked1(count) {
 
     world
         .registerSystem(createEntitySystem(function systemAp1(entities) {
-            const AArray = A.arr
             for (let i = 0, l = entities.length; i < l; i++) {
-                AArray[entities[i]] *= 2
+                A.arr[entities[i]] *= 2
             }
         }, q => q.prefabricated(p)))
         .initialize()
 
     for (let i = 0; i < count; i++) {
-        const entity = world.createEntity()
-        world.transformEntity(entity, p)
+        world.createEntity(p)
     }
 
     return function packed1() {

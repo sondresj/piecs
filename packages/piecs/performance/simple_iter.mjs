@@ -30,49 +30,39 @@ export default function createSimpleIter(count) {
 
     world
         .registerSystem(createEntitySystem(function systemAB(entities) {
-            const lA = A.arr
-            const lB = B.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 const entity = entities[i]
-                const a = lA[entity]
-                const b = lB[entity]
-                lA[entity] = b
-                lB[entity] = a
+                const a = A.arr[entity]
+                const b = B.arr[entity]
+                A.arr[entity] = b
+                B.arr[entity] = a
             }
         }, q => q.prefabricated(prefab1)))
         .registerSystem(createEntitySystem(function systemCD(entities) {
-            const lC = C.arr
-            const lD = D.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 const entity = entities[i]
-                const c = lC[entity]
-                const d = lD[entity]
-                lC[entity] = d
-                lD[entity] = c
+                const c = C.arr[entity]
+                const d = D.arr[entity]
+                C.arr[entity] = d
+                D.arr[entity] = c
             }
         }, q => q.prefabricated(prefab3)))
         .registerSystem(createEntitySystem(function systemCE(entities) {
-            const lC = C.arr
-            const lE = E.arr
             for (let i = 0, l = entities.length; i < l; i++) {
                 const entity = entities[i]
-                const c = lC[entity]
-                const e = lE[entity]
-                lC[entity] = e
-                lE[entity] = c
+                const c = C.arr[entity]
+                const e = E.arr[entity]
+                C.arr[entity] = e
+                E.arr[entity] = c
             }
         }, q => q.prefabricated(prefab4)))
         .initialize()
 
     for (let i = 0; i < count; i++) {
-        const e1 = world.createEntity()
-        world.transformEntity(e1, prefab1)
-        const e2 = world.createEntity()
-        world.transformEntity(e2, prefab2)
-        const e3 = world.createEntity()
-        world.transformEntity(e3, prefab3)
-        const e4 = world.createEntity()
-        world.transformEntity(e4, prefab4)
+        world.createEntity(prefab1)
+        world.createEntity(prefab2)
+        world.createEntity(prefab3)
+        world.createEntity(prefab4)
     }
 
     return function simpleIter() {

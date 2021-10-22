@@ -16,16 +16,15 @@ export default function createFragIter(count) {
 
     world
         .registerSystem(createEntitySystem(function dataSystem(entities) {
-            const DataArray = Data.arr
             for (let i = 0, l = entities.length; i < l; i++) {
-                DataArray[entities[i]] *= 2
+                Data.arr[entities[i]] *= 2
             }
         }, q => q.every(Data.id)))
         .initialize()
 
     for (let i = 0; i < count; i++) {
         for (const prefab of prefabs) {
-            world.transformEntity(world.createEntity(), prefab)
+            world.createEntity(prefab)
         }
     }
 

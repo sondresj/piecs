@@ -113,12 +113,12 @@ export class World implements OutsideWorld, InsideWorld {
         return this.entityArchetype[entity] !== undefined
     }
 
-    createEntity(): number {
+    createEntity(prefabricate: Archetype = this.rootArchetype): number {
         const entity = this.deletedEntities.length > 0
             ? this.deletedEntities.pop()!
             : this.nextEntityId++
 
-        const archetype = this.rootArchetype
+        const archetype = prefabricate as InternalArchetype
         archetype.entitySet.add(entity)
         this.entityArchetype[entity] = archetype
         return entity

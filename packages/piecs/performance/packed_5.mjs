@@ -28,40 +28,34 @@ export default function createPacked5(count) {
 
     world
         .registerSystem(createEntitySystem(function systemAp5(entities) {
-            const arr = A.arr
             for (let i = 0, l = entities.length; i < l; i++) {
-                arr[entities[i]] *= 2
+                A.arr[entities[i]] *= 2
             }
         }, q => q.prefabricated(p)))
         .registerSystem(createEntitySystem(function systemBp5(entities) {
-            const arr = B.arr
             for (let i = 0, l = entities.length; i < l; i++) {
-                arr[entities[i]] *= 2
+                B.arr[entities[i]] *= 2
             }
         }, q => q.prefabricated(p)))
         .registerSystem(createEntitySystem(function systemCp5(entities) {
-            const arr = C.arr
             for (let i = 0, l = entities.length; i < l; i++) {
-                arr[entities[i]] *= 2
+                C.arr[entities[i]] *= 2
             }
         }, q => q.prefabricated(p)))
         .registerSystem(createEntitySystem(function systemDp5(entities) {
-            const arr = D.arr
             for (let i = 0, l = entities.length; i < l; i++) {
-                arr[entities[i]] *= 2
+                D.arr[entities[i]] *= 2
             }
         }, q => q.prefabricated(p)))
         .registerSystem(createEntitySystem(function systemEp5(entities) {
-            const arr = E.arr
             for (let i = 0, l = entities.length; i < l; i++) {
-                arr[entities[i]] *= 2
+                E.arr[entities[i]] *= 2
             }
         }, q => q.prefabricated(p)))
         .initialize()
 
     for (let i = 0; i < count; i++) {
-        const entity = world.createEntity()
-        world.transformEntity(entity, p)
+        world.createEntity(p)
     }
 
     return function packed5() {

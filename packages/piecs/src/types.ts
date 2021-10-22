@@ -10,8 +10,9 @@ export interface InsideWorld {
      * Create an entity.
      * An entity is just an Id.
      * Previously deleted entity id's will be reused
+     * Optionally supply a prefacbricated archetype
      */
-    createEntity(): number
+    createEntity(prefabricate?: Archetype): number
     /**
      * Delete an entity, removing it from its current archetype (loosing all of its components).
      * @throws {EntityUndefinedError | EntityDeletedError | EntityNotExistError}
