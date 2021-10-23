@@ -53,6 +53,13 @@ describe('BitSet', () => {
         })
     })
 
+    test('it grows to accomodate value > constructed', () => {
+        const mask = createBitSet(31) // internal array should be of size 1
+        mask.xor(70) // internal array should grow to size 3
+        expect(mask.has(70)).toBeTruthy()
+        expect(mask.size).toBe(3)
+    })
+
     test('not returns new bitmask with all bytes flipped', () => {
         let mask = createBitSet(50)
         mask = mask.or(0).or(4).not()

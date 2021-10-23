@@ -7,9 +7,13 @@ export default function createFragIter(count) {
     for (let i = 0; i < 26; i++) {
         components.push(world.createComponentId())
     }
+    const Z = {
+        id: components[25],
+        arr: new Int32Array(count)
+    }
     const Data = {
         id: world.createComponentId(),
-        arr: new Uint32Array(count*26).fill(1)
+        arr: new Int32Array(count*26)
     }
 
     const prefabs = components.map(c => world.prefabricate([Data.id, c]))
@@ -19,7 +23,12 @@ export default function createFragIter(count) {
             for (let i = 0, l = entities.length; i < l; i++) {
                 Data.arr[entities[i]] *= 2
             }
-        }, q => q.every(Data.id)))
+        }, q => q.every(Data)))
+        .registerSystem(createEntitySystem(function zSystem(entities) {
+            for (let i = 0, l = entities.length; i < l; i++) {
+                Z.arr[entities[i]] *= 2
+            }
+        }, q => q.every(Z)))
         .initialize()
 
     for (let i = 0; i < count; i++) {

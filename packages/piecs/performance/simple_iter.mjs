@@ -23,10 +23,10 @@ export default function createSimpleIter(count) {
         arr: new Uint32Array(count*4).fill(0)
     }
 
-    const prefab1 = world.prefabricate([A.id, B.id])
-    const prefab2 = world.prefabricate([A.id, B.id, C.id])
-    const prefab3 = world.prefabricate([A.id, B.id, C.id, D.id])
-    const prefab4 = world.prefabricate([A.id, B.id, C.id, E.id])
+    const prefab1 = world.prefabricate([A, B])
+    const prefab2 = world.prefabricate([A, B, C])
+    const prefab3 = world.prefabricate([A, B, C, D])
+    const prefab4 = world.prefabricate([A, B, C, E])
 
     world
         .registerSystem(createEntitySystem(function systemAB(entities) {

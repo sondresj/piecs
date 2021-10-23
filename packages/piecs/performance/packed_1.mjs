@@ -4,7 +4,7 @@ export default function createPacked1(count) {
     const world = new World()
     const A = {
         id: world.createComponentId(),
-        arr: new Uint32Array(count).fill(0)
+        arr: new Uint32Array(count).fill(1)
     }
     const B = world.createComponentId()
     const C = world.createComponentId()

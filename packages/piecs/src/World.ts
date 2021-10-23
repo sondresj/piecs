@@ -36,15 +36,16 @@ export class World implements OutsideWorld, InsideWorld {
         return this.nextComponentId++
     }
 
-    prefabricate(componentIds: number[]): Archetype {
-        const max = Math.max(...componentIds)
+    prefabricate<T extends number | { id: number }>(componentIds: T[]): Archetype {
+        const ids = componentIds.map(c => typeof c === 'number' ? c : c.id)
+        const max = Math.max(...ids)
         if (max >= this.nextComponentId) {
             this.nextComponentId = (max + 1) >>> 0
         }
         let archetype = this.rootArchetype
 
-        for (let i = 0, l = componentIds.length; i < l; i++) {
-            const componentId = componentIds[i]!
+        for (let i = 0, l = ids.length; i < l; i++) {
+            const componentId = ids[i]!
 
             if (archetype.adjacent[componentId]) {
                 archetype = archetype.adjacent[componentId]!

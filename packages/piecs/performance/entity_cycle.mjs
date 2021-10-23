@@ -23,7 +23,7 @@ export default function createEntityCycle(count) {
         .initialize()
 
     for (let i = 0; i < count; i++) {
-        const e = world.createEntity(prefabA)
+        world.createEntity(prefabA)
     }
 
     return function entityCycle() {

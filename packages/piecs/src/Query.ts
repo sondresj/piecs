@@ -3,11 +3,13 @@ import { createBitSet, BitSet, ReadonlyBitSet } from './collections/BitSet'
 
 type QueryMatcher = (target: ReadonlyBitSet, archetype: Archetype) => boolean
 
-function makeMask(componentIds: Array<number>): BitSet {
-    const max = Math.max(...componentIds)
+type QueryArg = number | { id: number }
+function makeMask<T extends QueryArg>(componentIds: Array<T>): BitSet {
+    const ids = componentIds.map(c => typeof c === 'number' ? c : c.id)
+    const max = Math.max(...ids)
     const mask = createBitSet(max)
-    for (let i = 0; i < componentIds.length; i++) {
-        mask.or(componentIds[i]!)
+    for (let i = 0; i < ids.length; i++) {
+        mask.or(ids[i]!)
     }
     return mask
 }
@@ -40,19 +42,19 @@ export type QueryBuilder = {
     /**
      * Archetypes that has *every* componentId of `componentIds` will be included in the result
      */
-    every(...cids: number[]): QueryBuilder
+    every<T extends QueryArg>(...cids: T[]): QueryBuilder
     /**
      * Archetypes that has *some* of the `componentIds` will be included in the result
      */
-    some(...cids: number[]): QueryBuilder
+    some<T extends QueryArg>(...cids: T[]): QueryBuilder
     /**
      * Archetypes that has *some* of the `componentIds` will *not* be included in the result
      */
-    not(...cids: number[]): QueryBuilder
+    not<T extends QueryArg>(...cids: T[]): QueryBuilder
     /**
      * Archetypes that has *every* componentId of `componentIds` will *not* be included in the result
      */
-    none(...cids: number[]): QueryBuilder
+    none<T extends QueryArg>(...cids: T[]): QueryBuilder
     /**
      *
      */
@@ -132,7 +134,7 @@ function createBuilder(): QueryBuilder {
             const matcher = rest.length
                 ? makeAndMatcher(first, ...rest)
                 : first
-                
+
             const archetypes: Archetype[] = []
             return Object.freeze({
                 archetypes,

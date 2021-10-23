@@ -24,7 +24,7 @@ export default function createPacked5(count) {
         arr: new Uint32Array(count).fill(1)
     }
 
-    const p = world.prefabricate([A.id, B.id, C.id, D.id, E.id])
+    const p = world.prefabricate([A, B, C, D, E])
 
     world
         .registerSystem(createEntitySystem(function systemAp5(entities) {

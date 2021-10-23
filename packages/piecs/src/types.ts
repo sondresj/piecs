@@ -60,7 +60,7 @@ export interface OutsideWorld extends InsideWorld {
      * You should either create all `componentIds` using `createComponentId` first and use the created component ids in the prefacbricate,
      * Or make all of you prefabricates before creating new component ids using `createComponentId`
      */
-    prefabricate(componentIds: number[]): Archetype
+    prefabricate<T extends number | { id: number }>(componentIds: T[]): Archetype
     /**
      * Registers a system to be executed for each update cycle.
      * Use the `createEntitySystem` or `createArchetypeSystem` helpers to create the system.
