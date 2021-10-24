@@ -50,5 +50,19 @@ describe('CompiledQuery', () => {
             const archetype = createArchetype('foo', mask.xor(bar), null) // 0010
             expect(q.tryAdd(archetype)).toBeFalsy()
         })
+
+        it('does not add archetype with components matching none query', () => {
+            const q = query(q => q.none(foo, bar)) as InternalQuery
+            const mask = createBitSet(3)
+            const archetype = createArchetype('foo', mask.xor(foo).xor(bar), null)
+            expect(q.tryAdd(archetype)).toBeFalsy()
+        })
+
+        it('adds archetype with some components matching none query, but not all', () => {
+            const q = query(q => q.none(foo, bar)) as InternalQuery
+            const mask = createBitSet(3)
+            const archetype = createArchetype('foo', mask.xor(bar), null)
+            expect(q.tryAdd(archetype)).toBeTruthy()
+        })
     })
 })

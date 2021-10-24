@@ -1,10 +1,10 @@
 import type { Archetype, InternalArchetype } from './Archetype'
+import type { Component } from './types'
 import { createBitSet, BitSet, ReadonlyBitSet } from './collections/BitSet'
 
 type QueryMatcher = (target: ReadonlyBitSet, archetype: Archetype) => boolean
 
-type QueryArg = number | { id: number }
-function makeMask<T extends QueryArg>(componentIds: Array<T>): BitSet {
+function makeMask<T extends Component>(componentIds: T[]): BitSet {
     const ids = componentIds.map(c => typeof c === 'number' ? c : c.id)
     const max = Math.max(...ids)
     const mask = createBitSet(max)
@@ -42,19 +42,19 @@ export type QueryBuilder = {
     /**
      * Archetypes that has *every* componentId of `componentIds` will be included in the result
      */
-    every<T extends QueryArg>(...cids: T[]): QueryBuilder
+    every<T extends Component>(...cids: T[]): QueryBuilder
     /**
      * Archetypes that has *some* of the `componentIds` will be included in the result
      */
-    some<T extends QueryArg>(...cids: T[]): QueryBuilder
+    some<T extends Component>(...cids: T[]): QueryBuilder
     /**
      * Archetypes that has *some* of the `componentIds` will *not* be included in the result
      */
-    not<T extends QueryArg>(...cids: T[]): QueryBuilder
+    not<T extends Component>(...cids: T[]): QueryBuilder
     /**
      * Archetypes that has *every* componentId of `componentIds` will *not* be included in the result
      */
-    none<T extends QueryArg>(...cids: T[]): QueryBuilder
+    none<T extends Component>(...cids: T[]): QueryBuilder
     /**
      *
      */
@@ -89,35 +89,35 @@ function createBuilder(): QueryBuilder {
             ]
             return this
         },
-        every(...componentIds) {
-            if (!componentIds.length) {
+        every(...components) {
+            if (!components.length) {
                 return this
             }
-            const mask = makeMask(componentIds)
+            const mask = makeMask(components)
             _matchers.push((target, _targetArchetype) => target.contains(mask))
             return this
         },
-        some(...componentIds) {
-            if (!componentIds.length) {
+        some(...components) {
+            if (!components.length) {
                 return this
             }
-            const mask = makeMask(componentIds)
+            const mask = makeMask(components)
             _matchers.push((target, _targetArchetype) => target.intersects(mask))
             return this
         },
-        not(...componentIds) {
-            if (!componentIds.length) {
+        not(...components) {
+            if (!components.length) {
                 return this
             }
-            const mask = makeMask(componentIds)
+            const mask = makeMask(components)
             _matchers.push((target, _targetArchetype) => !target.intersects(mask))
             return this
         },
-        none(...componentIds) {
-            if (!componentIds.length) {
+        none(...components) {
+            if (!components.length) {
                 return this
             }
-            const mask = makeMask(componentIds)
+            const mask = makeMask(components)
             _matchers.push((target, _targetArchetype) => !target.contains(mask))
             return this
         },

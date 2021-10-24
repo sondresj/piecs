@@ -1,4 +1,4 @@
-import type { InsideWorld, OutsideWorld } from './types'
+import type { Component, InsideWorld, OutsideWorld } from './types'
 import type { InternalQuery } from './Query'
 import type { System } from './System'
 import { createArchetype, InternalArchetype, transformArchetype, traverseArchetypeGraph, Archetype } from './Archetype'
@@ -36,8 +36,8 @@ export class World implements OutsideWorld, InsideWorld {
         return this.nextComponentId++
     }
 
-    prefabricate<T extends number | { id: number }>(componentIds: T[]): Archetype {
-        const ids = componentIds.map(c => typeof c === 'number' ? c : c.id)
+    prefabricate<T extends Component>(components: T[]): Archetype {
+        const ids = components.map(c => typeof c === 'number' ? c : c.id)
         const max = Math.max(...ids)
         if (max >= this.nextComponentId) {
             this.nextComponentId = (max + 1) >>> 0
@@ -162,12 +162,13 @@ export class World implements OutsideWorld, InsideWorld {
         this.entityArchetype[entity] = archetype
     }
 
-    hasComponentId(entity: number, componentId: number): boolean {
+    hasComponent<T extends Component>(entity: number, component: T): boolean {
+        const cid = typeof component === 'number' ? component : component.id
         return this.entityArchetype[entity] !== undefined
-            && this.entityArchetype[entity]!.mask.has(componentId)
+            && this.entityArchetype[entity]!.mask.has(cid)
     }
 
-    addComponentId(entity: number, componentId: number) {
+    addComponent<T extends Component>(entity: number, component: T) {
         if (this.entityArchetype[entity] === undefined) {
             if (entity === undefined) {
                 throw new EntityUndefinedError()
@@ -177,15 +178,16 @@ export class World implements OutsideWorld, InsideWorld {
             throw new EntityNotExistError(entity)
         }
 
+        const cid = typeof component === 'number' ? component : component.id
         let archetype = this.entityArchetype[entity]!
 
-        if (!archetype.mask.has(componentId)) {
+        if (!archetype.mask.has(cid)) {
             archetype.entitySet.remove(entity)
 
-            if (archetype.adjacent[componentId]) {
-                archetype = archetype.adjacent[componentId]!
+            if (archetype.adjacent[cid]) {
+                archetype = archetype.adjacent[cid]!
             } else {
-                archetype = transformArchetype(archetype, componentId)
+                archetype = transformArchetype(archetype, cid)
                 if (this.initialized) {
                     this._tryAddArchetypeToQueries(archetype)
                 }
@@ -196,7 +198,7 @@ export class World implements OutsideWorld, InsideWorld {
         }
     }
 
-    removeComponentId(entity: number, componentId: number) {
+    removeComponent<T extends Component>(entity: number, component: T) {
         if (this.entityArchetype[entity] === undefined) {
             if (entity === undefined) {
                 throw new EntityUndefinedError()
@@ -206,15 +208,16 @@ export class World implements OutsideWorld, InsideWorld {
             throw new EntityNotExistError(entity)
         }
 
+        const cid = typeof component === 'number' ? component : component.id
         let archetype = this.entityArchetype[entity]!
 
-        if (archetype.mask.has(componentId)) {
+        if (archetype.mask.has(cid)) {
             archetype.entitySet.remove(entity)
 
-            if (archetype.adjacent[componentId]) {
-                archetype = archetype.adjacent[componentId]!
+            if (archetype.adjacent[cid]) {
+                archetype = archetype.adjacent[cid]!
             } else {
-                archetype = transformArchetype(archetype, componentId)
+                archetype = transformArchetype(archetype, cid)
                 if (this.initialized) {
                     this._tryAddArchetypeToQueries(archetype)
                 }

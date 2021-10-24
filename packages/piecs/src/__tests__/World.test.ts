@@ -31,36 +31,36 @@ describe('World', () => {
         it('has component after add', () => {
             const world = new World()
             const e = world.createEntity()
-            world.addComponentId(e, 1)
-            expect(world.hasComponentId(e, 1)).toBeTruthy()
+            world.addComponent(e, 1)
+            expect(world.hasComponent(e, 1)).toBeTruthy()
         })
 
         it('has not component after add remove', () => {
             const world = new World()
             const e = world.createEntity()
-            world.addComponentId(e, 1)
-            world.removeComponentId(e, 1)
-            expect(world.hasComponentId(e, 1)).toBeFalsy()
+            world.addComponent(e, 1)
+            world.removeComponent(e, 1)
+            expect(world.hasComponent(e, 1)).toBeFalsy()
         })
 
         it('throw on undefined entity', () => {
             const world = new World()
-            expect(() => world.addComponentId(undefined as any, 1)).toThrowError(EntityUndefinedError)
-            expect(() => world.removeComponentId(undefined as any, 1)).toThrowError(EntityUndefinedError)
+            expect(() => world.addComponent(undefined as any, 1)).toThrowError(EntityUndefinedError)
+            expect(() => world.removeComponent(undefined as any, 1)).toThrowError(EntityUndefinedError)
         })
 
         it('throws on deleted entity', () => {
             const world = new World()
             const e = world.createEntity()
             world.deleteEntity(e)
-            expect(() => world.addComponentId(e, 1)).toThrowError(EntityDeletedError)
-            expect(() => world.removeComponentId(e, 1)).toThrowError(EntityDeletedError)
+            expect(() => world.addComponent(e, 1)).toThrowError(EntityDeletedError)
+            expect(() => world.removeComponent(e, 1)).toThrowError(EntityDeletedError)
         })
 
         it('throw on not existing entity', () => {
             const world = new World()
-            expect(() => world.addComponentId(1, 1)).toThrowError(EntityNotExistError)
-            expect(() => world.removeComponentId(1, 1)).toThrowError(EntityNotExistError)
+            expect(() => world.addComponent(1, 1)).toThrowError(EntityNotExistError)
+            expect(() => world.removeComponent(1, 1)).toThrowError(EntityNotExistError)
         })
     })
 
@@ -76,8 +76,8 @@ describe('World', () => {
             const world = new World()
             const prefab = world.prefabricate([1, 2])
             const entity = world.createEntity()
-            world.addComponentId(entity, 1)
-            world.addComponentId(entity, 2)
+            world.addComponent(entity, 1)
+            world.addComponent(entity, 2)
             expect(prefab.entities[0]).toBe(entity)
         })
 
@@ -120,15 +120,15 @@ describe('World', () => {
                     expect(entity).toBe(0)
                     expect(foo.arr[entity]).toBe(2)
                     world.defer(() => {
-                        world.addComponentId(entity, baz.id)
+                        world.addComponent(entity, baz.id)
                     })
-                    expect(world.hasComponentId(entity, baz.id)).toBeFalsy()
+                    expect(world.hasComponent(entity, baz.id)).toBeFalsy()
                 }
             }, (q) => q.every(foo).not(baz)))
             .registerSystem(createEntitySystem(function deleteBaz(entities, world) {
                 for (let e = entities.length - 1; e >= 0; e--) {
                     const entity = entities[e]!
-                    expect(world.hasComponentId(entity, baz.id))
+                    expect(world.hasComponent(entity, baz.id))
                     world.deleteEntity(entity)
                     expect(world.hasEntity(entity)).toBeFalsy()
                 }
@@ -136,10 +136,10 @@ describe('World', () => {
             .initialize()
         const e0 = world.createEntity()
         expect(e0).toBe(0)
-        world.addComponentId(e0, foo.id)
+        world.addComponent(e0, foo.id)
         foo.arr[e0] = 2
         const e = world.createEntity()
-        world.addComponentId(e, bar.id)
+        world.addComponent(e, bar.id)
         bar.arr[e] = 'hello'
         world.update()
         world.update() // for second system to run because of deferred component set

@@ -1,6 +1,8 @@
 import type { Archetype } from './Archetype'
 import type { System } from './System'
 
+export type Component = number | { readonly id: number }
+
 export interface InsideWorld {
     /**
      * Check if the entity exists in the world
@@ -26,19 +28,19 @@ export interface InsideWorld {
     /**
      * Check if the entity has a componentId
      */
-    hasComponentId(entity: number, componentId: number): boolean
+    hasComponent<T extends Component>(entity: number, component: T): boolean
     /**
      * Adds the componentId to the entity.
      * The entity will be moved to a different archetype
      * @throws {EntityUndefinedError | EntityDeletedError | EntityNotExistError}
      */
-    addComponentId(entity: number, componentId: number): void
+    addComponent<T extends Component>(entity: number, component: T): void
     /**
      * Removes the componentId from the entity.
      * The entity will be moved to a different archetype
      * @throws {EntityUndefinedError | EntityDeletedError | EntityNotExistError}
      */
-    removeComponentId(entity: number, componentId: number): void
+    removeComponent<T extends Component>(entity: number, component: T): void
     /**
      * Transform the entity to that of a prefabricated archetype.
      * Any components added to the entity that does not exist in the prefabricate will be removed.
@@ -60,7 +62,7 @@ export interface OutsideWorld extends InsideWorld {
      * You should either create all `componentIds` using `createComponentId` first and use the created component ids in the prefacbricate,
      * Or make all of you prefabricates before creating new component ids using `createComponentId`
      */
-    prefabricate<T extends number | { id: number }>(componentIds: T[]): Archetype
+    prefabricate<T extends Component>(components: T[]): Archetype
     /**
      * Registers a system to be executed for each update cycle.
      * Use the `createEntitySystem` or `createArchetypeSystem` helpers to create the system.
