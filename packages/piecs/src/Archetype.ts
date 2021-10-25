@@ -1,4 +1,5 @@
 import type { ReadonlyBitSet } from './collections/BitSet'
+import type { Component } from './types'
 import { createSparseSet, SparseSet } from './collections/SparseSet'
 
 export type Archetype = {
@@ -22,7 +23,7 @@ export type Archetype = {
      * Check if this archetype has a `componentId`.
      * This is typically much faster than checking if `componentIds` includes a given componentId
      */
-    hasComponentId: (componentId: number) => boolean
+    hasComponent: (component: Component) => boolean
 }
 
 export type InternalArchetype = Archetype & {
@@ -38,14 +39,6 @@ export function createArchetype(id: string, mask: ReadonlyBitSet, parent: Intern
     const adjacent: InternalArchetype[] = []
     const componentIds: number[] = []
 
-    function hasEntity(entity: number): boolean {
-        return entitySet.has(entity)
-    }
-
-    function hasComponentId(componentId: number): boolean {
-        return mask.has(componentId)
-    }
-
     return Object.freeze({
         id,
         mask,
@@ -53,9 +46,11 @@ export function createArchetype(id: string, mask: ReadonlyBitSet, parent: Intern
         adjacent,
         parent,
         componentIds,
-        hasEntity,
-        hasComponentId,
-        entities: entitySet.values
+        entities: entitySet.values,
+        hasEntity: entitySet.has,
+        hasComponent(component: Component) {
+            return mask.has(typeof component === 'number' ? component : component.id)
+        },
     })
 }
 
