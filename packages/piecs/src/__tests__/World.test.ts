@@ -1,6 +1,7 @@
 import { World } from '../World'
 import { createEntitySystem } from '../System'
 import { EntityDeletedError, EntityNotExistError, EntityUndefinedError } from '../Errors'
+import { getStatistics } from '../utils'
 
 describe('World', () => {
     describe('entity', () => {
@@ -97,8 +98,6 @@ describe('World', () => {
         })
     })
 
-
-
     it('works', () => {
         const world = new World()
         const foo = {
@@ -144,6 +143,92 @@ describe('World', () => {
         world.update()
         world.update() // for second system to run because of deferred component set
 
-        expect.assertions(5)
+        expect(getStatistics(world)).toMatchInlineSnapshot(`
+Object {
+  "archetypes": Array [
+    Object {
+      "adjacent": Array [
+        "00000001",
+        "00000002",
+      ],
+      "componentIds": Array [],
+      "entities": 0,
+      "id": "root",
+    },
+    Object {
+      "adjacent": Array [
+        "root",
+        "00000005",
+      ],
+      "componentIds": Array [
+        0,
+      ],
+      "entities": 0,
+      "id": "00000001",
+    },
+    Object {
+      "adjacent": Array [
+        "00000001",
+      ],
+      "componentIds": Array [
+        0,
+        2,
+      ],
+      "entities": 0,
+      "id": "00000005",
+    },
+    Object {
+      "adjacent": Array [
+        "root",
+      ],
+      "componentIds": Array [
+        1,
+      ],
+      "entities": 1,
+      "id": "00000002",
+    },
+  ],
+  "components": 3,
+  "entities": 2,
+  "queries": Array [
+    Object {
+      "archetypes": Array [
+        Object {
+          "adjacent": Array [
+            "root",
+            "00000005",
+          ],
+          "componentIds": Array [
+            0,
+          ],
+          "entities": 0,
+          "id": "00000001",
+        },
+      ],
+    },
+    Object {
+      "archetypes": Array [
+        Object {
+          "adjacent": Array [
+            "00000001",
+          ],
+          "componentIds": Array [
+            0,
+            2,
+          ],
+          "entities": 0,
+          "id": "00000005",
+        },
+      ],
+    },
+  ],
+  "systems": Array [
+    "addBaz",
+    "deleteBaz",
+  ],
+}
+`)
+
+        expect.assertions(6)
     })
 })

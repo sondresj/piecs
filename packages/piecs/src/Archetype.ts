@@ -8,48 +8,46 @@ export type Archetype = {
      */
     readonly id: string
     /**
-     * All the `componentIds` constituting this archetype
-     */
-    readonly componentIds: ReadonlyArray<number>
-    /**
      * All the entities currently in this archetype
      */
     readonly entities: ArrayLike<number>
     /**
      * Check if an entity is currently included in this archetype
      */
-    hasEntity: (entity: number) => boolean
+    hasEntity(entity: number): boolean
     /**
      * Check if this archetype has a `componentId`.
      * This is typically much faster than checking if `componentIds` includes a given componentId
      */
-    hasComponent: (component: Component) => boolean
+    hasComponent(component: Component): boolean
+    /**
+     * All the `componentIds` constituting this archetype
+     */
+    componentIds(): number[]
 }
 
 export type InternalArchetype = Archetype & {
     readonly mask: ReadonlyBitSet
     readonly entitySet: SparseSet
     readonly adjacent: InternalArchetype[]
-    readonly parent: InternalArchetype | null
-    readonly componentIds: number[]
 }
 
-export function createArchetype(id: string, mask: ReadonlyBitSet, parent: InternalArchetype | null): InternalArchetype {
+export function createArchetype(id: string, mask: ReadonlyBitSet): InternalArchetype {
     const entitySet = createSparseSet()
     const adjacent: InternalArchetype[] = []
-    const componentIds: number[] = []
 
     return Object.freeze({
         id,
         mask,
         entitySet,
         adjacent,
-        parent,
-        componentIds,
         entities: entitySet.values,
         hasEntity: entitySet.has,
         hasComponent(component: Component) {
             return mask.has(typeof component === 'number' ? component : component.id)
+        },
+        componentIds() {
+            return mask.values()
         },
     })
 }
@@ -66,23 +64,18 @@ export function transformArchetype(archetype: InternalArchetype, componentId: nu
 
     // TODO: Not sure if it's worth it or needed to traverse the graph to find existing.
     let existingArchetype: InternalArchetype | null = null
-    if (archetype.parent !== null) {
-        // find existing archetype in graph
-        traverseArchetypeGraph(archetype.parent, (node) => {
-            if (node === archetype) return false
-            if (node.id === nextId) {
-                existingArchetype = node
-                return false
-            }
-            return existingArchetype === null
-        })
-    }
+    traverseArchetypeGraph(archetype, (node) => {
+        if (node === archetype) return false
+        if (node.id === nextId) {
+            existingArchetype = node
+            return false
+        }
+        return existingArchetype === null
+    })
 
-    const transformed = existingArchetype || createArchetype(nextId, nextMask, archetype)
+    const transformed = existingArchetype || createArchetype(nextId, nextMask)
     transformed.adjacent[componentId] = archetype
     archetype.adjacent[componentId] = transformed
-    if (!existingArchetype)
-        transformed.componentIds.push(...archetype.componentIds, componentId)
     return transformed
 }
 

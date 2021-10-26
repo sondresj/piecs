@@ -6,7 +6,7 @@ import { createBitSet } from './collections/BitSet'
 import { EntityDeletedError, EntityNotExistError, EntityUndefinedError, WorldNotInitializedError } from './Errors'
 
 export class World implements OutsideWorld, InsideWorld {
-    private rootArchetype: InternalArchetype = createArchetype('root', createBitSet(255), null)
+    private rootArchetype: InternalArchetype = createArchetype('root', createBitSet(255))
     private entityArchetype: InternalArchetype[] = []
     private deletedEntities: number[] = []
     private nextEntityId = 0 >>> 0

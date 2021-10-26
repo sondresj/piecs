@@ -8,22 +8,21 @@ type ArchetypeStatistics = {
      */
     entities: number
     /**
-     * The id of the archetype that was transformed into this archetype
-     */
-    parent: string | null
-    /**
      * The id of archetypes with 1 differing componentId
      */
     adjacent: string[]
-} & Pick<Archetype, 'id' | 'componentIds'>
+    /**
+     * All the `componentIds` constituting this archetype
+     */
+    componentIds: number[]
+} & Pick<Archetype, 'id'>
 
 function getArchetypeStatistics(archetype: InternalArchetype): ArchetypeStatistics {
     return {
         id: archetype.id,
-        componentIds: archetype.componentIds,
+        componentIds: archetype.componentIds(),
         entities: archetype.entitySet.values.length,
         adjacent: archetype.adjacent.filter((a): a is InternalArchetype => !!a).map(a => a.id),
-        parent: archetype.parent ? archetype.parent.id : null
     }
 }
 

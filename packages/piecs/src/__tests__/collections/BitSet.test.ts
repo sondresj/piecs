@@ -127,4 +127,11 @@ describe('BitSet', () => {
         expect(symdiff.has(5)).toBeTruthy()
         expect(symdiff.has(4)).toBeTruthy()
     })
+
+    test('get values', () => {
+        const set = createBitSet(255)
+        const fib = [1, 2, 3, 5, 8, 13, 21, 34, 55, 89, 144, 233]
+        fib.forEach(set.or)
+        expect(set.values()).toEqual(fib)
+    })
 })

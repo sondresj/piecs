@@ -56,12 +56,13 @@ export type QueryBuilder = {
      */
     none<T extends Component>(...cids: T[]): QueryBuilder
     /**
-     *
+     * Build a subquery to match a different set of Archetypes.
+     * You may combine as many or subqueries and nested or subqueries as you need
      */
     or(callback: (builder: QueryBuilder) => QueryBuilder): QueryBuilder
     /**
      * Add a custom query matcher.
-     * The matcher function receives a `BitSet` that indicates the presence of `componentIds`, and the `Archetype` associated with the BitSet`.
+     * The matcher function receives a `BitSet` that indicates the presence of `componentIds`, and the `Archetype` associated with the `BitSet`
      */
     custom(matcher: QueryMatcher): QueryBuilder
     /**
