@@ -54,7 +54,7 @@ export type WorldStatistics = {
     archetypes: ArchetypeStatistics[]
 }
 
-export function getStatistics(world: World): WorldStatistics {
+export function getStatistics(world: World<any>): WorldStatistics {
     const archetypes: Array<ArchetypeStatistics> = []
     // @ts-ignore
     traverseArchetypeGraph(world.rootArchetype, (archetype) => {

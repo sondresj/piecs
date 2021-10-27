@@ -50,7 +50,7 @@ export interface InsideWorld {
     transformEntity(entity: number, prefabricate: Archetype): void
 }
 
-export interface OutsideWorld extends InsideWorld {
+export interface OutsideWorld<TUpdateArguments extends any[]> extends InsideWorld {
     /**
      * Component Id is an incrementing number
      * Use the id in conjunction with your component values, assign it to entities and query for componet ids
@@ -68,7 +68,7 @@ export interface OutsideWorld extends InsideWorld {
      * Use the `createEntitySystem` or `createArchetypeSystem` helpers to create the system.
      * A system may not be executed if it's `Query` does not match any `Archetype`s.
      */
-    registerSystem(system: System): OutsideWorld
+    registerSystem(system: System<TUpdateArguments>): OutsideWorld<TUpdateArguments>
     /**
      * Initialize the world, must be done before the first update.
      * Subsequent calls to initialize will be voided.
@@ -79,5 +79,5 @@ export interface OutsideWorld extends InsideWorld {
      * Typically you want to call `update` on each animation frame (`window.requestAnimationFrame`).
      * @throws {WorldNotInitializedError} if `initialized` has not been called
      */
-    update(): void
+    update(...args: TUpdateArguments): void
 }

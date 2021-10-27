@@ -6,25 +6,25 @@ type BaseSystem = {
     readonly query: Query
 }
 
-export type EntitySystem = BaseSystem & {
+export type EntitySystem<TUpdateArguments extends any[] = never> = BaseSystem & {
     /**
      * 0 = entitySystem
      * 1 = archetypeSystem
      */
     readonly type: 0
-    execute(entities: ArrayLike<number>, world: World): void
+    execute(entities: ArrayLike<number>, world: World<TUpdateArguments>, ...args: TUpdateArguments): void
 }
 
-export type ArchetypeSystem = BaseSystem & {
+export type ArchetypeSystem<TUpdateArguments extends any[] = never> = BaseSystem & {
     /**
      * 0 = entitySystem
      * 1 = archetypeSystem
      */
     readonly type: 1
-    execute(archetypes: ArrayLike<Archetype>, world: World): void
+    execute(archetypes: ArrayLike<Archetype>, world: World<TUpdateArguments>, ...args: TUpdateArguments): void
 }
 
-export type System = EntitySystem | ArchetypeSystem
+export type System<TUpdateArguments extends any[] = never> = EntitySystem<TUpdateArguments> | ArchetypeSystem<TUpdateArguments>
 
 /**
  * An entity system is a system that will be executed for each archetype that contains 1 or more entities matching the query.
@@ -34,10 +34,10 @@ export type System = EntitySystem | ArchetypeSystem
  * @param query
  * @returns
  */
-export function createEntitySystem(
-    execute: (entities: ArrayLike<number>, world: World) => void,
+export function createEntitySystem<TUpdateArguments extends any[] = never>(
+    execute: (entities: ArrayLike<number>, world: World<TUpdateArguments>, ...args: TUpdateArguments) => void,
     query: Query | ((buildQuery: QueryBuilder) => QueryBuilder)
-): EntitySystem {
+): EntitySystem<TUpdateArguments> {
     query = typeof query === 'function'
         ? buildQuery(query)
         : query
@@ -56,10 +56,10 @@ export function createEntitySystem(
  * @param queryParams
  * @returns
  */
-export function createArchetypeSystem(
-    execute: (archetypes: ArrayLike<Archetype>, world: World) => void,
+export function createArchetypeSystem<TUpdateArguments extends any[] = never>(
+    execute: (archetypes: ArrayLike<Archetype>, world: World<TUpdateArguments>, ...args: TUpdateArguments) => void,
     query: Query | ((buildQuery: QueryBuilder) => QueryBuilder)
-): ArchetypeSystem {
+): ArchetypeSystem<TUpdateArguments> {
     query = typeof query === 'function'
         ? buildQuery(query)
         : query

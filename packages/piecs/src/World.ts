@@ -5,13 +5,17 @@ import { createArchetype, InternalArchetype, transformArchetype, traverseArchety
 import { createBitSet } from './collections/BitSet'
 import { EntityDeletedError, EntityNotExistError, EntityUndefinedError, WorldNotInitializedError } from './Errors'
 
-export class World implements OutsideWorld, InsideWorld {
+function getComponentId(component: Component): number {
+    return typeof component === 'number' ? component : component.id
+}
+
+export class World<TUpdateArguments extends any[] = never> implements OutsideWorld<TUpdateArguments>, InsideWorld {
     private rootArchetype: InternalArchetype = createArchetype('root', createBitSet(255))
     private entityArchetype: InternalArchetype[] = []
     private deletedEntities: number[] = []
     private nextEntityId = 0 >>> 0
     private nextComponentId = 0 >>> 0
-    private systems: System[] = []
+    private systems: System<TUpdateArguments>[] = []
     private deferred: (() => void)[] = []
     private initialized = false
 
@@ -32,12 +36,39 @@ export class World implements OutsideWorld, InsideWorld {
         }
     }
 
+    private _assertEntity(entity: number) {
+        if (this.entityArchetype[entity] === undefined) {
+            if (entity === undefined) {
+                throw new EntityUndefinedError()
+            } else if (this.deletedEntities.includes(entity)) {
+                throw new EntityDeletedError(entity)
+            }
+            throw new EntityNotExistError(entity)
+        }
+    }
+
+    private _transformEntityForComponent(current: InternalArchetype, entity: number, componentId: number) {
+        current.entitySet.remove(entity)
+
+        if (current.adjacent[componentId]) {
+            current = current.adjacent[componentId]!
+        } else {
+            current = transformArchetype(current, componentId)
+            if (this.initialized) {
+                this._tryAddArchetypeToQueries(current)
+            }
+        }
+
+        current.entitySet.add(entity)
+        this.entityArchetype[entity] = current
+    }
+
     createComponentId() {
         return this.nextComponentId++
     }
 
     prefabricate<T extends Component>(components: T[]): Archetype {
-        const ids = components.map(c => typeof c === 'number' ? c : c.id)
+        const ids = components.map(getComponentId)
         const max = Math.max(...ids)
         if (max >= this.nextComponentId) {
             this.nextComponentId = (max + 1) >>> 0
@@ -59,7 +90,7 @@ export class World implements OutsideWorld, InsideWorld {
         return archetype
     }
 
-    registerSystem(system: System) {
+    registerSystem(system: System<TUpdateArguments>) {
         this.systems.push(system)
 
         if (this.initialized) {
@@ -82,7 +113,7 @@ export class World implements OutsideWorld, InsideWorld {
         })
     }
 
-    update() {
+    update(...args: TUpdateArguments) {
         if (!this.initialized)
             throw new WorldNotInitializedError()
 
@@ -91,13 +122,13 @@ export class World implements OutsideWorld, InsideWorld {
             const system = systems[s]!
             const query = system.query as InternalQuery
             if (system.type === 1) {
-                system.execute(query.archetypes, this)
+                system.execute(query.archetypes, this, ...args)
             } else {
                 // reverse iterating in case a system adds/removes component resulting in new archetype that matches query for the system
                 for (let a = query.archetypes.length - 1; a >= 0; a--) {
                     const entities = query.archetypes[a]!.entitySet.values
                     if (entities.length > 0) {
-                        system.execute(entities, this)
+                        system.execute(entities, this, ...args)
                     }
                 }
             }
@@ -126,14 +157,7 @@ export class World implements OutsideWorld, InsideWorld {
     }
 
     deleteEntity(entity: number) {
-        if (this.entityArchetype[entity] === undefined) {
-            if (entity === undefined) {
-                throw new EntityUndefinedError()
-            } else if (this.deletedEntities.includes(entity)) {
-                throw new EntityDeletedError(entity)
-            }
-            throw new EntityNotExistError(entity)
-        }
+        this._assertEntity(entity)
 
         const archetype = this.entityArchetype[entity]!
         archetype.entitySet.remove(entity)
@@ -143,88 +167,42 @@ export class World implements OutsideWorld, InsideWorld {
         this.deletedEntities.push(entity)
     }
 
-    transformEntity(entity: number, prefab: Archetype) {
-        if (this.entityArchetype[entity] === undefined) {
-            if (entity === undefined) {
-                throw new EntityUndefinedError()
-            } else if (this.deletedEntities.includes(entity)) {
-                throw new EntityDeletedError(entity)
-            }
-            throw new EntityNotExistError(entity)
-        }
+    transformEntity(entity: number, prefabricate: Archetype) {
+        this._assertEntity(entity)
 
-        if (this.entityArchetype[entity] === prefab) return
+        if (this.entityArchetype[entity] === prefabricate) return
 
         // Transform resets all components on the entity to that of the prefab..
         this.entityArchetype[entity]!.entitySet.remove(entity)
-        const archetype = prefab as InternalArchetype
+        const archetype = prefabricate as InternalArchetype
         archetype.entitySet.add(entity)
         this.entityArchetype[entity] = archetype
     }
 
     hasComponent<T extends Component>(entity: number, component: T): boolean {
-        const cid = typeof component === 'number' ? component : component.id
         return this.entityArchetype[entity] !== undefined
-            && this.entityArchetype[entity]!.mask.has(cid)
+            && this.entityArchetype[entity]!.mask.has(getComponentId(component))
     }
 
     addComponent<T extends Component>(entity: number, component: T) {
-        if (this.entityArchetype[entity] === undefined) {
-            if (entity === undefined) {
-                throw new EntityUndefinedError()
-            } else if (this.deletedEntities.includes(entity)) {
-                throw new EntityDeletedError(entity)
-            }
-            throw new EntityNotExistError(entity)
-        }
+        this._assertEntity(entity)
 
-        const cid = typeof component === 'number' ? component : component.id
-        let archetype = this.entityArchetype[entity]!
+        const cid = getComponentId(component)
+        const archetype = this.entityArchetype[entity]!
 
         if (!archetype.mask.has(cid)) {
-            archetype.entitySet.remove(entity)
-
-            if (archetype.adjacent[cid]) {
-                archetype = archetype.adjacent[cid]!
-            } else {
-                archetype = transformArchetype(archetype, cid)
-                if (this.initialized) {
-                    this._tryAddArchetypeToQueries(archetype)
-                }
-            }
-
-            archetype.entitySet.add(entity)
-            this.entityArchetype[entity] = archetype
+            this._transformEntityForComponent(archetype, entity, cid)
         }
     }
 
     removeComponent<T extends Component>(entity: number, component: T) {
-        if (this.entityArchetype[entity] === undefined) {
-            if (entity === undefined) {
-                throw new EntityUndefinedError()
-            } else if (this.deletedEntities.includes(entity)) {
-                throw new EntityDeletedError(entity)
-            }
-            throw new EntityNotExistError(entity)
-        }
+        this._assertEntity(entity)
 
-        const cid = typeof component === 'number' ? component : component.id
-        let archetype = this.entityArchetype[entity]!
+        const cid = getComponentId(component)
+        const archetype = this.entityArchetype[entity]!
 
         if (archetype.mask.has(cid)) {
-            archetype.entitySet.remove(entity)
-
-            if (archetype.adjacent[cid]) {
-                archetype = archetype.adjacent[cid]!
-            } else {
-                archetype = transformArchetype(archetype, cid)
-                if (this.initialized) {
-                    this._tryAddArchetypeToQueries(archetype)
-                }
-            }
-
-            archetype.entitySet.add(entity)
-            this.entityArchetype[entity] = archetype
+            this._transformEntityForComponent(archetype, entity, cid)
         }
     }
 }

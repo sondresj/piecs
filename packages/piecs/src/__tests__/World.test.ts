@@ -99,7 +99,8 @@ describe('World', () => {
     })
 
     it('works', () => {
-        const world = new World()
+        const world = new World<[number, string]>()
+        const updateArgs: [number, string] = [1, '2']
         const foo = {
             id: world.createComponentId(),
             arr: new Uint8Array(100)
@@ -113,7 +114,8 @@ describe('World', () => {
         }
 
         world
-            .registerSystem(createEntitySystem(function addBaz(entities, _) {
+            .registerSystem(createEntitySystem(function addBaz(entities, _, ...args) {
+                expect(args).toEqual(updateArgs)
                 for (let e = entities.length - 1; e >= 0; e--) {
                     const entity = entities[e]!
                     expect(entity).toBe(0)
@@ -140,8 +142,8 @@ describe('World', () => {
         const e = world.createEntity()
         world.addComponent(e, bar.id)
         bar.arr[e] = 'hello'
-        world.update()
-        world.update() // for second system to run because of deferred component set
+        world.update(...updateArgs)
+        world.update(...updateArgs) // for second system to run because of deferred component set
 
         expect(getStatistics(world)).toMatchInlineSnapshot(`
 Object {
@@ -229,6 +231,6 @@ Object {
 }
 `)
 
-        expect.assertions(6)
+        expect.assertions(7)
     })
 })
