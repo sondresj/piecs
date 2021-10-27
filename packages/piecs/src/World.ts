@@ -10,7 +10,7 @@ function getComponentId(component: Component): number {
 }
 
 export class World<TUpdateArguments extends any[] = never> implements OutsideWorld<TUpdateArguments>, InsideWorld {
-    private rootArchetype: InternalArchetype = createArchetype('root', createBitSet(255))
+    private rootArchetype: InternalArchetype = createArchetype('root', createBitSet(8))
     private entityArchetype: InternalArchetype[] = []
     private deletedEntities: number[] = []
     private nextEntityId = 0 >>> 0

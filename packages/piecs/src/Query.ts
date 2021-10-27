@@ -7,7 +7,7 @@ type QueryMatcher = (target: ReadonlyBitSet, archetype: Archetype) => boolean
 function makeMask<T extends Component>(componentIds: T[]): BitSet {
     const ids = componentIds.map(c => typeof c === 'number' ? c : c.id)
     const max = Math.max(...ids)
-    const mask = createBitSet(max)
+    const mask = createBitSet(Math.ceil(max / 32))
     for (let i = 0; i < ids.length; i++) {
         mask.or(ids[i]!)
     }

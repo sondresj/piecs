@@ -55,10 +55,6 @@ export type ReadonlyBitSet = {
 
 export type BitSet = ReadonlyBitSet & {
     /**
-     * Highest value this set can contain
-     */
-    readonly max: number
-    /**
      * Size of the `mask`
      */
     readonly size: number
@@ -76,28 +72,19 @@ export type BitSet = ReadonlyBitSet & {
     or(value: number): BitSet
 }
 
-export function createBitSet(maxValue: number): BitSet {
-    let max = Math.max(maxValue, 1)
-    let size = Math.ceil(max / 32)
+export function createBitSet(size: number): BitSet {
     let mask = new Uint32Array(size)
 
-    function grow(valueToAccomodate: number): void {
-        if (valueToAccomodate <= max)
+    function grow(index: number): void {
+        if (index < size)
             return
-        max = valueToAccomodate
-        const index = valueToAccomodate >>> 5
-        if (index >= size) {
-            const oldMask = mask
-            size = Math.ceil(valueToAccomodate / 32)
-            mask = new Uint32Array(size)
-            mask.set(oldMask, 0)
-        }
+        const oldMask = mask
+        size = index + 1
+        mask = new Uint32Array(size)
+        mask.set(oldMask, 0)
     }
 
     return Object.freeze({
-        get max() {
-            return max
-        },
         get size() {
             return size
         },
@@ -110,19 +97,19 @@ export function createBitSet(maxValue: number): BitSet {
             return Boolean(mask[index]! & (1 << (value & mod32)))
         },
         xor(value: number): BitSet {
-            grow(value)
             const index = value >>> 5
+            grow(index)
             mask[index] ^= 1 << (value & mod32)
             return this
         },
         or(value: number): BitSet {
-            grow(value)
             const index = value >>> 5
+            grow(index)
             mask[index] |= 1 << (value & mod32)
             return this
         },
         not(): BitSet {
-            const set: BitSet = createBitSet(max)
+            const set: BitSet = createBitSet(size)
             for (let i = 0; i < mask.length; i++) {
                 set.mask[i] = ~mask[i]!
             }
@@ -130,8 +117,7 @@ export function createBitSet(maxValue: number): BitSet {
         },
         union(other: BitSet): BitSet {
             if (other.mask === mask) return other
-            const maxValue = Math.max(max, other.max)
-            const union: BitSet = createBitSet(maxValue)
+            const union: BitSet = createBitSet(Math.max(size, other.size))
             for (let i = 0; i < other.mask.length; i++) {
                 const a = mask[i] || 0
                 const b = other.mask[i] || 0
@@ -141,8 +127,7 @@ export function createBitSet(maxValue: number): BitSet {
         },
         intersection(other: BitSet): BitSet {
             if (other.mask === mask) return other
-            const maxValue = Math.min(max, other.max)
-            const intersection = createBitSet(maxValue)
+            const intersection = createBitSet(Math.min(size, other.size))
             for (let i = 0; i < intersection.mask.length; i++) {
                 const a = mask[i]!
                 const b = other.mask[i]!
@@ -152,7 +137,7 @@ export function createBitSet(maxValue: number): BitSet {
         },
         difference(other: BitSet): BitSet {
             if (other.mask === mask) return other
-            const diff = createBitSet(max)
+            const diff = createBitSet(size)
             for (let i = 0; i < diff.mask.length; i++) {
                 const a = mask[i]!
                 const b = other.mask[i] || 0
@@ -162,8 +147,7 @@ export function createBitSet(maxValue: number): BitSet {
         },
         symmetricDifference(other: BitSet): BitSet {
             if (other.mask === mask) return other
-            const maxValue = Math.max(max, other.max)
-            const symDiff = createBitSet(maxValue)
+            const symDiff = createBitSet(Math.max(size, other.size))
             for (let i = 0; i < symDiff.mask.length; i++) {
                 const a = mask[i] || 0
                 const b = other.mask[i] || 0
@@ -195,7 +179,7 @@ export function createBitSet(maxValue: number): BitSet {
             return mask.reduceRight((str, n) => str.concat(n.toString(radix as number)), '')
         },
         copy(): BitSet {
-            const set: BitSet = createBitSet(max)
+            const set: BitSet = createBitSet(size)
             set.mask.set(mask, 0)
             return set
         },
