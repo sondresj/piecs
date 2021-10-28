@@ -54,7 +54,7 @@ describe('BitSet', () => {
     })
 
     test('it grows to accomodate value > constructed', () => {
-        const mask = createBitSet(1) // internal array should be of size 1
+        const mask = createBitSet(1)
         mask.xor(70) // internal array should grow to size 3
         expect(mask.has(70)).toBeTruthy()
         expect(mask.size).toBe(3)
@@ -88,7 +88,7 @@ describe('BitSet', () => {
     })
 
     test('get intersection', () => {
-        const a = createBitSet(2) // 2xu32
+        const a = createBitSet(2)
         a.or(36).or(18).or(4)
         const b = createBitSet(2)
         b.or(37).or(18).or(5)
@@ -101,7 +101,7 @@ describe('BitSet', () => {
         expect(!intersection.has(4)).toBeTruthy()
     })
     test('get union', () => {
-        const a = createBitSet(2) // 2xu32
+        const a = createBitSet(2)
         a.or(36).or(18).or(4)
         const b = createBitSet(2)
         b.or(37).or(18).or(5)
@@ -115,7 +115,7 @@ describe('BitSet', () => {
     })
 
     test('get symmetricDifference', () => {
-        const a = createBitSet(2) // 2xu32
+        const a = createBitSet(2)
         a.or(36).or(18).or(4)
         const b = createBitSet(2)
         b.or(37).or(18).or(5)
