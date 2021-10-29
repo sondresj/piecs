@@ -32,7 +32,7 @@ export class World<TUpdateArguments extends any[] = never> implements OutsideWor
         const systems = this.systems
 
         for (let i = 0, l = systems.length; i < l; i++) {
-            (<InternalQuery>systems[i]!.query).tryAdd(archetype)
+            (systems[i]!.query as InternalQuery).tryAdd(archetype)
         }
     }
 
@@ -95,7 +95,7 @@ export class World<TUpdateArguments extends any[] = never> implements OutsideWor
 
         if (this.initialized) {
             traverseArchetypeGraph(this.rootArchetype, (archetype) => {
-                (<InternalQuery>system.query).tryAdd(archetype)
+                (system.query as InternalQuery).tryAdd(archetype)
                 return true
             })
         }

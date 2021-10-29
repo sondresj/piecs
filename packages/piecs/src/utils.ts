@@ -69,7 +69,7 @@ export function getStatistics(world: World<any>): WorldStatistics {
         systems: world.systems.map((system, i) => system.execute.name || i.toString()),
         // @ts-ignore
         queries: world.systems.map((system) => ({
-            archetypes: (<InternalQuery>system.query).archetypes.map(a => getArchetypeStatistics(a as any))
+            archetypes: (system.query as InternalQuery).archetypes.map(a => getArchetypeStatistics(a as any))
         })),
         archetypes,
     }

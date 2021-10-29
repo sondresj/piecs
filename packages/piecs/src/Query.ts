@@ -123,7 +123,7 @@ function createBuilder(): QueryBuilder {
             return this
         },
         prefabricated(archetype) {
-            _matchers.push((target, _targetArchetype) => target.contains((<InternalArchetype>archetype).mask))
+            _matchers.push((target, _targetArchetype) => target.contains((archetype as InternalArchetype).mask))
             return this
         },
         custom(matcher) {

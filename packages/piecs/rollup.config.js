@@ -19,9 +19,12 @@ export default [{
     }]
 }, {
     input: 'build/index.d.ts',
-    output: {
+    output: [{
         file: `${outDir}/index.d.ts`,
         format: 'es'
-    },
+    }, {
+        file: `${outDir}/index.d.mts`,
+        format: 'es'
+    }],
     plugins: [dts()]
 }]
