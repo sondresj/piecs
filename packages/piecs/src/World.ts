@@ -20,7 +20,7 @@ export class World<TUpdateArguments extends any[] = never> implements OutsideWor
     private initialized = false
 
     private _executeDeferred() {
-        if (!this.deferred.length) return
+        if (this.deferred.length === 0) return
 
         for (const action of this.deferred) {
             action()
@@ -50,7 +50,7 @@ export class World<TUpdateArguments extends any[] = never> implements OutsideWor
     private _transformEntityForComponent(current: InternalArchetype, entity: number, componentId: number) {
         current.entitySet.remove(entity)
 
-        if (current.adjacent[componentId]) {
+        if (current.adjacent[componentId] !== undefined) {
             current = current.adjacent[componentId]!
         } else {
             current = transformArchetype(current, componentId)
@@ -78,7 +78,7 @@ export class World<TUpdateArguments extends any[] = never> implements OutsideWor
         for (let i = 0, l = ids.length; i < l; i++) {
             const componentId = ids[i]!
 
-            if (archetype.adjacent[componentId]) {
+            if (archetype.adjacent[componentId] !== undefined) {
                 archetype = archetype.adjacent[componentId]!
             } else {
                 archetype = transformArchetype(archetype, componentId)
@@ -107,10 +107,7 @@ export class World<TUpdateArguments extends any[] = never> implements OutsideWor
         if (this.initialized) return
         this.initialized = true
 
-        traverseArchetypeGraph(this.rootArchetype, (archetype) => {
-            this._tryAddArchetypeToQueries(archetype)
-            return true
-        })
+        traverseArchetypeGraph(this.rootArchetype, arch => this._tryAddArchetypeToQueries(arch))
     }
 
     update(...args: TUpdateArguments) {
@@ -120,16 +117,14 @@ export class World<TUpdateArguments extends any[] = never> implements OutsideWor
         const systems = this.systems
         for (let s = 0, sl = systems.length; s < sl; s++) {
             const system = systems[s]!
-            const query = system.query as InternalQuery
+            const archetypes = (system.query as InternalQuery).archetypes
             if (system.type === 1) {
-                system.execute(query.archetypes, this, ...args)
+                system.execute(archetypes, this, ...args)
             } else {
                 // reverse iterating in case a system adds/removes component resulting in new archetype that matches query for the system
-                for (let a = query.archetypes.length - 1; a >= 0; a--) {
-                    const entities = query.archetypes[a]!.entitySet.values
-                    if (entities.length > 0) {
-                        system.execute(entities, this, ...args)
-                    }
+                for (let a = archetypes.length - 1; a >= 0; a--) {
+                    const entities = archetypes[a]!.entities
+                    system.execute(entities, this, ...args)
                 }
             }
         }

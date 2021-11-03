@@ -76,12 +76,12 @@ export function createBitSet(size: number): BitSet {
     let mask = new Uint32Array(size)
 
     function grow(index: number): void {
-        if (index < size)
-            return
-        const oldMask = mask
-        size = index + 1
-        mask = new Uint32Array(size)
-        mask.set(oldMask, 0)
+        if (index >= size) {
+            const oldMask = mask
+            size = index + 1
+            mask = new Uint32Array(size)
+            mask.set(oldMask, 0)
+        }
     }
 
     return Object.freeze({

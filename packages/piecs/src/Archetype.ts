@@ -53,7 +53,7 @@ export function createArchetype(id: string, mask: ReadonlyBitSet): InternalArche
 }
 
 export function transformArchetype(archetype: InternalArchetype, componentId: number): InternalArchetype {
-    if (archetype.adjacent[componentId]) {
+    if (archetype.adjacent[componentId] !== undefined) {
         return archetype.adjacent[componentId]!
     }
 
@@ -90,7 +90,7 @@ export function traverseArchetypeGraph(
     for (let i = 0, l = adjacent.length; i < l; i++) {
         const arch = adjacent[i]
         // adjacent is sparse, so there can be empty slots
-        if (!arch) continue
+        if (arch === undefined) continue
         // graph is doubly linked, so need to prevent infinite recursion
         if (traversed.has(arch)) continue
         if (traverseArchetypeGraph(arch, callback, traversed) === false) return false

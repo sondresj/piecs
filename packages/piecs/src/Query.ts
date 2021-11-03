@@ -91,7 +91,7 @@ function createBuilder(): QueryBuilder {
             return this
         },
         every(...components) {
-            if (!components.length) {
+            if (components.length === 0) {
                 return this
             }
             const mask = makeMask(components)
@@ -99,7 +99,7 @@ function createBuilder(): QueryBuilder {
             return this
         },
         some(...components) {
-            if (!components.length) {
+            if (components.length === 0) {
                 return this
             }
             const mask = makeMask(components)
@@ -107,7 +107,7 @@ function createBuilder(): QueryBuilder {
             return this
         },
         not(...components) {
-            if (!components.length) {
+            if (components.length === 0) {
                 return this
             }
             const mask = makeMask(components)
@@ -115,7 +115,7 @@ function createBuilder(): QueryBuilder {
             return this
         },
         none(...components) {
-            if (!components.length) {
+            if (components.length === 0) {
                 return this
             }
             const mask = makeMask(components)

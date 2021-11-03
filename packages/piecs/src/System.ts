@@ -27,7 +27,7 @@ export type ArchetypeSystem<TUpdateArguments extends any[] = never> = BaseSystem
 export type System<TUpdateArguments extends any[] = never> = EntitySystem<TUpdateArguments> | ArchetypeSystem<TUpdateArguments>
 
 /**
- * An entity system is a system that will be executed for each archetype that contains 1 or more entities matching the query.
+ * An entity system is a system that will be executed for each archetype matching the query.
  * In other words, it may be executed multiple times in each update.
  * If you need the system to only execute once in each update, use the `ArchetypeSystem` created by `createArchetypeSystem`
  * @param execute
