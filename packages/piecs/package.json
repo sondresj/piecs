@@ -19,7 +19,7 @@
 		"type": "git",
 		"url": "git+https://github.com/sondresj/piecs.git"
 	},
-	"author": "Sondre <sondre.skaardal.jensen@gmail.com>",
+	"author": "sondresj",
 	"license": "MIT",
 	"private": false,
 	"keywords": [

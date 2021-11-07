@@ -22,9 +22,3 @@ Most of the concepts used in this ECS implementation is not new, but I couldn't 
 - Register systems: No need to invoke them explicitly
 - Add systems/queries/prefabs/components whenever you want. The only requirement is that the world is initialized once before the first update.
 - BYO (Bring Your Own) Component sets: Might add an optional component manager/store in the future, but you may keep track of component values however you choose. However, there's propably no clean abstraction to component sets that doesn't tank the performance in javascript and serves all use-cases.
-
-## WASM
-
-There's an even more WIP implementation of PIECES in AssemblyScript here.
-Currently the overhead of js-wasm is too big for this to make sense to use in JS.
-Hopefully this improves in the future.

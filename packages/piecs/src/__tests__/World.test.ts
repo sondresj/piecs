@@ -231,6 +231,6 @@ Object {
 }
 `)
 
-        expect.assertions(7)
+        expect.assertions(8)
     })
 })
